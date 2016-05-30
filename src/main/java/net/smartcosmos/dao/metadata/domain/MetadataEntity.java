@@ -63,7 +63,7 @@ public class MetadataEntity {
     @NotEmpty
     @Size(max = RAW_VALUE_LENGTH)
     @Column(name = "rawValue", length = RAW_VALUE_LENGTH, nullable = false, updatable = true)
-    protected String rawValue;
+    private String rawValue;
 
     @CreatedDate
     @Column(name = "createdTimestamp", insertable = true, updatable = false)
