@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    #
+    # CREATE DATABASE devkit;  GRANT ALL PRIVILEGES ON devkit.* TO 'cosmos'@'localhost' IDENTIFIED BY 'dev';  FLUSH PRIVILEGES;
+    #
+#    url: jdbc:mysql://localhost/devkit?autoReconnect=true
+#    username: cosmos
+#    password: dev
+#    driver-class-name: org.mariadb.jdbc.Driver
+# XXX Super dangerous to let this get to production.
+  jpa:
+    hibernate:
+      ddl-auto: update
