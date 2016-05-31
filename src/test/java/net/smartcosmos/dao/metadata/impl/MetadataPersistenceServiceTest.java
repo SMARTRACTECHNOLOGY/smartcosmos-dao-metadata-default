@@ -2,11 +2,15 @@ package net.smartcosmos.dao.metadata.impl;
 
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dto.metadata.MetadataResponse;
+import net.smartcosmos.dto.metadata.MetadataUpsert;
 import net.smartcosmos.security.user.SmartCosmosUser;
 import net.smartcosmos.util.UuidUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +24,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -57,5 +66,80 @@ public class MetadataPersistenceServiceTest {
     @After
     public void tearDown() throws Exception {
         metadataRepository.deleteAll();
+    }
+
+    @Test
+    public void testCreate() throws Exception {
+
+        final String key = "key";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.upsert(accountUrn, createList);
+
+        assertFalse(responseList.isEmpty());
+        assertEquals(1, responseList.size());
+        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
+        assertEquals(key, responseList.get(0).getKey());
+        assertEquals(dataType, responseList.get(0).getDataType());
+        assertEquals(rawValue, responseList.get(0).getRawValue());
+
+        List<MetadataEntity> entityList = metadataRepository.findByAccountIdAndReferenceId(accountId, UuidUtil.getUuidFromUrn(referenceUrn));
+
+        assertFalse(entityList.isEmpty());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(1, entityList.size());
+        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getReferenceId()));
+        assertEquals(entityReferenceType, entityList.get(0).getEntityReferenceType());
+        assertEquals(key, entityList.get(0).getKey());
+        assertEquals(dataType, entityList.get(0).getDataType());
+        assertEquals(rawValue, entityList.get(0).getRawValue());
+    }
+
+    @Test
+    public void testDelete() {
+
+        final String key = "deleteMe";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+        metadataPersistenceService.upsert(accountUrn, createList);
+
+        List<MetadataResponse> deleteList = metadataPersistenceService.delete(accountUrn, entityReferenceType, referenceUrn, key);
+
+        assertFalse(deleteList.isEmpty());
+        assertEquals(1, deleteList.size());
+        assertEquals(referenceUrn, deleteList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, deleteList.get(0).getEntityReferenceType());
+        assertEquals(key, deleteList.get(0).getKey());
+        assertEquals(dataType, deleteList.get(0).getDataType());
+        assertEquals(rawValue, deleteList.get(0).getRawValue());
     }
 }
