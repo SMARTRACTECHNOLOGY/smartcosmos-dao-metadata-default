@@ -1,17 +1,20 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import javax.validation.ConstraintViolationException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.stereotype.Service;
+
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataUpsert;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.stereotype.Service;
-
-import javax.validation.ConstraintViolationException;
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,7 +31,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public List<MetadataResponse> upsert(String accountUrn, String entityReferenceType, String referenceUrn, List<MetadataUpsert> metadataUpsertList) throws ConstraintViolationException {
+    public List<MetadataResponse> upsert(String accountUrn, String entityReferenceType, String referenceUrn, Collection<MetadataUpsert> metadataUpsertList) throws ConstraintViolationException {
         return null;
     }
 
