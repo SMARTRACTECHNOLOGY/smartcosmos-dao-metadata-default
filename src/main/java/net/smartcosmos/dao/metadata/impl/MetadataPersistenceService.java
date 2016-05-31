@@ -37,8 +37,11 @@ public class MetadataPersistenceService implements MetadataDao {
 
         List<MetadataResponse> responseList = new ArrayList<>();
 
+        UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
+
         for (MetadataUpsert upsertMetadata : upsertMetadataCollection) {
             MetadataEntity entity = conversionService.convert(upsertMetadata, MetadataEntity.class);
+            entity.setAccountId(accountId);
             entity = persist(entity);
 
             responseList.add(conversionService.convert(entity, MetadataResponse.class));
