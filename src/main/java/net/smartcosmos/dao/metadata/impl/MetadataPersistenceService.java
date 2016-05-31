@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dto.metadata.MetadataQuery;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataUpsert;
+import net.smartcosmos.util.UuidUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -13,10 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
 import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -48,8 +48,30 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<MetadataResponse> delete(String accountUrn, String entityReferenceType, String referenceUrn, String key) {
-        return null;
+    public List<MetadataResponse> delete(String accountUrn, String entityReferenceType, String referenceUrn, String key) {
+
+        List<MetadataEntity> deleteList = new ArrayList<>();
+
+        try {
+            UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
+            UUID referenceId = UuidUtil.getUuidFromUrn(referenceUrn);
+
+            deleteList = metadataRepository.deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
+                accountId,
+                entityReferenceType,
+                referenceId,
+                key);
+        } catch (IllegalArgumentException e) {
+            // empty list will be returned anyway
+            log.warn("Illegal URN submitted: %s by account %s", referenceUrn, accountUrn);
+
+            // TODO: Returning an empty list here will hide the fact that there was a problem with URNs - do we really want that?
+            // It would mean both then: (1) Did not find what you attempted to delete, and (2) invalid URN
+        }
+
+        return deleteList.stream()
+            .map(o -> conversionService.convert(o, MetadataResponse.class))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -57,18 +79,28 @@ public class MetadataPersistenceService implements MetadataDao {
         return null;
     }
 
+    @Override
+    public List<MetadataResponse> findBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+        return null;
+    }
+
+    @Override
+    public Integer countBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+        return null;
+    }
+
     /**
      * Saves an metadata entity in an {@link MetadataRepository}.
      *
-     * @param metadataEntity the metadata entity to persist
+     * @param entity the metadata entity to persist
      * @return the persisted metadata entity
      * @throws ConstraintViolationException if the transaction fails due to violated constraints
      * @throws TransactionException if the transaction fails because of something else
      */
     @SuppressWarnings("Duplicates")
-    private MetadataEntity persist(MetadataEntity metadataEntity) throws ConstraintViolationException, TransactionException {
+    private MetadataEntity persist(MetadataEntity entity) throws ConstraintViolationException, TransactionException {
         try {
-            return metadataRepository.save(metadataEntity);
+            return metadataRepository.save(entity);
         } catch (TransactionException e) {
             // we expect constraint violations to be the root cause for exceptions here,
             // so we throw this particular exception back to the caller
