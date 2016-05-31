@@ -47,7 +47,7 @@ public class MetadataEntity {
 
     @NotEmpty
     @Size(max = ENTITY_REFERENCE_TYPE_LENGTH)
-    @Column(name = "entityReferenceType", length = DATA_TYPE_LENGTH, nullable = false, updatable = false)
+    @Column(name = "entityReferenceType", length = ENTITY_REFERENCE_TYPE_LENGTH, nullable = false, updatable = false)
     private String entityReferenceType;
 
     @NotNull
