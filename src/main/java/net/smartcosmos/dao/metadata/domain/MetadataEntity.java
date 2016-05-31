@@ -41,8 +41,9 @@ public class MetadataEntity {
     @Column(name = "accountUuid", length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID accountId;
 
+    @NotEmpty
     @Size(max = DATA_TYPE_LENGTH)
-    @Column(name = "dataType", length = DATA_TYPE_LENGTH, nullable = true, updatable = true)
+    @Column(name = "dataType", length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
     private String dataType;
 
     @NotEmpty
