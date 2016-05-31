@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID> {
 
+    List<MetadataEntity> findByAccountIdAndReferenceId(UUID accountId, UUID referenceId);
+
     @Transactional
     List<MetadataEntity> deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(UUID accountId, String entityReferenceType, UUID referenceId, String key);
 }
