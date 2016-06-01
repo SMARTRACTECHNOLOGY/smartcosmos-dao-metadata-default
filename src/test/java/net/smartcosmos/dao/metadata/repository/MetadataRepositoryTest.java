@@ -15,10 +15,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -74,6 +74,17 @@ public class MetadataRepositoryTest {
         assertEquals("true", entity.getRawValue());
         assertEquals("BooleanType", entity.getDataType());
         assertEquals(key, entity.getKey());
+    }
+
+    @Test
+    public void thatFindByKeyIsSuccessful() throws Exception {
+        Optional<MetadataEntity> entity = metadataRepository.findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(accountId, entityReferenceType, referenceId, key);
+
+        assertTrue(entity.isPresent());
+
+        assertEquals("true", entity.get().getRawValue());
+        assertEquals("BooleanType", entity.get().getDataType());
+        assertEquals(key, entity.get().getKey());
     }
 
 }
