@@ -26,9 +26,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -107,6 +105,71 @@ public class MetadataPersistenceServiceTest {
         assertEquals(key, entityList.get(0).getKey());
         assertEquals(dataType, entityList.get(0).getDataType());
         assertEquals(rawValue, entityList.get(0).getRawValue());
+    }
+
+    @Test
+    public void testUpdate() throws Exception {
+
+        final String key = "updateKey";
+        final String dataType = "BooleanType";
+        final String initialRawValue = "true";
+        final String updateRawValue = "false";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(initialRawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+
+        List<MetadataResponse> createResponseList = metadataPersistenceService.upsert(accountUrn, createList);
+
+        assertFalse(createResponseList.isEmpty());
+        assertEquals(1, createResponseList.size());
+        assertEquals(referenceUrn, createResponseList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, createResponseList.get(0).getEntityReferenceType());
+        assertEquals(key, createResponseList.get(0).getKey());
+        assertEquals(dataType, createResponseList.get(0).getDataType());
+        assertEquals(initialRawValue, createResponseList.get(0).getRawValue());
+
+        MetadataUpsert update = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(updateRawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> updateList = new ArrayList<>();
+        updateList.add(update);
+
+        List<MetadataResponse> updateResponseList = metadataPersistenceService.upsert(accountUrn, updateList);
+
+        assertFalse(updateResponseList.isEmpty());
+        assertEquals(1, updateResponseList.size());
+        assertEquals(referenceUrn, updateResponseList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, updateResponseList.get(0).getEntityReferenceType());
+        assertEquals(key, updateResponseList.get(0).getKey());
+        assertEquals(dataType, updateResponseList.get(0).getDataType());
+        assertEquals(updateRawValue, updateResponseList.get(0).getRawValue());
+
+        List<MetadataEntity> entityList = metadataRepository.findByAccountIdAndReferenceId(accountId, UuidUtil.getUuidFromUrn(referenceUrn));
+
+        assertFalse(entityList.isEmpty());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(1, entityList.size());
+        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getReferenceId()));
+        assertEquals(entityReferenceType, entityList.get(0).getEntityReferenceType());
+        assertEquals(key, entityList.get(0).getKey());
+        assertEquals(dataType, entityList.get(0).getDataType());
+        assertEquals(updateRawValue, entityList.get(0).getRawValue());
     }
 
     @Test
