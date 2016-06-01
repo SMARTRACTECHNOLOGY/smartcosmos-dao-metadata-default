@@ -4,13 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.SearchSpecifications;
 import net.smartcosmos.dto.metadata.MetadataQuery;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataUpsert;
 import net.smartcosmos.util.UuidUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -18,12 +22,15 @@ import javax.validation.ConstraintViolationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.jpa.domain.Specifications.where;
+
 @Slf4j
 @Service
 public class MetadataPersistenceService implements MetadataDao {
 
     private final MetadataRepository metadataRepository;
     private final ConversionService conversionService;
+    private final SearchSpecifications<MetadataEntity> searchSpecifications = new SearchSpecifications<>();
 
     @Autowired
     public MetadataPersistenceService(MetadataRepository metadataRepository,
@@ -104,12 +111,25 @@ public class MetadataPersistenceService implements MetadataDao {
 
     @Override
     public List<MetadataResponse> findBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
-        return null;
+
+        Specifications<MetadataEntity> specifications = getSearchSpecifications(accountUrn, queryMetadataCollection);
+
+        Iterable<MetadataEntity> returnedValues = metadataRepository.findAll(specifications);
+
+        List<MetadataResponse> convertedList = new ArrayList<>();
+        for (MetadataEntity entity: returnedValues) {
+            convertedList.add(conversionService.convert(entity, MetadataResponse.class));
+        }
+
+        return convertedList;
     }
 
     @Override
-    public Integer countBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
-        return null;
+    public Long countBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+
+        Specifications<MetadataEntity> specifications = getSearchSpecifications(accountUrn, queryMetadataCollection);
+
+        return metadataRepository.count(specifications);
     }
 
     /**
@@ -143,5 +163,40 @@ public class MetadataPersistenceService implements MetadataDao {
             upsertMetadata.getKey());
 
         return (existingEntity.isPresent() ? existingEntity.get().getId() : null);
+    }
+
+    private Specifications<MetadataEntity> getSearchSpecifications(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+
+        Specification<MetadataEntity> accountUrnSpecification = null;
+
+        if (StringUtils.isNotBlank(accountUrn)) {
+            UUID accountUuid = UuidUtil.getUuidFromAccountUrn(accountUrn);
+            accountUrnSpecification = searchSpecifications.matchUuid(accountUuid, "accountId");
+        }
+
+        Specifications<MetadataEntity> specifications = where(accountUrnSpecification);
+
+        for (MetadataQuery query : queryMetadataCollection) {
+            Specification<MetadataEntity> keySpecification = getSearchSpecification(MetadataEntity.KEY_FIELD_NAME, query.getKey());
+            specifications.and(keySpecification);
+
+            Specification<MetadataEntity> dataTypeSpecification = getSearchSpecification(MetadataEntity.DATA_TYPE_FIELD_NAME, query.getDataType());
+            specifications.and(dataTypeSpecification);
+
+            Specification<MetadataEntity> rawValueSpecification = getSearchSpecification(MetadataEntity.RAW_VALUE_FIELD_NAME, query.getRawValue());
+            specifications.and(rawValueSpecification);
+        }
+
+        return specifications;
+    }
+
+    private Specification<MetadataEntity> getSearchSpecification(String fieldName, String query) {
+        Specification<MetadataEntity> specification = null;
+
+        if (StringUtils.isNotBlank(fieldName) && StringUtils.isNotBlank(query)) {
+            specification = searchSpecifications.stringMatchesExactly(query, fieldName);
+        }
+
+        return specification;
     }
 }
