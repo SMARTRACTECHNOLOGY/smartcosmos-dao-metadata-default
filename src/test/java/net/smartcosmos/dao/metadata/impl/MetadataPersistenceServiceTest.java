@@ -4,6 +4,7 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dto.metadata.MetadataQuery;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataUpsert;
 import net.smartcosmos.security.user.SmartCosmosUser;
@@ -233,5 +234,45 @@ public class MetadataPersistenceServiceTest {
         assertEquals(key, response.get().getKey());
         assertEquals(dataType, response.get().getDataType());
         assertEquals(rawValue, response.get().getRawValue());
+    }
+
+    @Test
+    public void testFindBySearchCriterias() {
+
+        final String key = "searchMe";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+        metadataPersistenceService.upsert(accountUrn, createList);
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .key(key)
+            .rawValue(rawValue)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertFalse(responseList.isEmpty());
+        assertEquals(1, responseList.size());
+        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
+        assertEquals(key, responseList.get(0).getKey());
+        assertEquals(dataType, responseList.get(0).getDataType());
+        assertEquals(rawValue, responseList.get(0).getRawValue());
     }
 }
