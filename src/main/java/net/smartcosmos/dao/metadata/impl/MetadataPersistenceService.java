@@ -53,12 +53,11 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public List<MetadataResponse> delete(String accountUrn, String entityReferenceType, String referenceUrn, String key) {
 
+        UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
         try {
-            UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
             UUID referenceId = UuidUtil.getUuidFromUrn(referenceUrn);
-
             deleteList = metadataRepository.deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
                 accountId,
                 entityReferenceType,
@@ -67,9 +66,6 @@ public class MetadataPersistenceService implements MetadataDao {
         } catch (IllegalArgumentException e) {
             // empty list will be returned anyway
             log.warn("Illegal URN submitted: %s by account %s", referenceUrn, accountUrn);
-
-            // TODO: Returning an empty list here will hide the fact that there was a problem with URNs - do we really want that?
-            // It would mean both then: (1) Did not find what you attempted to delete, and (2) invalid URN
         }
 
         return deleteList.stream()
