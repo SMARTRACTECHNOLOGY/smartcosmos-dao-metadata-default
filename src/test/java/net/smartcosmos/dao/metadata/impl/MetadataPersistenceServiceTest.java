@@ -26,6 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -39,6 +40,46 @@ public class MetadataPersistenceServiceTest {
 
     private final UUID accountId = UUID.randomUUID();
     private final String accountUrn = UuidUtil.getAccountUrnFromUuid(accountId);
+
+    private static final String ENTITY_REFERENCE_TYPE = "Object";
+    private static final String KEY_A = "key-A";
+    private static final String KEY_B = "key-B";
+    private static final String DATA_TYPE_STRING = "StringType";
+    private static final String DATA_TYPE_BOOLEAN = "BooleanType";
+    private static final String RAW_VALUE_STRING_A = "ABC";
+    private static final String RAW_VALUE_STRING_B = "DEF";
+    private static final String RAW_VALUE_BOOLEAN_A = "true";
+    private static final String RAW_VALUE_BOOLEAN_B = "false";
+
+    private static final UUID REFERENCE_ID_ONE = UuidUtil.getNewUuid();
+    private static final String KEY_ONE = KEY_A;
+    private static final String DATA_TYPE_ONE = DATA_TYPE_STRING;
+    private static final String RAW_VALUE_ONE = RAW_VALUE_STRING_A;
+
+    private static final UUID REFERENCE_ID_TWO = UuidUtil.getNewUuid();
+    private static final String KEY_TWO = KEY_A;
+    private static final String DATA_TYPE_TWO = DATA_TYPE_BOOLEAN;
+    private static final String RAW_VALUE_TWO = RAW_VALUE_BOOLEAN_A;
+
+    private static final UUID REFERENCE_ID_THREE = UuidUtil.getNewUuid();
+    private static final String KEY_THREE = KEY_A;
+    private static final String DATA_TYPE_THREE = DATA_TYPE_STRING;
+    private static final String RAW_VALUE_THREE = RAW_VALUE_STRING_B;
+
+    private static final UUID REFERENCE_ID_FOUR = UuidUtil.getNewUuid();
+    private static final String KEY_FOUR = KEY_B;
+    private static final String DATA_TYPE_FOUR = DATA_TYPE_BOOLEAN;
+    private static final String RAW_VALUE_FOUR = RAW_VALUE_BOOLEAN_A;
+
+    private static final UUID REFERENCE_ID_FIVE = UuidUtil.getNewUuid();
+    private static final String KEY_FIVE = KEY_B;
+    private static final String DATA_TYPE_FIVE = DATA_TYPE_STRING;
+    private static final String RAW_VALUE_FIVE = RAW_VALUE_STRING_A;
+
+    private static final UUID REFERENCE_ID_SIX = UuidUtil.getNewUuid();
+    private static final String KEY_SIX = KEY_B;
+    private static final String DATA_TYPE_SIX = DATA_TYPE_BOOLEAN;
+    private static final String RAW_VALUE_SIX = RAW_VALUE_BOOLEAN_B;
 
     @Autowired
     MetadataPersistenceService metadataPersistenceService;
@@ -277,6 +318,8 @@ public class MetadataPersistenceServiceTest {
     @Test
     public void testFindBySingleSearchCriteriaKey() {
 
+        populateQueryData();
+
         final String key = "searchMe";
         final String dataType = "BooleanType";
         final String rawValue = "true";
@@ -316,9 +359,11 @@ public class MetadataPersistenceServiceTest {
     @Test
     public void testFindBySingleSearchCriteriaRawValue() {
 
+        populateQueryData();
+
         final String key = "searchMe";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
+        final String dataType = "IntegerType";
+        final String rawValue = "42";
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
@@ -355,9 +400,11 @@ public class MetadataPersistenceServiceTest {
     @Test
     public void testFindBySingleSearchCriteriaDataType() {
 
+        populateQueryData();
+
         final String key = "searchMe";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
+        final String dataType = "DoubleType";
+        final String rawValue = "23";
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
@@ -402,6 +449,88 @@ public class MetadataPersistenceServiceTest {
 
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertTrue(responseList.isEmpty());
+    }
+
+    @Test
+    public void testFindByComplexSearchCriteriaDataTypeStringKeyA() {
+        populateQueryData();
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .key(KEY_A)
+            .dataType(DATA_TYPE_STRING)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertFalse(responseList.isEmpty());
+        assertEquals(2, responseList.size());
+
+        List<UUID> uuidList = responseList.stream()
+            .map(response -> UuidUtil.getUuidFromUrn(response.getReferenceUrn()))
+            .collect(Collectors.toList());
+
+        assertTrue(uuidList.contains(REFERENCE_ID_ONE));
+        assertTrue(uuidList.contains(REFERENCE_ID_THREE));
+    }
+
+    @Test
+    public void testFindByComplexSearchCriteriasDataTypeBooleanValueAAndKeyA() {
+        populateQueryData();
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .dataType(DATA_TYPE_BOOLEAN)
+            .rawValue(RAW_VALUE_BOOLEAN_A)
+            .build();
+
+        MetadataQuery query2 = MetadataQuery.builder()
+            .key(KEY_A)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+        queryCollection.add(query2);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertFalse(responseList.isEmpty());
+        assertEquals(1, responseList.size());
+
+        List<UUID> uuidList = responseList.stream()
+            .map(response -> UuidUtil.getUuidFromUrn(response.getReferenceUrn()))
+            .collect(Collectors.toList());
+
+        assertTrue(uuidList.contains(REFERENCE_ID_TWO));
+    }
+
+    @Test
+    public void testFindByComplexSearchCriteriaNothingMatches() {
+        populateQueryData();
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .dataType(DATA_TYPE_BOOLEAN)
+            .rawValue(RAW_VALUE_BOOLEAN_A)
+            .build();
+
+        MetadataQuery query2 = MetadataQuery.builder()
+            .key(KEY_A)
+            .build();
+
+        MetadataQuery query3 = MetadataQuery.builder()
+            .dataType(DATA_TYPE_STRING)
+            .key(KEY_B)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+        queryCollection.add(query2);
+        queryCollection.add(query3);
 
         List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
 
@@ -461,6 +590,74 @@ public class MetadataPersistenceServiceTest {
 
         assertNotNull(count);
         assertTrue(0L == count);
+    }
+
+    // endregion
+
+    // region Helper Methods
+
+    private void populateQueryData() {
+
+        MetadataEntity entity1 = MetadataEntity.builder()
+            .accountId(accountId)
+            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .referenceId(REFERENCE_ID_ONE)
+            .key(KEY_ONE)
+            .dataType(DATA_TYPE_ONE)
+            .rawValue(RAW_VALUE_ONE)
+            .build();
+
+        MetadataEntity entity2 = MetadataEntity.builder()
+            .accountId(accountId)
+            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .referenceId(REFERENCE_ID_TWO)
+            .key(KEY_TWO)
+            .dataType(DATA_TYPE_TWO)
+            .rawValue(RAW_VALUE_TWO)
+            .build();
+
+        MetadataEntity entity3 = MetadataEntity.builder()
+            .accountId(accountId)
+            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .referenceId(REFERENCE_ID_THREE)
+            .key(KEY_THREE)
+            .dataType(DATA_TYPE_THREE)
+            .rawValue(RAW_VALUE_THREE)
+            .build();
+
+        MetadataEntity entity4 = MetadataEntity.builder()
+            .accountId(accountId)
+            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .referenceId(REFERENCE_ID_FOUR)
+            .key(KEY_FOUR)
+            .dataType(DATA_TYPE_FOUR)
+            .rawValue(RAW_VALUE_FOUR)
+            .build();
+
+        MetadataEntity entity5 = MetadataEntity.builder()
+            .accountId(accountId)
+            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .referenceId(REFERENCE_ID_FIVE)
+            .key(KEY_FIVE)
+            .dataType(DATA_TYPE_FIVE)
+            .rawValue(RAW_VALUE_FIVE)
+            .build();
+
+        MetadataEntity entity6 = MetadataEntity.builder()
+            .accountId(accountId)
+            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .referenceId(REFERENCE_ID_SIX)
+            .key(KEY_SIX)
+            .dataType(DATA_TYPE_SIX)
+            .rawValue(RAW_VALUE_SIX)
+            .build();
+
+        metadataRepository.save(entity1);
+        metadataRepository.save(entity2);
+        metadataRepository.save(entity3);
+        metadataRepository.save(entity4);
+        metadataRepository.save(entity5);
+        metadataRepository.save(entity6);
     }
 
     // endregion
