@@ -23,7 +23,7 @@ import java.util.UUID;
 public class MetadataEntity {
 
     public static final String UUID_FIELD_NAME = "systemUuid";
-    public static final String KEY_FIELD_NAME = "metadata_key";
+    public static final String KEY_FIELD_NAME = "key";
     public static final String DATA_TYPE_FIELD_NAME = "dataType";
     public static final String ENTITY_REFERENCE_TYPE_FIELD_NAME = "entityReferenceType";
     public static final String RAW_VALUE_FIELD_NAME = "rawValue";
