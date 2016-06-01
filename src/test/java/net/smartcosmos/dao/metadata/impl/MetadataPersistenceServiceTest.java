@@ -206,6 +206,18 @@ public class MetadataPersistenceServiceTest {
     }
 
     @Test
+    public void testDeleteNonexistent() {
+
+        final String key = "this-does-not-exist";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        List<MetadataResponse> deleteList = metadataPersistenceService.delete(accountUrn, entityReferenceType, referenceUrn, key);
+
+        assertTrue(deleteList.isEmpty());
+    }
+
+    @Test
     public void testFindByKey() {
 
         final String key = "findMe";
@@ -237,7 +249,19 @@ public class MetadataPersistenceServiceTest {
     }
 
     @Test
-    public void testFindBySearchCriterias() {
+    public void testFindByKeyNonexistent() {
+
+        final String key = "this-does-not-exist";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(accountUrn, entityReferenceType, referenceUrn, key);
+
+        assertFalse(response.isPresent());
+    }
+
+    @Test
+    public void testFindBySingleSearchCriteriaKey() {
 
         final String key = "searchMe";
         final String dataType = "BooleanType";
@@ -259,7 +283,84 @@ public class MetadataPersistenceServiceTest {
 
         MetadataQuery query1 = MetadataQuery.builder()
             .key(key)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertFalse(responseList.isEmpty());
+        assertEquals(1, responseList.size());
+        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
+        assertEquals(key, responseList.get(0).getKey());
+        assertEquals(dataType, responseList.get(0).getDataType());
+        assertEquals(rawValue, responseList.get(0).getRawValue());
+    }
+
+    @Test
+    public void testFindBySingleSearchCriteriaRawValue() {
+
+        final String key = "searchMe";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+        metadataPersistenceService.upsert(accountUrn, createList);
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .rawValue(rawValue)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertFalse(responseList.isEmpty());
+        assertEquals(1, responseList.size());
+        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
+        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
+        assertEquals(key, responseList.get(0).getKey());
+        assertEquals(dataType, responseList.get(0).getDataType());
+        assertEquals(rawValue, responseList.get(0).getRawValue());
+    }
+
+    @Test
+    public void testFindBySingleSearchCriteriaDataType() {
+
+        final String key = "searchMe";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+        metadataPersistenceService.upsert(accountUrn, createList);
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .dataType(dataType)
             .build();
 
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
