@@ -40,8 +40,11 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
 
         for (MetadataUpsert upsertMetadata : upsertMetadataCollection) {
+            UUID existingEntityId = getExistingEntityId(accountId, upsertMetadata);
+
             MetadataEntity entity = conversionService.convert(upsertMetadata, MetadataEntity.class);
             entity.setAccountId(accountId);
+            entity.setId(existingEntityId);
             entity = persist(entity);
 
             responseList.add(conversionService.convert(entity, MetadataResponse.class));
@@ -130,5 +133,15 @@ public class MetadataPersistenceService implements MetadataDao {
                 throw e;
             }
         }
+    }
+
+    private UUID getExistingEntityId(UUID accountId, MetadataUpsert upsertMetadata) {
+        Optional<MetadataEntity> existingEntity = metadataRepository.findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
+            accountId,
+            upsertMetadata.getEntityReferenceType(),
+            UuidUtil.getUuidFromUrn(upsertMetadata.getReferenceUrn()),
+            upsertMetadata.getKey());
+
+        return (existingEntity.isPresent() ? existingEntity.get().getId() : null);
     }
 }
