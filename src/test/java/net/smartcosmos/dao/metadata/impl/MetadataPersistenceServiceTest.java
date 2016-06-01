@@ -24,13 +24,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -141,5 +139,36 @@ public class MetadataPersistenceServiceTest {
         assertEquals(key, deleteList.get(0).getKey());
         assertEquals(dataType, deleteList.get(0).getDataType());
         assertEquals(rawValue, deleteList.get(0).getRawValue());
+    }
+
+    @Test
+    public void testFindByKey() {
+
+        final String key = "findMe";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+        metadataPersistenceService.upsert(accountUrn, createList);
+
+        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(accountUrn, entityReferenceType, referenceUrn, key);
+
+        assertTrue(response.isPresent());
+        assertEquals(referenceUrn, response.get().getReferenceUrn());
+        assertEquals(entityReferenceType, response.get().getEntityReferenceType());
+        assertEquals(key, response.get().getKey());
+        assertEquals(dataType, response.get().getDataType());
+        assertEquals(rawValue, response.get().getRawValue());
     }
 }
