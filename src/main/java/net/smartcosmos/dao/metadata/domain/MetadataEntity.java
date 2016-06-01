@@ -22,6 +22,12 @@ import java.util.UUID;
 @Table(name = "metadata", uniqueConstraints = @UniqueConstraint(columnNames = { "systemUuid", "accountUuid" }) )
 public class MetadataEntity {
 
+    public static final String UUID_FIELD_NAME = "systemUuid";
+    public static final String KEY_FIELD_NAME = "metadata_key";
+    public static final String DATA_TYPE_FIELD_NAME = "dataType";
+    public static final String ENTITY_REFERENCE_TYPE_FIELD_NAME = "entityReferenceType";
+    public static final String RAW_VALUE_FIELD_NAME = "rawValue";
+
     private static final int UUID_LENGTH = 16;
     private static final int KEY_LENGTH = 255;
     private static final int DATA_TYPE_LENGTH = 255;
@@ -33,7 +39,7 @@ public class MetadataEntity {
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Type(type = "uuid-binary")
-    @Column(name = "systemUuid", length = UUID_LENGTH)
+    @Column(name = UUID_FIELD_NAME, length = UUID_LENGTH)
     private UUID id;
 
     @NotNull
@@ -43,12 +49,12 @@ public class MetadataEntity {
 
     @NotEmpty
     @Size(max = DATA_TYPE_LENGTH)
-    @Column(name = "dataType", length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
+    @Column(name = DATA_TYPE_FIELD_NAME, length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
     private String dataType;
 
     @NotEmpty
     @Size(max = ENTITY_REFERENCE_TYPE_LENGTH)
-    @Column(name = "entityReferenceType", length = ENTITY_REFERENCE_TYPE_LENGTH, nullable = false, updatable = false)
+    @Column(name = ENTITY_REFERENCE_TYPE_FIELD_NAME, length = ENTITY_REFERENCE_TYPE_LENGTH, nullable = false, updatable = false)
     private String entityReferenceType;
 
     @NotNull
@@ -58,12 +64,12 @@ public class MetadataEntity {
 
     @NotEmpty
     @Size(max = KEY_LENGTH)
-    @Column(name = "metadata_key", length = KEY_LENGTH, nullable = false, updatable = false)
+    @Column(name = KEY_FIELD_NAME, length = KEY_LENGTH, nullable = false, updatable = false)
     private String key;
 
     @NotEmpty
     @Size(max = RAW_VALUE_LENGTH)
-    @Column(name = "rawValue", length = RAW_VALUE_LENGTH, nullable = false, updatable = true)
+    @Column(name = RAW_VALUE_FIELD_NAME, length = RAW_VALUE_LENGTH, nullable = false, updatable = true)
     private String rawValue;
 
     @CreatedDate
