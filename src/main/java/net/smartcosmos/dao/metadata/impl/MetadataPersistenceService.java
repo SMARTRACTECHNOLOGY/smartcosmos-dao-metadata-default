@@ -178,13 +178,13 @@ public class MetadataPersistenceService implements MetadataDao {
 
         for (MetadataQuery query : queryMetadataCollection) {
             Specification<MetadataEntity> keySpecification = getSearchSpecification(MetadataEntity.KEY_FIELD_NAME, query.getKey());
-            specifications.and(keySpecification);
+            specifications = specifications.and(keySpecification);
 
             Specification<MetadataEntity> dataTypeSpecification = getSearchSpecification(MetadataEntity.DATA_TYPE_FIELD_NAME, query.getDataType());
-            specifications.and(dataTypeSpecification);
+            specifications = specifications.and(dataTypeSpecification);
 
             Specification<MetadataEntity> rawValueSpecification = getSearchSpecification(MetadataEntity.RAW_VALUE_FIELD_NAME, query.getRawValue());
-            specifications.and(rawValueSpecification);
+            specifications = specifications.and(rawValueSpecification);
         }
 
         return specifications;
