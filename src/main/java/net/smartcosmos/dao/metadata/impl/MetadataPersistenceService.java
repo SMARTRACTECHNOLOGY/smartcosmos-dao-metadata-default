@@ -79,7 +79,28 @@ public class MetadataPersistenceService implements MetadataDao {
 
     @Override
     public Optional<MetadataResponse> findByKey(String accountUrn, String entityReferenceType, String referenceUrn, String key) {
-        return null;
+
+        UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
+
+        Optional<MetadataEntity> entity = Optional.empty();
+        try {
+            UUID uuid = UuidUtil.getUuidFromUrn(referenceUrn);
+            entity = metadataRepository.findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
+                accountId,
+                entityReferenceType,
+                uuid,
+                key);
+        } catch (IllegalArgumentException e) {
+            // empty Optional will be returned anyway
+            log.warn("Illegal URN submitted: %s by account %s", referenceUrn, accountUrn);
+        }
+
+        if (entity.isPresent())
+        {
+            final MetadataResponse response = conversionService.convert(entity.get(), MetadataResponse.class);
+            return Optional.ofNullable(response);
+        }
+        return Optional.empty();
     }
 
     @Override
