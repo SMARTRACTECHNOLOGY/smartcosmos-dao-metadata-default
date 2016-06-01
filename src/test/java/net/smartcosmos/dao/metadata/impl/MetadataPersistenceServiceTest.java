@@ -65,6 +65,8 @@ public class MetadataPersistenceServiceTest {
         metadataRepository.deleteAll();
     }
 
+    // region Upsert
+
     @Test
     public void testCreate() throws Exception {
 
@@ -173,6 +175,10 @@ public class MetadataPersistenceServiceTest {
         assertEquals(updateRawValue, entityList.get(0).getRawValue());
     }
 
+    // endregion
+
+    // region Delete
+
     @Test
     public void testDelete() {
 
@@ -217,6 +223,10 @@ public class MetadataPersistenceServiceTest {
         assertTrue(deleteList.isEmpty());
     }
 
+    // endregion
+
+    // region Find by Key
+
     @Test
     public void testFindByKey() {
 
@@ -259,6 +269,10 @@ public class MetadataPersistenceServiceTest {
 
         assertFalse(response.isPresent());
     }
+
+    // endregion
+
+    // region Query
 
     @Test
     public void testFindBySingleSearchCriteriaKey() {
@@ -376,4 +390,78 @@ public class MetadataPersistenceServiceTest {
         assertEquals(dataType, responseList.get(0).getDataType());
         assertEquals(rawValue, responseList.get(0).getRawValue());
     }
+
+    @Test
+    public void testFindBySearchCriteriaNonexistent() {
+
+        final String key = "does-not-exist";
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .key(key)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+
+        assertTrue(responseList.isEmpty());
+    }
+
+    // endregion
+
+    // region Count
+
+    @Test
+    public void testCountBySingleSearchCriteriaKey() {
+
+        final String key = "searchMe";
+        final String dataType = "BooleanType";
+        final String rawValue = "true";
+        final String entityReferenceType = "Object";
+        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        MetadataUpsert create = MetadataUpsert.builder()
+            .referenceUrn(referenceUrn)
+            .entityReferenceType(entityReferenceType)
+            .rawValue(rawValue)
+            .dataType(dataType)
+            .key(key)
+            .build();
+
+        List<MetadataUpsert> createList = new ArrayList<>();
+        createList.add(create);
+        metadataPersistenceService.upsert(accountUrn, createList);
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .key(key)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        Long count = metadataPersistenceService.countBySearchCriterias(accountUrn, queryCollection);
+
+        assertNotNull(count);
+        assertTrue(1L == count);
+    }
+
+    @Test
+    public void testCountNonexistent() {
+        final String key = "does-not-exist";
+
+        MetadataQuery query1 = MetadataQuery.builder()
+            .key(key)
+            .build();
+
+        Collection<MetadataQuery> queryCollection = new ArrayList<>();
+        queryCollection.add(query1);
+
+        Long count = metadataPersistenceService.countBySearchCriterias(accountUrn, queryCollection);
+
+        assertNotNull(count);
+        assertTrue(0L == count);
+    }
+
+    // endregion
 }
