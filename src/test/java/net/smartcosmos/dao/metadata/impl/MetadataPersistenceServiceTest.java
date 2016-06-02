@@ -345,7 +345,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertFalse(responseList.isEmpty());
         assertEquals(1, responseList.size());
@@ -386,7 +386,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertFalse(responseList.isEmpty());
         assertEquals(1, responseList.size());
@@ -427,7 +427,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertFalse(responseList.isEmpty());
         assertEquals(1, responseList.size());
@@ -450,7 +450,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertTrue(responseList.isEmpty());
     }
@@ -467,7 +467,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertFalse(responseList.isEmpty());
         assertEquals(2, responseList.size());
@@ -497,7 +497,7 @@ public class MetadataPersistenceServiceTest {
         queryCollection.add(query1);
         queryCollection.add(query2);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertFalse(responseList.isEmpty());
         assertEquals(1, responseList.size());
@@ -532,7 +532,7 @@ public class MetadataPersistenceServiceTest {
         queryCollection.add(query2);
         queryCollection.add(query3);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriterias(accountUrn, queryCollection);
+        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
 
         assertTrue(responseList.isEmpty());
     }
@@ -569,7 +569,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Long count = metadataPersistenceService.countBySearchCriterias(accountUrn, queryCollection);
+        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn, queryCollection);
 
         assertNotNull(count);
         assertTrue(1L == count);
@@ -586,7 +586,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Long count = metadataPersistenceService.countBySearchCriterias(accountUrn, queryCollection);
+        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn, queryCollection);
 
         assertNotNull(count);
         assertTrue(0L == count);

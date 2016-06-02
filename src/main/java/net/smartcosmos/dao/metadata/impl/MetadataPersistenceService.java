@@ -110,7 +110,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public List<MetadataResponse> findBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+    public List<MetadataResponse> findBySearchCriteria(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
 
         Specifications<MetadataEntity> specifications = getSearchSpecifications(accountUrn, queryMetadataCollection);
 
@@ -125,7 +125,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Long countBySearchCriterias(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+    public Long countBySearchCriteria(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
 
         Specifications<MetadataEntity> specifications = getSearchSpecifications(accountUrn, queryMetadataCollection);
 
