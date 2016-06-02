@@ -2,13 +2,14 @@ package net.smartcosmos.dao.metadata.repository;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID> {
+public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity> {
 
     List<MetadataEntity> findByAccountIdAndReferenceId(UUID accountId, UUID referenceId);
 
