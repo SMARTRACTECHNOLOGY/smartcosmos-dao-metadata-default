@@ -5,6 +5,7 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dto.metadata.MetadataQuery;
+import net.smartcosmos.dto.metadata.MetadataQueryMatchResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataUpsert;
 import net.smartcosmos.security.user.SmartCosmosUser;
@@ -345,15 +346,13 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            entityReferenceType,
+            queryCollection,
+            20);
 
         assertFalse(responseList.isEmpty());
         assertEquals(1, responseList.size());
-        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
-        assertEquals(key, responseList.get(0).getKey());
-        assertEquals(dataType, responseList.get(0).getDataType());
-        assertEquals(rawValue, responseList.get(0).getRawValue());
     }
 
     @Test
@@ -386,15 +385,14 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            entityReferenceType,
+            queryCollection,
+            20);
 
-        assertFalse(responseList.isEmpty());
-        assertEquals(1, responseList.size());
-        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
-        assertEquals(key, responseList.get(0).getKey());
-        assertEquals(dataType, responseList.get(0).getDataType());
-        assertEquals(rawValue, responseList.get(0).getRawValue());
+        assertFalse(responses.isEmpty());
+        assertEquals(1, responses.size());
+        assertEquals(referenceUrn, responses.iterator().next().getUrn());
     }
 
     @Test
@@ -427,15 +425,14 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            entityReferenceType,
+            queryCollection,
+            20);
 
-        assertFalse(responseList.isEmpty());
-        assertEquals(1, responseList.size());
-        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
-        assertEquals(key, responseList.get(0).getKey());
-        assertEquals(dataType, responseList.get(0).getDataType());
-        assertEquals(rawValue, responseList.get(0).getRawValue());
+        assertFalse(responses.isEmpty());
+        assertEquals(1, responses.size());
+        assertEquals(referenceUrn, responses.iterator().next().getUrn());
     }
 
     @Test
@@ -450,9 +447,12 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            "anyEntityReferenceType",
+            queryCollection,
+            20);
 
-        assertTrue(responseList.isEmpty());
+        assertTrue(responses.isEmpty());
     }
 
     @Test
@@ -467,13 +467,16 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            ENTITY_REFERENCE_TYPE,
+            queryCollection,
+            20);
 
         assertFalse(responseList.isEmpty());
         assertEquals(2, responseList.size());
 
         List<UUID> uuidList = responseList.stream()
-            .map(response -> UuidUtil.getUuidFromUrn(response.getReferenceUrn()))
+            .map(response -> UuidUtil.getUuidFromUrn(response.getUrn()))
             .collect(Collectors.toList());
 
         assertTrue(uuidList.contains(REFERENCE_ID_ONE));
@@ -497,13 +500,16 @@ public class MetadataPersistenceServiceTest {
         queryCollection.add(query1);
         queryCollection.add(query2);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            ENTITY_REFERENCE_TYPE,
+            queryCollection,
+            20);
 
-        assertFalse(responseList.isEmpty());
-        assertEquals(1, responseList.size());
+        assertFalse(responses.isEmpty());
+        assertEquals(1, responses.size());
 
-        List<UUID> uuidList = responseList.stream()
-            .map(response -> UuidUtil.getUuidFromUrn(response.getReferenceUrn()))
+        List<UUID> uuidList = responses.stream()
+            .map(response -> UuidUtil.getUuidFromUrn(response.getUrn()))
             .collect(Collectors.toList());
 
         assertTrue(uuidList.contains(REFERENCE_ID_TWO));
@@ -532,9 +538,12 @@ public class MetadataPersistenceServiceTest {
         queryCollection.add(query2);
         queryCollection.add(query3);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn, queryCollection);
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+            ENTITY_REFERENCE_TYPE,
+            queryCollection,
+            20);
 
-        assertTrue(responseList.isEmpty());
+        assertTrue(responses.isEmpty());
     }
 
     // endregion
@@ -569,7 +578,9 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn, queryCollection);
+        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn,
+            ENTITY_REFERENCE_TYPE,
+            queryCollection);
 
         assertNotNull(count);
         assertTrue(1L == count);
@@ -586,7 +597,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn, queryCollection);
+        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn, ENTITY_REFERENCE_TYPE, queryCollection);
 
         assertNotNull(count);
         assertTrue(0L == count);

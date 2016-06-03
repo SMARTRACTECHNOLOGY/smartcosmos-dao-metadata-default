@@ -1,11 +1,13 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.SearchSpecifications;
 import net.smartcosmos.dto.metadata.MetadataQuery;
+import net.smartcosmos.dto.metadata.MetadataQueryMatchResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataUpsert;
 import net.smartcosmos.util.UuidUtil;
@@ -13,13 +15,21 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
 import javax.validation.ConstraintViolationException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specifications.where;
@@ -27,6 +37,8 @@ import static org.springframework.data.jpa.domain.Specifications.where;
 @Slf4j
 @Service
 public class MetadataPersistenceService implements MetadataDao {
+
+    public static final int NO_LIMIT_ON_QUERY_RESPONSE_SIZE = 0;
 
     private final MetadataRepository metadataRepository;
     private final ConversionService conversionService;
@@ -110,26 +122,51 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public List<MetadataResponse> findBySearchCriteria(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+    public Set<MetadataQueryMatchResponse> findBySearchCriteria(String accountUrn,
+                                                                String entityReferenceType,
+                                                                Collection<MetadataQuery> queryMetadataCollection,
+                                                                Integer queryLimit) {
 
-        Specifications<MetadataEntity> specifications = getSearchSpecifications(accountUrn, queryMetadataCollection);
+        Set<MetadataQueryMatchResponse> allMatchResponses = new HashSet<>();
+        boolean firstPass = true;
 
-        Iterable<MetadataEntity> returnedValues = metadataRepository.findAll(specifications);
+        for (MetadataQuery query: queryMetadataCollection) {
+            Specifications<MetadataEntity> specifications = getResponsesForQuery(accountUrn, entityReferenceType, query);
+            Collection<MetadataEntity> returnedMetadataEntities = metadataRepository.findAll(specifications);
+            Set<MetadataQueryMatchResponse> convertedList = returnedMetadataEntities.stream().map(o -> conversionService.convert(o,
+                MetadataQueryMatchResponse.class))
 
-        List<MetadataResponse> convertedList = new ArrayList<>();
-        for (MetadataEntity entity: returnedValues) {
-            convertedList.add(conversionService.convert(entity, MetadataResponse.class));
+                .collect(Collectors.toSet());
+            // First pass? We take it all
+            if (firstPass) {
+                allMatchResponses.addAll(convertedList);
+                firstPass = false;
+            }
+            // Subsequent passes? We intersect against whatever we already have.
+            else {
+                Set<MetadataQueryMatchResponse> returnedValuesAsSet = new HashSet<>(convertedList);
+                allMatchResponses = Sets.intersection(returnedValuesAsSet, allMatchResponses);
+
+            }
         }
-
-        return convertedList;
+        allMatchResponses.remove(null);
+        // limit size ot returns to specified queryLimit
+        if (queryLimit != NO_LIMIT_ON_QUERY_RESPONSE_SIZE)
+        {
+            return allMatchResponses.stream().limit(queryLimit).collect(Collectors.toSet());
+        }
+        return allMatchResponses;
     }
 
     @Override
-    public Long countBySearchCriteria(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+    public Long countBySearchCriteria(String accountUrn, String entityReferenceType, Collection<MetadataQuery> queryMetadataCollection) {
 
-        Specifications<MetadataEntity> specifications = getSearchSpecifications(accountUrn, queryMetadataCollection);
+        Set<MetadataQueryMatchResponse> matches = findBySearchCriteria(accountUrn,
+            entityReferenceType,
+            queryMetadataCollection,
+            NO_LIMIT_ON_QUERY_RESPONSE_SIZE);
 
-        return metadataRepository.count(specifications);
+        return new Long(matches.size());
     }
 
     /**
@@ -165,7 +202,7 @@ public class MetadataPersistenceService implements MetadataDao {
         return (existingEntity.isPresent() ? existingEntity.get().getId() : null);
     }
 
-    private Specifications<MetadataEntity> getSearchSpecifications(String accountUrn, Collection<MetadataQuery> queryMetadataCollection) {
+    private Specifications<MetadataEntity> getResponsesForQuery(String accountUrn, String entityReferenceType, MetadataQuery query) {
 
         Specification<MetadataEntity> accountUrnSpecification = null;
 
@@ -176,16 +213,18 @@ public class MetadataPersistenceService implements MetadataDao {
 
         Specifications<MetadataEntity> specifications = where(accountUrnSpecification);
 
-        for (MetadataQuery query : queryMetadataCollection) {
-            Specification<MetadataEntity> keySpecification = getSearchSpecification(MetadataEntity.KEY_FIELD_NAME, query.getKey());
-            specifications = specifications.and(keySpecification);
+        Specification<MetadataEntity> keySpecification = getSearchSpecification(MetadataEntity.KEY_FIELD_NAME, query.getKey());
+        specifications = specifications.and(keySpecification);
 
-            Specification<MetadataEntity> dataTypeSpecification = getSearchSpecification(MetadataEntity.DATA_TYPE_FIELD_NAME, query.getDataType());
-            specifications = specifications.and(dataTypeSpecification);
+        Specification<MetadataEntity> dataTypeSpecification = getSearchSpecification(MetadataEntity.DATA_TYPE_FIELD_NAME, query.getDataType());
+        specifications = specifications.and(dataTypeSpecification);
 
-            Specification<MetadataEntity> rawValueSpecification = getSearchSpecification(MetadataEntity.RAW_VALUE_FIELD_NAME, query.getRawValue());
-            specifications = specifications.and(rawValueSpecification);
-        }
+        Specification<MetadataEntity> rawValueSpecification = getSearchSpecification(MetadataEntity.RAW_VALUE_FIELD_NAME, query.getRawValue());
+        specifications = specifications.and(rawValueSpecification);
+
+        Specification<MetadataEntity> entityReferenceTypeSpecification = getSearchSpecification(MetadataEntity.ENTITY_REFERENCE_TYPE_FIELD_NAME,
+            entityReferenceType);
+        specifications = specifications.and(entityReferenceTypeSpecification);
 
         return specifications;
     }
