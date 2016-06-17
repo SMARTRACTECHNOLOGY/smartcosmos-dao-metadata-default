@@ -11,10 +11,29 @@ import java.util.UUID;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity> {
 
-    List<MetadataEntity> findByAccountIdAndReferenceId(UUID accountId, UUID referenceId);
+    List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
-    Optional<MetadataEntity> findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(UUID accountId, String entityReferenceType, UUID referenceId, String key);
+    Optional<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+        UUID tenantId,
+        String entityReferenceType,
+        UUID referenceId,
+        String key);
+
+    List<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerId(
+        UUID tenantId,
+        String entityReferenceType,
+        UUID referenceId);
 
     @Transactional
-    List<MetadataEntity> deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(UUID accountId, String entityReferenceType, UUID referenceId, String key);
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+        UUID tenantId,
+        String entityReferenceType,
+        UUID referenceId,
+        String key);
+
+    @Transactional
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerId(
+        UUID tenantId,
+        String entityReferenceType,
+        UUID referenceId);
 }

@@ -65,7 +65,7 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-//            .accountId(ACCOUNT_ID)
+//            .tenantId(ACCOUNT_ID)
             .dataType(DATA_TYPE)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID)
@@ -79,7 +79,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("accountId", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("tenantId", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // region Data Type
@@ -161,7 +161,7 @@ public class MetadataEntityTest {
             .id(ID)
             .accountId(ACCOUNT_ID)
             .dataType(DATA_TYPE)
-//            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+//            .ownerType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID)
             .key(KEY)
             .rawValue(RAW_VALUE)
@@ -173,7 +173,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("entityReferenceType", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("ownerType", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
@@ -195,7 +195,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("entityReferenceType", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("ownerType", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
@@ -217,7 +217,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("entityReferenceType", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("ownerType", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
@@ -232,7 +232,7 @@ public class MetadataEntityTest {
             .accountId(ACCOUNT_ID)
             .dataType(DATA_TYPE)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
-//            .referenceId(REFERENCE_ID)
+//            .ownerId(REFERENCE_ID)
             .key(KEY)
             .rawValue(RAW_VALUE)
             .moniker(MONIKER)
@@ -243,7 +243,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("referenceId", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("ownerId", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
@@ -259,7 +259,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID)
-//            .key(KEY)
+//            .keyName(KEY)
             .rawValue(RAW_VALUE)
             .moniker(MONIKER)
             .build();
@@ -269,7 +269,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("key", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
@@ -291,7 +291,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("key", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
@@ -313,7 +313,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("key", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
@@ -330,7 +330,7 @@ public class MetadataEntityTest {
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID)
             .key(KEY)
-//            .rawValue(RAW_VALUE)
+//            .value(RAW_VALUE)
             .moniker(MONIKER)
             .build();
 
@@ -339,7 +339,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("rawValue", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
@@ -361,7 +361,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("rawValue", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
@@ -383,7 +383,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("rawValue", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion

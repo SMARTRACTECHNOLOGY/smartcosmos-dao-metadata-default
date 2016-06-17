@@ -43,8 +43,8 @@ public class MetadataPersistenceServiceTest {
     private final String accountUrn = UuidUtil.getAccountUrnFromUuid(accountId);
 
     private static final String ENTITY_REFERENCE_TYPE = "Object";
-    private static final String KEY_A = "key-A";
-    private static final String KEY_B = "key-B";
+    private static final String KEY_A = "keyName-A";
+    private static final String KEY_B = "keyName-B";
     private static final String DATA_TYPE_STRING = "StringType";
     private static final String DATA_TYPE_BOOLEAN = "BooleanType";
     private static final String RAW_VALUE_STRING_A = "ABC";
@@ -112,7 +112,7 @@ public class MetadataPersistenceServiceTest {
     @Test
     public void testCreate() throws Exception {
 
-        final String key = "key";
+        final String key = "keyName";
         final String dataType = "BooleanType";
         final String rawValue = "true";
         final String entityReferenceType = "Object";
@@ -145,11 +145,11 @@ public class MetadataPersistenceServiceTest {
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
-        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getReferenceId()));
-        assertEquals(entityReferenceType, entityList.get(0).getEntityReferenceType());
-        assertEquals(key, entityList.get(0).getKey());
+        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
+        assertEquals(entityReferenceType, entityList.get(0).getOwnerType());
+        assertEquals(key, entityList.get(0).getKeyName());
         assertEquals(dataType, entityList.get(0).getDataType());
-        assertEquals(rawValue, entityList.get(0).getRawValue());
+        assertEquals(rawValue, entityList.get(0).getValue());
     }
 
     @Test
@@ -210,11 +210,11 @@ public class MetadataPersistenceServiceTest {
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
-        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getReferenceId()));
-        assertEquals(entityReferenceType, entityList.get(0).getEntityReferenceType());
-        assertEquals(key, entityList.get(0).getKey());
+        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
+        assertEquals(entityReferenceType, entityList.get(0).getOwnerType());
+        assertEquals(key, entityList.get(0).getKeyName());
         assertEquals(dataType, entityList.get(0).getDataType());
-        assertEquals(updateRawValue, entityList.get(0).getRawValue());
+        assertEquals(updateRawValue, entityList.get(0).getValue());
     }
 
     // endregion

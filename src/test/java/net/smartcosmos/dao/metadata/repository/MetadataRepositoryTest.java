@@ -71,9 +71,9 @@ public class MetadataRepositoryTest {
 
         MetadataEntity entity = entityList.get(0);
 
-        assertEquals("true", entity.getRawValue());
+        assertEquals("true", entity.getValue());
         assertEquals("BooleanType", entity.getDataType());
-        assertEquals(key, entity.getKey());
+        assertEquals(key, entity.getKeyName());
     }
 
     @Test
@@ -82,9 +82,9 @@ public class MetadataRepositoryTest {
 
         assertTrue(entity.isPresent());
 
-        assertEquals("true", entity.get().getRawValue());
+        assertEquals("true", entity.get().getValue());
         assertEquals("BooleanType", entity.get().getDataType());
-        assertEquals(key, entity.get().getKey());
+        assertEquals(key, entity.get().getKeyName());
     }
 
 }
