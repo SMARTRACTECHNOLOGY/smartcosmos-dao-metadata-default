@@ -225,48 +225,46 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
-    /* region Delete
+    // region Delete
 
     @Test
     public void testDelete() {
 
-        final String key = "deleteMe";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String keyName = "deleteMe";
+        final Boolean value = true;
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put(keyName, value);
 
         MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
             .build();
 
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
-        metadataPersistenceService.upsert(tenantUrn, createList);
+        metadataPersistenceService.create(tenantUrn, create);
 
-        List<MetadataResponse> deleteList = metadataPersistenceService.delete(tenantUrn, entityReferenceType, referenceUrn, key);
+        List<MetadataResponse> deleteList = metadataPersistenceService.delete(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertFalse(deleteList.isEmpty());
         assertEquals(1, deleteList.size());
-        assertEquals(referenceUrn, deleteList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, deleteList.get(0).getEntityReferenceType());
-        assertEquals(key, deleteList.get(0).getKey());
-        assertEquals(dataType, deleteList.get(0).getDataType());
-        assertEquals(rawValue, deleteList.get(0).getRawValue());
+        assertEquals(ownerType, deleteList.get(0).getOwnerType());
+        assertEquals(ownerUrn, deleteList.get(0).getOwnerUrn());
+        assertEquals(1, deleteList.get(0).getMetadata().size());
+        assertTrue(Boolean.parseBoolean(deleteList.get(0).getMetadata().get(keyName).toString()));
     }
 
     @Test
     public void testDeleteNonexistent() {
 
-        final String key = "this-does-not-exist";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String keyName = "this-does-not-exist";
+        final String ownerType = "Object";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        List<MetadataResponse> deleteList = metadataPersistenceService.delete(tenantUrn, entityReferenceType, referenceUrn, key);
+        List<MetadataResponse> deleteList = metadataPersistenceService
+            .delete(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertTrue(deleteList.isEmpty());
     }
