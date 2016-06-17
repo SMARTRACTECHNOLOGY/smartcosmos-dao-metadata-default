@@ -4,10 +4,9 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dto.metadata.MetadataQuery;
-import net.smartcosmos.dto.metadata.MetadataQueryMatchResponse;
+import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
-import net.smartcosmos.dto.metadata.MetadataUpsert;
+
 import net.smartcosmos.security.user.SmartCosmosUser;
 import net.smartcosmos.util.UuidUtil;
 import org.junit.After;
@@ -27,7 +26,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -39,8 +37,8 @@ import static org.junit.Assert.*;
 @IntegrationTest({ "spring.cloud.config.enabled=false", "eureka.client.enabled:false" })
 public class MetadataPersistenceServiceTest {
 
-    private final UUID accountId = UUID.randomUUID();
-    private final String accountUrn = UuidUtil.getAccountUrnFromUuid(accountId);
+    private final UUID tenantId = UUID.randomUUID();
+    private final String tenantUrn = UuidUtil.getAccountUrnFromUuid(tenantId);
 
     private static final String ENTITY_REFERENCE_TYPE = "Object";
     private static final String KEY_A = "keyName-A";
@@ -95,7 +93,7 @@ public class MetadataPersistenceServiceTest {
         // Might be a good candidate for a test package util.
         Authentication authentication = Mockito.mock(Authentication.class);
         Mockito.when(authentication.getPrincipal())
-            .thenReturn(new SmartCosmosUser(accountUrn, "urn:userUrn", "username",
+            .thenReturn(new SmartCosmosUser(tenantUrn, "urn:userUrn", "username",
                 "password", Arrays.asList(new SimpleGrantedAuthority("USER"))));
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
         Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -107,50 +105,58 @@ public class MetadataPersistenceServiceTest {
         metadataRepository.deleteAll();
     }
 
-    // region Upsert
+    // region Create
 
     @Test
     public void testCreate() throws Exception {
 
-        final String key = "keyName";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("someBool", true);
+        keyValues.put("someString", "Text");
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
-        createList.add(create);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, create);
 
-        List<MetadataResponse> responseList = metadataPersistenceService.upsert(accountUrn, createList);
+        assertTrue(response.isPresent());
+        assertEquals(ownerType, response.get().getOwnerType());
+        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(2, response.get().getMetadata().size());
+        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("someBool").toString()));
+        assertEquals("Text", response.get().getMetadata().get("someString").toString());
 
-        assertFalse(responseList.isEmpty());
-        assertEquals(1, responseList.size());
-        assertEquals(referenceUrn, responseList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, responseList.get(0).getEntityReferenceType());
-        assertEquals(key, responseList.get(0).getKey());
-        assertEquals(dataType, responseList.get(0).getDataType());
-        assertEquals(rawValue, responseList.get(0).getRawValue());
-
-        List<MetadataEntity> entityList = metadataRepository.findByAccountIdAndReferenceId(accountId, UuidUtil.getUuidFromUrn(referenceUrn));
-
-        assertFalse(entityList.isEmpty());
+        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+            tenantId,
+            ownerType,
+            UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
-        assertEquals(1, entityList.size());
-        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
-        assertEquals(entityReferenceType, entityList.get(0).getOwnerType());
-        assertEquals(key, entityList.get(0).getKeyName());
-        assertEquals(dataType, entityList.get(0).getDataType());
-        assertEquals(rawValue, entityList.get(0).getValue());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(2, entityList.size());
+
+        assertEquals(ownerType, entityList.get(0).getOwnerType());
+        assertEquals(ownerUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
+
+        assertEquals(ownerType, entityList.get(1).getOwnerType());
+        assertEquals(ownerUrn, UuidUtil.getUrnFromUuid(entityList.get(1).getOwnerId()));
+
+        // assertEquals(keyName, entityList.get(0).getKeyName());
+        // assertEquals(dataType, entityList.get(0).getDataType());
+        // assertEquals(rawValue, entityList.get(0).getValue());
+
     }
+
+    // endregion */
+
+    /* region update
 
     @Test
     public void testUpdate() throws Exception {
@@ -162,7 +168,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(initialRawValue)
@@ -170,10 +176,10 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
 
-        List<MetadataResponse> createResponseList = metadataPersistenceService.upsert(accountUrn, createList);
+        List<MetadataResponse> createResponseList = metadataPersistenceService.upsert(tenantUrn, createList);
 
         assertFalse(createResponseList.isEmpty());
         assertEquals(1, createResponseList.size());
@@ -183,7 +189,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(dataType, createResponseList.get(0).getDataType());
         assertEquals(initialRawValue, createResponseList.get(0).getRawValue());
 
-        MetadataUpsert update = MetadataUpsert.builder()
+        MetadataCreate update = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(updateRawValue)
@@ -191,10 +197,10 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> updateList = new ArrayList<>();
+        List<MetadataCreate> updateList = new ArrayList<>();
         updateList.add(update);
 
-        List<MetadataResponse> updateResponseList = metadataPersistenceService.upsert(accountUrn, updateList);
+        List<MetadataResponse> updateResponseList = metadataPersistenceService.upsert(tenantUrn, updateList);
 
         assertFalse(updateResponseList.isEmpty());
         assertEquals(1, updateResponseList.size());
@@ -204,7 +210,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(dataType, updateResponseList.get(0).getDataType());
         assertEquals(updateRawValue, updateResponseList.get(0).getRawValue());
 
-        List<MetadataEntity> entityList = metadataRepository.findByAccountIdAndReferenceId(accountId, UuidUtil.getUuidFromUrn(referenceUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByAccountIdAndReferenceId(tenantId, UuidUtil.getUuidFromUrn(referenceUrn));
 
         assertFalse(entityList.isEmpty());
 
@@ -217,9 +223,9 @@ public class MetadataPersistenceServiceTest {
         assertEquals(updateRawValue, entityList.get(0).getValue());
     }
 
-    // endregion
+    // endregion */
 
-    // region Delete
+    /* region Delete
 
     @Test
     public void testDelete() {
@@ -230,7 +236,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
@@ -238,11 +244,11 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
-        metadataPersistenceService.upsert(accountUrn, createList);
+        metadataPersistenceService.upsert(tenantUrn, createList);
 
-        List<MetadataResponse> deleteList = metadataPersistenceService.delete(accountUrn, entityReferenceType, referenceUrn, key);
+        List<MetadataResponse> deleteList = metadataPersistenceService.delete(tenantUrn, entityReferenceType, referenceUrn, key);
 
         assertFalse(deleteList.isEmpty());
         assertEquals(1, deleteList.size());
@@ -260,14 +266,14 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        List<MetadataResponse> deleteList = metadataPersistenceService.delete(accountUrn, entityReferenceType, referenceUrn, key);
+        List<MetadataResponse> deleteList = metadataPersistenceService.delete(tenantUrn, entityReferenceType, referenceUrn, key);
 
         assertTrue(deleteList.isEmpty());
     }
 
-    // endregion
+    // endregion */
 
-    // region Find by Key
+    /* region Find by Key
 
     @Test
     public void testFindByKey() {
@@ -278,7 +284,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
@@ -286,11 +292,11 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
-        metadataPersistenceService.upsert(accountUrn, createList);
+        metadataPersistenceService.upsert(tenantUrn, createList);
 
-        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(accountUrn, entityReferenceType, referenceUrn, key);
+        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(tenantUrn, entityReferenceType, referenceUrn, key);
 
         assertTrue(response.isPresent());
         assertEquals(referenceUrn, response.get().getReferenceUrn());
@@ -307,14 +313,14 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(accountUrn, entityReferenceType, referenceUrn, key);
+        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(tenantUrn, entityReferenceType, referenceUrn, key);
 
         assertFalse(response.isPresent());
     }
 
-    // endregion
+    // endregion */
 
-    // region Query
+    /* region Query
 
     @Test
     public void testFindBySingleSearchCriteriaKey() {
@@ -327,7 +333,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
@@ -335,9 +341,9 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
-        metadataPersistenceService.upsert(accountUrn, createList);
+        metadataPersistenceService.upsert(tenantUrn, createList);
 
         MetadataQuery query1 = MetadataQuery.builder()
             .key(key)
@@ -346,7 +352,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             entityReferenceType,
             queryCollection,
             20);
@@ -366,7 +372,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
@@ -374,9 +380,9 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
-        metadataPersistenceService.upsert(accountUrn, createList);
+        metadataPersistenceService.upsert(tenantUrn, createList);
 
         MetadataQuery query1 = MetadataQuery.builder()
             .rawValue(rawValue)
@@ -385,7 +391,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             entityReferenceType,
             queryCollection,
             20);
@@ -406,7 +412,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
@@ -414,9 +420,9 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
-        metadataPersistenceService.upsert(accountUrn, createList);
+        metadataPersistenceService.upsert(tenantUrn, createList);
 
         MetadataQuery query1 = MetadataQuery.builder()
             .dataType(dataType)
@@ -425,7 +431,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             entityReferenceType,
             queryCollection,
             20);
@@ -447,7 +453,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             "anyEntityReferenceType",
             queryCollection,
             20);
@@ -467,7 +473,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             ENTITY_REFERENCE_TYPE,
             queryCollection,
             20);
@@ -500,7 +506,7 @@ public class MetadataPersistenceServiceTest {
         queryCollection.add(query1);
         queryCollection.add(query2);
 
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             ENTITY_REFERENCE_TYPE,
             queryCollection,
             20);
@@ -538,7 +544,7 @@ public class MetadataPersistenceServiceTest {
         queryCollection.add(query2);
         queryCollection.add(query3);
 
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(accountUrn,
+        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
             ENTITY_REFERENCE_TYPE,
             queryCollection,
             20);
@@ -546,9 +552,9 @@ public class MetadataPersistenceServiceTest {
         assertTrue(responses.isEmpty());
     }
 
-    // endregion
+    // endregion */
 
-    // region Count
+    /* region Count
 
     @Test
     public void testCountBySingleSearchCriteriaKey() {
@@ -559,7 +565,7 @@ public class MetadataPersistenceServiceTest {
         final String entityReferenceType = "Object";
         final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        MetadataUpsert create = MetadataUpsert.builder()
+        MetadataCreate create = MetadataCreate.builder()
             .referenceUrn(referenceUrn)
             .entityReferenceType(entityReferenceType)
             .rawValue(rawValue)
@@ -567,9 +573,9 @@ public class MetadataPersistenceServiceTest {
             .key(key)
             .build();
 
-        List<MetadataUpsert> createList = new ArrayList<>();
+        List<MetadataCreate> createList = new ArrayList<>();
         createList.add(create);
-        metadataPersistenceService.upsert(accountUrn, createList);
+        metadataPersistenceService.upsert(tenantUrn, createList);
 
         MetadataQuery query1 = MetadataQuery.builder()
             .key(key)
@@ -578,7 +584,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn,
+        Long count = metadataPersistenceService.countBySearchCriteria(tenantUrn,
             ENTITY_REFERENCE_TYPE,
             queryCollection);
 
@@ -597,7 +603,7 @@ public class MetadataPersistenceServiceTest {
         Collection<MetadataQuery> queryCollection = new ArrayList<>();
         queryCollection.add(query1);
 
-        Long count = metadataPersistenceService.countBySearchCriteria(accountUrn, ENTITY_REFERENCE_TYPE, queryCollection);
+        Long count = metadataPersistenceService.countBySearchCriteria(tenantUrn, ENTITY_REFERENCE_TYPE, queryCollection);
 
         assertNotNull(count);
         assertTrue(0L == count);
@@ -610,7 +616,7 @@ public class MetadataPersistenceServiceTest {
     private void populateQueryData() {
 
         MetadataEntity entity1 = MetadataEntity.builder()
-            .accountId(accountId)
+            .tenantId(tenantId)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID_ONE)
             .key(KEY_ONE)
@@ -619,7 +625,7 @@ public class MetadataPersistenceServiceTest {
             .build();
 
         MetadataEntity entity2 = MetadataEntity.builder()
-            .accountId(accountId)
+            .tenantId(tenantId)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID_TWO)
             .key(KEY_TWO)
@@ -628,7 +634,7 @@ public class MetadataPersistenceServiceTest {
             .build();
 
         MetadataEntity entity3 = MetadataEntity.builder()
-            .accountId(accountId)
+            .tenantId(tenantId)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID_THREE)
             .key(KEY_THREE)
@@ -637,7 +643,7 @@ public class MetadataPersistenceServiceTest {
             .build();
 
         MetadataEntity entity4 = MetadataEntity.builder()
-            .accountId(accountId)
+            .tenantId(tenantId)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID_FOUR)
             .key(KEY_FOUR)
@@ -646,7 +652,7 @@ public class MetadataPersistenceServiceTest {
             .build();
 
         MetadataEntity entity5 = MetadataEntity.builder()
-            .accountId(accountId)
+            .tenantId(tenantId)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID_FIVE)
             .key(KEY_FIVE)
@@ -655,7 +661,7 @@ public class MetadataPersistenceServiceTest {
             .build();
 
         MetadataEntity entity6 = MetadataEntity.builder()
-            .accountId(accountId)
+            .tenantId(tenantId)
             .entityReferenceType(ENTITY_REFERENCE_TYPE)
             .referenceId(REFERENCE_ID_SIX)
             .key(KEY_SIX)
@@ -671,5 +677,5 @@ public class MetadataPersistenceServiceTest {
         metadataRepository.save(entity6);
     }
 
-    // endregion
+    // endregion */
 }

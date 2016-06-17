@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,25 +37,26 @@ public class MetadataRepositoryTest {
     @Autowired
     MetadataRepository metadataRepository;
 
-    final UUID accountId = UUID.randomUUID();
+    final UUID tenantId = UUID.randomUUID();
     private UUID id;
-    private UUID referenceId;
-    private String entityReferenceType = "Object";
-    private String key = "test";
+    private UUID ownerId;
+    private String ownerType = "Thing";
+    private String keyName = "test";
 
+    private Map<String, Object> keyValues;
 
     @Before
     public void setUp() throws Exception {
 
-        referenceId = UuidUtil.getNewUuid();
+        ownerId = UuidUtil.getNewUuid();
 
         MetadataEntity entity = MetadataEntity.builder()
-            .accountId(accountId)
-            .referenceId(referenceId)
-            .entityReferenceType(entityReferenceType)
-            .rawValue("true")
-            .dataType("BooleanType")
-            .key(key)
+            .tenantId(tenantId)
+            .ownerId(ownerId)
+            .ownerType(ownerType)
+            .keyName(keyName)
+            .value("true")
+            .dataType("Boolean")
             .build();
 
         entity = metadataRepository.save(entity);
@@ -64,7 +66,11 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(accountId, entityReferenceType, referenceId, key);
+        List<MetadataEntity> entityList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            tenantId,
+            ownerType,
+            ownerId,
+            keyName);
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
@@ -72,19 +78,23 @@ public class MetadataRepositoryTest {
         MetadataEntity entity = entityList.get(0);
 
         assertEquals("true", entity.getValue());
-        assertEquals("BooleanType", entity.getDataType());
-        assertEquals(key, entity.getKeyName());
+        assertEquals("Boolean", entity.getDataType());
+        assertEquals(keyName, entity.getKeyName());
     }
 
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(accountId, entityReferenceType, referenceId, key);
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            tenantId,
+            ownerType,
+            ownerId,
+            keyName);
 
         assertTrue(entity.isPresent());
 
         assertEquals("true", entity.get().getValue());
-        assertEquals("BooleanType", entity.get().getDataType());
-        assertEquals(key, entity.get().getKeyName());
+        assertEquals("Boolean", entity.get().getDataType());
+        assertEquals(keyName, entity.get().getKeyName());
     }
 
 }

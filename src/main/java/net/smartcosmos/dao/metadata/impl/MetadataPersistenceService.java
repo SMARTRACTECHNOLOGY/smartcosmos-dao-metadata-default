@@ -2,9 +2,9 @@ package net.smartcosmos.dao.metadata.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
+import net.smartcosmos.dao.metadata.converter.MetadataEntityListToMetadataResponseConverter;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.SearchSpecifications;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.util.UuidUtil;
@@ -30,7 +30,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
     private final MetadataRepository metadataRepository;
     private final ConversionService conversionService;
-    private final SearchSpecifications<MetadataEntity> searchSpecifications = new SearchSpecifications<>();
+    //private final SearchSpecifications<MetadataEntity> searchSpecifications = new SearchSpecifications<>();
 
     @Autowired
     public MetadataPersistenceService(MetadataRepository metadataRepository,
@@ -54,7 +54,16 @@ public class MetadataPersistenceService implements MetadataDao {
             entity = persist(entity);
             responseList.add(entity);
         }
-        MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
+
+        //MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
+        /* FIXME:
+         * Bug in Spring framework: conversionService coverts first array element only
+         * Temporary solution: call converter directly until fixed
+         */
+
+        MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
+                .convert(responseList);
+
         if (response != null) {
             return Optional.of(response);
         }
@@ -81,7 +90,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         try {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
                 accountId,
                 ownerType,
                 ownerId,
@@ -98,13 +107,13 @@ public class MetadataPersistenceService implements MetadataDao {
 
     @Override
     public List<MetadataResponse> deleteAllByOwner(String tenantUrn, String ownerType, String ownerUrn) {
-        UUID accountId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
         try {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
             deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerId(
-                accountId,
+                tenantId,
                 ownerType,
                 ownerId);
         } catch (IllegalArgumentException e) {
@@ -118,18 +127,18 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<Object> findByKeyName(String tenantUrn, String ownerType, String ownerUrn, String key) {
+    public Optional<Object> findByKeyName(String tenantUrn, String ownerType, String ownerUrn, String keyName) {
 
         Optional<MetadataEntity> entity = Optional.empty();
         try {
             UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
-            UUID uuid = UuidUtil.getUuidFromUrn(ownerUrn);
+            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-            entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+            entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
                 tenantId,
                 ownerType,
-                uuid,
-                key);
+                ownerId,
+                keyName);
         } catch (IllegalArgumentException e) {
             // empty Optional will be returned anyway
             log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
@@ -151,14 +160,14 @@ public class MetadataPersistenceService implements MetadataDao {
         Collection<String> keyNames) {
 
         UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
-        UUID uuid = UuidUtil.getUuidFromUrn(ownerUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
         if (keyNames.isEmpty()) {
             try {
                 List<MetadataEntity> responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
                     tenantId,
                     ownerType,
-                    uuid
+                    ownerId
                 );
 
                 MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
@@ -173,10 +182,10 @@ public class MetadataPersistenceService implements MetadataDao {
             try {
                 List<MetadataEntity> responseList = new ArrayList<>();
                 for (String keyName: keyNames) {
-                    Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+                    Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
                         tenantId,
                         ownerType,
-                        uuid,
+                        ownerId,
                         keyName);
                     if (entity.isPresent()) {
                         responseList.add(entity.get());
@@ -184,7 +193,7 @@ public class MetadataPersistenceService implements MetadataDao {
                 }
                 MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
                 if (response != null) {
-                    return Optional.of(response);
+                    return Optional.ofNullable(response);
                 }
             } catch (IllegalArgumentException e) {
                 // empty Optional will be returned anyway

@@ -7,27 +7,23 @@ import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.util.UuidUtil;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.FormatterRegistrar;
-import org.springframework.format.FormatterRegistry;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Component
-public class MetadataEntityArrayToMetadataResponseConverter
-        implements Converter<MetadataEntity[], MetadataResponse>, FormatterRegistrar {
+public class MetadataEntityListToMetadataResponseConverter {
 
-    @Override
-    public MetadataResponse convert(MetadataEntity[] entities) {
+    public MetadataResponse convert(List<MetadataEntity> entities) {
 
         if (entities == null) {
             return null;
         }
-        if (entities.length == 0) {
+        if (entities.size() == 0) {
             return null;
         }
 
@@ -38,11 +34,11 @@ public class MetadataEntityArrayToMetadataResponseConverter
         }
 
         return MetadataResponse.builder()
-            .urn(UuidUtil.getUrnFromUuid(entities[0].getId()))
-            .ownerType(entities[0].getOwnerType())
-            .ownerUrn(UuidUtil.getUrnFromUuid(entities[0].getOwnerId()))
+            .urn(UuidUtil.getUrnFromUuid(entities.get(0).getId()))
+            .ownerType(entities.get(0).getOwnerType())
+            .ownerUrn(UuidUtil.getUrnFromUuid(entities.get(0).getOwnerId()))
             .metadata(metadata)
-            .tenantUrn(UuidUtil.getAccountUrnFromUuid(entities[0].getTenantId()))
+            .tenantUrn(UuidUtil.getAccountUrnFromUuid(entities.get(0).getTenantId()))
             .build();
     }
 
@@ -83,10 +79,5 @@ public class MetadataEntityArrayToMetadataResponseConverter
             o = entity.getValue();
         }
         return o;
-    }
-
-    @Override
-    public void registerFormatters(FormatterRegistry registry) {
-        registry.addConverter(this);
     }
 }

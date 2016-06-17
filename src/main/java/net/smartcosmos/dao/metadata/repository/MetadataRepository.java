@@ -13,27 +13,27 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
 
     List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
-    Optional<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+    Optional<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
         UUID tenantId,
-        String entityReferenceType,
-        UUID referenceId,
-        String key);
+        String ownerType,
+        UUID ownerId,
+        String keyName);
 
     List<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerId(
         UUID tenantId,
-        String entityReferenceType,
-        UUID referenceId);
+        String ownerType,
+        UUID ownerId);
 
     @Transactional
-    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerIdAndKey(
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
         UUID tenantId,
-        String entityReferenceType,
-        UUID referenceId,
-        String key);
+        String ownerType,
+        UUID ownerId,
+        String keyName);
 
     @Transactional
     List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerId(
         UUID tenantId,
-        String entityReferenceType,
-        UUID referenceId);
+        String ownerType,
+        UUID ownerId);
 }

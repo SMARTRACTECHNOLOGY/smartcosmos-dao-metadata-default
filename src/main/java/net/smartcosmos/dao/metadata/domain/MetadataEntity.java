@@ -29,7 +29,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 @EntityListeners({ AuditingEntityListener.class })
-@Table(name = "metadata", uniqueConstraints = @UniqueConstraint(columnNames = { "systemUuid", "accountUuid" }) )
+@Table(name = "metadata", uniqueConstraints = @UniqueConstraint(
+    columnNames = { "id", "tenantId"}) )
 public class MetadataEntity {
 
     private static final int UUID_LENGTH = 16;
@@ -52,7 +53,7 @@ public class MetadataEntity {
 
     @NotNull
     @Type(type = "uuid-binary")
-    @Column(name = "referenceUuid", length = UUID_LENGTH, nullable = false, updatable = false)
+    @Column(name = "ownerId", length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID ownerId;
 
     @NotEmpty

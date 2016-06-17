@@ -22,18 +22,16 @@ public class MetadataEntityTest {
     private static Validator validator;
 
     private static final UUID ID = UuidUtil.getNewUuid();
-    private static final UUID ACCOUNT_ID = UuidUtil.getNewUuid();
-    private static final String DATA_TYPE = "StringType";
+    private static final UUID TENANT_ID = UuidUtil.getNewUuid();
+    private static final String DATA_TYPE = "String";
     private static final String DATA_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final String ENTITY_REFERENCE_TYPE = "Object";
-    private static final String ENTITY_REFERENCE_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final UUID REFERENCE_ID = UuidUtil.getNewUuid();
-    private static final String KEY = RandomStringUtils.randomAlphanumeric(255);
-    private static final String KEY_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final String RAW_VALUE = RandomStringUtils.randomAlphanumeric(767);
-    private static final String RAW_VALUE_INVALID = RandomStringUtils.randomAlphanumeric(768);
-    private static final String MONIKER = RandomStringUtils.randomAlphanumeric(2048);
-    private static final String MONIKER_INVALID = RandomStringUtils.randomAlphanumeric(2049);
+    private static final String OWNER_TYPE = "Object";
+    private static final String OWNER_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
+    private static final UUID OWNER_ID = UuidUtil.getNewUuid();
+    private static final String KEY_NAME = RandomStringUtils.randomAlphanumeric(255);
+    private static final String KEY_NAME_INVALID = RandomStringUtils.randomAlphanumeric(256);
+    private static final String VALUE = RandomStringUtils.randomAlphanumeric(767);
+    private static final String VALUE_INVALID = RandomStringUtils.randomAlphanumeric(768);
 
     @BeforeClass
     public static void setUp() {
@@ -46,13 +44,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -67,11 +64,10 @@ public class MetadataEntityTest {
             .id(ID)
 //            .tenantId(ACCOUNT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -89,13 +85,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
 //            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -111,13 +106,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType("")
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -133,13 +127,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE_INVALID)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -159,13 +152,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
 //            .ownerType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -181,13 +173,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType("")
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType("")
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -203,13 +194,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE_INVALID)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE_INVALID)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -229,13 +219,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
+            .ownerType(OWNER_TYPE)
 //            .ownerId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -255,13 +244,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
 //            .keyName(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -277,13 +265,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key("")
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName("")
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -299,13 +286,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY_INVALID)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME_INVALID)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -325,13 +311,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-//            .value(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+//            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -347,13 +332,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue("")
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value("")
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -369,13 +353,12 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE_INVALID)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE_INVALID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -384,70 +367,6 @@ public class MetadataEntityTest {
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
         assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    // endregion
-
-    // region Moniker
-
-    @Test
-    public void thatMonikerMayBeNull() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-//            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertTrue(violationSet.isEmpty());
-    }
-
-    @Test
-    public void thatMonikerMayBeEmpty() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker("")
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertTrue(violationSet.isEmpty());
-    }
-
-    @Test
-    public void thatMonikerInvalidFails() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER_INVALID)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("moniker", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
