@@ -7,9 +7,25 @@ import org.junit.Test;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class MetadataValueParserTest {
+
+    @Test
+    public void thatIsNumberTrue() {
+        assertTrue(MetadataValueParser.isNumber(123.45));
+    }
+
+    @Test
+    public void thatIsNumberFalse() {
+        assertFalse(MetadataValueParser.isNumber("Text"));
+    }
+
+    @Test
+    public void thatNullIsNotANumber() {
+        assertFalse(MetadataValueParser.isNumber(null));
+    }
 
     @Test
     public void thatNullCanBeParsed() {
@@ -24,6 +40,20 @@ public class MetadataValueParserTest {
     public void thatBoolCanBeParsed() {
 
         Boolean input = true;
+        MetadataEntity entity = MetadataEntity.builder()
+            .dataType(input.getClass().getSimpleName())
+            .value(input.toString())
+            .build();
+
+        Object o = MetadataValueParser.parseValue(entity);
+
+        assertTrue(input.equals(o));
+    }
+
+    @Test
+    public void thatDoubleCanBeParsed() {
+
+        Double input = 123.45;
         MetadataEntity entity = MetadataEntity.builder()
             .dataType(input.getClass().getSimpleName())
             .value(input.toString())

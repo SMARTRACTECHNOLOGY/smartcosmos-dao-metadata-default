@@ -11,6 +11,22 @@ import java.io.IOException;
 @Slf4j
 public class MetadataValueParser {
 
+    /**
+     * Check if an object is a number type.
+     *
+     * @param o Object
+     * @return true if o is numeric
+     */
+    public static boolean isNumber(Object o) {
+        return o != null && Number.class.equals(o.getClass().getGenericSuperclass());
+    }
+
+    /**
+     * Convert the MetadataEntity value into a typed Object depending on dataType
+     *
+     * @param entity MetadataEntity
+     * @return Object of null, Boolean, Number, String or ObjectNode (JSON)
+     */
     public static Object parseValue(MetadataEntity entity) {
         Object o = null;
 
@@ -24,11 +40,7 @@ public class MetadataValueParser {
         }
         // Double
         if (Double.class.getSimpleName().equals(entity.getDataType())) {
-            o = Boolean.parseBoolean(entity.getValue());
-        }
-        // Float
-        if (Float.class.getSimpleName().equals(entity.getDataType())) {
-            o = Boolean.parseBoolean(entity.getValue());
+            o = Double.parseDouble(entity.getValue());
         }
         // Integer
         if (Integer.class.getSimpleName().equals(entity.getDataType())) {
