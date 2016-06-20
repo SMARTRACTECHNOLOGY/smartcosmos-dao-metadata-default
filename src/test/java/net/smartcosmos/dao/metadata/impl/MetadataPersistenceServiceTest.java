@@ -120,71 +120,44 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
-    /* region update
+    // region update
 
     @Test
     public void testUpdate() throws Exception {
 
-        final String key = "updateKey";
-        final String dataType = "BooleanType";
-        final String initialRawValue = "true";
-        final String updateRawValue = "false";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String keyName = "updateMe";
+        final Boolean value = true;
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put(keyName, value);
 
         MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(initialRawValue)
-            .dataType(dataType)
-            .key(key)
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
             .build();
 
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
+        metadataPersistenceService.create(tenantUrn, create);
 
-        List<MetadataResponse> createResponseList = metadataPersistenceService.upsert(tenantUrn, createList);
+        Optional<Object> o = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
-        assertFalse(createResponseList.isEmpty());
-        assertEquals(1, createResponseList.size());
-        assertEquals(referenceUrn, createResponseList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, createResponseList.get(0).getEntityReferenceType());
-        assertEquals(key, createResponseList.get(0).getKey());
-        assertEquals(dataType, createResponseList.get(0).getDataType());
-        assertEquals(initialRawValue, createResponseList.get(0).getRawValue());
+        assertTrue(o.isPresent());
+        assertEquals(true, o.get());
 
-        MetadataCreate update = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(updateRawValue)
-            .dataType(dataType)
-            .key(key)
-            .build();
+        Optional<MetadataResponse> response = metadataPersistenceService.update(tenantUrn, ownerType, ownerUrn, keyName, false);
 
-        List<MetadataCreate> updateList = new ArrayList<>();
-        updateList.add(update);
+        assertTrue(response.isPresent());
+        assertEquals(ownerType, response.get().getOwnerType());
+        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(1, response.get().getMetadata().size());
+        assertFalse(Boolean.parseBoolean(response.get().getMetadata().get("updateMe").toString()));
 
-        List<MetadataResponse> updateResponseList = metadataPersistenceService.upsert(tenantUrn, updateList);
+        o = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
-        assertFalse(updateResponseList.isEmpty());
-        assertEquals(1, updateResponseList.size());
-        assertEquals(referenceUrn, updateResponseList.get(0).getReferenceUrn());
-        assertEquals(entityReferenceType, updateResponseList.get(0).getEntityReferenceType());
-        assertEquals(key, updateResponseList.get(0).getKey());
-        assertEquals(dataType, updateResponseList.get(0).getDataType());
-        assertEquals(updateRawValue, updateResponseList.get(0).getRawValue());
-
-        List<MetadataEntity> entityList = metadataRepository.findByAccountIdAndReferenceId(tenantId, UuidUtil.getUuidFromUrn(referenceUrn));
-
-        assertFalse(entityList.isEmpty());
-
-        assertFalse(entityList.isEmpty());
-        assertEquals(1, entityList.size());
-        assertEquals(referenceUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
-        assertEquals(entityReferenceType, entityList.get(0).getOwnerType());
-        assertEquals(key, entityList.get(0).getKeyName());
-        assertEquals(dataType, entityList.get(0).getDataType());
-        assertEquals(updateRawValue, entityList.get(0).getValue());
+        assertTrue(o.isPresent());
+        assertEquals(false, o.get());
     }
 
     // endregion */

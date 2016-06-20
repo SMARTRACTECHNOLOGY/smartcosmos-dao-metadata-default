@@ -81,19 +81,36 @@ public class MetadataPersistenceService implements MetadataDao {
         Object value)
         throws ConstraintViolationException {
 
-        throw new RuntimeException("Not implemented yet");
+        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            tenantId,
+            ownerType,
+            ownerId,
+            key);
+
+        if (entity.isPresent()) {
+            MetadataEntity updateEntity = entity.get();
+            updateEntity.setDataType(value != null ? value.getClass().getSimpleName() : "null");
+            updateEntity.setValue(value != null ? value.toString() : null);
+            updateEntity = persist(updateEntity);
+            MetadataResponse response = conversionService.convert(updateEntity, MetadataResponse.class);
+            return Optional.ofNullable(response);
+        }
+        return Optional.empty();
     }
 
     @Override
     public List<MetadataResponse> delete(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
-        UUID accountId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
         try {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
             deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
-                accountId,
+                tenantId,
                 ownerType,
                 ownerId,
                 key);
