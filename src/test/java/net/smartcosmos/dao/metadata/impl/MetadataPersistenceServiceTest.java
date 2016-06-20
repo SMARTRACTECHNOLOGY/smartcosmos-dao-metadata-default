@@ -144,14 +144,13 @@ public class MetadataPersistenceServiceTest {
 
         assertEquals(ownerType, entityList.get(0).getOwnerType());
         assertEquals(ownerUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
+        assertEquals("Boolean", entityList.get(0).getDataType());
+        assertEquals("true", entityList.get(0).getValue());
 
         assertEquals(ownerType, entityList.get(1).getOwnerType());
         assertEquals(ownerUrn, UuidUtil.getUrnFromUuid(entityList.get(1).getOwnerId()));
-
-        // assertEquals(keyName, entityList.get(0).getKeyName());
-        // assertEquals(dataType, entityList.get(0).getDataType());
-        // assertEquals(rawValue, entityList.get(0).getValue());
-
+        assertEquals("String", entityList.get(1).getDataType());
+        assertEquals("Text", entityList.get(1).getValue());
     }
 
     // endregion */
@@ -271,47 +270,41 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
-    /* region Find by Key
+    // region Find by Key
 
     @Test
     public void testFindByKey() {
 
-        final String key = "findMe";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String keyName = "findMe";
+        final Boolean value = true;
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put(keyName, value);
 
         MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
             .build();
 
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
-        metadataPersistenceService.upsert(tenantUrn, createList);
+        metadataPersistenceService.create(tenantUrn, create);
 
-        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(tenantUrn, entityReferenceType, referenceUrn, key);
+        Optional<Object> response = metadataPersistenceService.findByKeyName(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertTrue(response.isPresent());
-        assertEquals(referenceUrn, response.get().getReferenceUrn());
-        assertEquals(entityReferenceType, response.get().getEntityReferenceType());
-        assertEquals(key, response.get().getKey());
-        assertEquals(dataType, response.get().getDataType());
-        assertEquals(rawValue, response.get().getRawValue());
+        assertEquals(true, response.get());
     }
 
     @Test
     public void testFindByKeyNonexistent() {
 
-        final String key = "this-does-not-exist";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String keyName = "this-does-not-exist";
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        Optional<MetadataResponse> response = metadataPersistenceService.findByKey(tenantUrn, entityReferenceType, referenceUrn, key);
+        Optional<Object> response = metadataPersistenceService.findByKeyName(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertFalse(response.isPresent());
     }

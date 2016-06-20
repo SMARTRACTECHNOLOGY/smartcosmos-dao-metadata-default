@@ -29,7 +29,6 @@ public class MetadataEntityListToMetadataResponseConverter {
         }
 
         return MetadataResponse.builder()
-            .urn(UuidUtil.getUrnFromUuid(entities.get(0).getId()))
             .ownerType(entities.get(0).getOwnerType())
             .ownerUrn(UuidUtil.getUrnFromUuid(entities.get(0).getOwnerId()))
             .metadata(metadata)

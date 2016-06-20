@@ -5,8 +5,10 @@ import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.converter.MetadataEntityListToMetadataResponseConverter;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
+import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.util.UuidUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,8 +148,8 @@ public class MetadataPersistenceService implements MetadataDao {
 
         if (entity.isPresent())
         {
-            final MetadataResponse response = conversionService.convert(entity.get(), MetadataResponse.class);
-            return Optional.ofNullable(response);
+            Object o = MetadataValueParser.parseValue(entity.get());
+            return Optional.ofNullable(o);
         }
         return Optional.empty();
     }
@@ -201,6 +203,12 @@ public class MetadataPersistenceService implements MetadataDao {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public List<MetadataSingleResponse> findAll(String tenantUrn, Long page, Integer size) {
+        // TODO: ...
+        throw new RuntimeException("Not implemented yet");
     }
 
 

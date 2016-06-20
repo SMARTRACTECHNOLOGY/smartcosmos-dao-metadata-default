@@ -33,7 +33,6 @@ public class MetadataEntityArrayToMetadataResponseConverter
         }
 
         return MetadataResponse.builder()
-            .urn(UuidUtil.getUrnFromUuid(entities[0].getId()))
             .ownerType(entities[0].getOwnerType())
             .ownerUrn(UuidUtil.getUrnFromUuid(entities[0].getOwnerId()))
             .metadata(metadata)
