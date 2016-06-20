@@ -118,6 +118,28 @@ public class MetadataPersistenceServiceTest {
         assertEquals(5, entityList.size());
     }
 
+    @Test
+    public void testCreateFailOnDuplicateKey() {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("duplicate", true);
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
+            .build();
+
+        Optional<MetadataResponse> response1 = metadataPersistenceService.create(tenantUrn, create);
+        assertTrue(response1.isPresent());
+
+        Optional<MetadataResponse> response2 = metadataPersistenceService.create(tenantUrn, create);
+        assertFalse(response2.isPresent());
+    }
+
     // endregion */
 
     // region update

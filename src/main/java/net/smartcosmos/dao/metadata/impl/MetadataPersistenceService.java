@@ -42,17 +42,31 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<MetadataResponse> create(String tenantId, MetadataCreate createMetadata)
+    public Optional<MetadataResponse> create(String tenantUrn, MetadataCreate createMetadata)
         throws ConstraintViolationException {
 
-        UUID accountId = UuidUtil.getUuidFromAccountUrn(tenantId);
+        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+
+        List<String> keys = new ArrayList<>();
+        keys.addAll(createMetadata.getMetadata().keySet());
+
+        Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+            tenantId,
+            createMetadata.getOwnerType(),
+            UuidUtil.getUuidFromUrn(createMetadata.getOwnerUrn()),
+            keys);
+
+        if (count > 0) {
+            // FIXME: throw suitable exception
+            return Optional.empty();
+        }
 
         List<MetadataEntity> responseList = new ArrayList<>();
         // Using MetadataEntity[] here, spring conversionService does not accept List<MetadataEntity> template
         MetadataEntity[] entities = conversionService.convert(createMetadata, MetadataEntity[].class);
 
         for (MetadataEntity entity : entities) {
-            entity.setTenantId(accountId);
+            entity.setTenantId(tenantId);
             entity = persist(entity);
             responseList.add(entity);
         }
