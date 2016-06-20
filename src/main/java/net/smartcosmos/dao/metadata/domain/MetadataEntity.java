@@ -66,9 +66,9 @@ public class MetadataEntity {
     @Column(name = "keyName", length = KEY_NAME_LENGTH, nullable = false, updatable = false)
     private String keyName;
 
-    @NotEmpty
+    //@NotEmpty
     @Size(max = VALUE_LENGTH)
-    @Column(name = "value", length = VALUE_LENGTH, nullable = false, updatable = true)
+    @Column(name = "value", length = VALUE_LENGTH, nullable = true, updatable = true)
     private String value;
 
     @NotNull

@@ -1,9 +1,13 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 
@@ -40,46 +44,6 @@ public class MetadataPersistenceServiceTest {
     private final UUID tenantId = UUID.randomUUID();
     private final String tenantUrn = UuidUtil.getAccountUrnFromUuid(tenantId);
 
-    private static final String ENTITY_REFERENCE_TYPE = "Object";
-    private static final String KEY_A = "keyName-A";
-    private static final String KEY_B = "keyName-B";
-    private static final String DATA_TYPE_STRING = "StringType";
-    private static final String DATA_TYPE_BOOLEAN = "BooleanType";
-    private static final String RAW_VALUE_STRING_A = "ABC";
-    private static final String RAW_VALUE_STRING_B = "DEF";
-    private static final String RAW_VALUE_BOOLEAN_A = "true";
-    private static final String RAW_VALUE_BOOLEAN_B = "false";
-
-    private static final UUID REFERENCE_ID_ONE = UuidUtil.getNewUuid();
-    private static final String KEY_ONE = KEY_A;
-    private static final String DATA_TYPE_ONE = DATA_TYPE_STRING;
-    private static final String RAW_VALUE_ONE = RAW_VALUE_STRING_A;
-
-    private static final UUID REFERENCE_ID_TWO = UuidUtil.getNewUuid();
-    private static final String KEY_TWO = KEY_A;
-    private static final String DATA_TYPE_TWO = DATA_TYPE_BOOLEAN;
-    private static final String RAW_VALUE_TWO = RAW_VALUE_BOOLEAN_A;
-
-    private static final UUID REFERENCE_ID_THREE = UuidUtil.getNewUuid();
-    private static final String KEY_THREE = KEY_A;
-    private static final String DATA_TYPE_THREE = DATA_TYPE_STRING;
-    private static final String RAW_VALUE_THREE = RAW_VALUE_STRING_B;
-
-    private static final UUID REFERENCE_ID_FOUR = UuidUtil.getNewUuid();
-    private static final String KEY_FOUR = KEY_B;
-    private static final String DATA_TYPE_FOUR = DATA_TYPE_BOOLEAN;
-    private static final String RAW_VALUE_FOUR = RAW_VALUE_BOOLEAN_A;
-
-    private static final UUID REFERENCE_ID_FIVE = UuidUtil.getNewUuid();
-    private static final String KEY_FIVE = KEY_B;
-    private static final String DATA_TYPE_FIVE = DATA_TYPE_STRING;
-    private static final String RAW_VALUE_FIVE = RAW_VALUE_STRING_A;
-
-    private static final UUID REFERENCE_ID_SIX = UuidUtil.getNewUuid();
-    private static final String KEY_SIX = KEY_B;
-    private static final String DATA_TYPE_SIX = DATA_TYPE_BOOLEAN;
-    private static final String RAW_VALUE_SIX = RAW_VALUE_BOOLEAN_B;
-
     @Autowired
     MetadataPersistenceService metadataPersistenceService;
 
@@ -113,8 +77,16 @@ public class MetadataPersistenceServiceTest {
         final String ownerType = "Thing";
         final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        Object o = mapper.readTree("{\"x\":1,\"y\":2}");
+
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("someBool", true);
+        keyValues.put("someJson", o);
+        keyValues.put("someNumber", 123);
+        keyValues.put("someNull", null);
         keyValues.put("someString", "Text");
 
         MetadataCreate create = MetadataCreate.builder()
@@ -128,9 +100,13 @@ public class MetadataPersistenceServiceTest {
         assertTrue(response.isPresent());
         assertEquals(ownerType, response.get().getOwnerType());
         assertEquals(ownerUrn, response.get().getOwnerUrn());
-        assertEquals(2, response.get().getMetadata().size());
+        assertEquals(5, response.get().getMetadata().size());
         assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("someBool").toString()));
         assertEquals("Text", response.get().getMetadata().get("someString").toString());
+
+        ObjectNode output = (ObjectNode) response.get().getMetadata().get("someJson");
+        assertEquals(1, output.findValue("x").asInt());
+        assertEquals(2, output.findValue("y").asInt());
 
         List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
             tenantId,
@@ -140,17 +116,7 @@ public class MetadataPersistenceServiceTest {
         assertFalse(entityList.isEmpty());
 
         assertFalse(entityList.isEmpty());
-        assertEquals(2, entityList.size());
-
-        assertEquals(ownerType, entityList.get(0).getOwnerType());
-        assertEquals(ownerUrn, UuidUtil.getUrnFromUuid(entityList.get(0).getOwnerId()));
-        assertEquals("Boolean", entityList.get(0).getDataType());
-        assertEquals("true", entityList.get(0).getValue());
-
-        assertEquals(ownerType, entityList.get(1).getOwnerType());
-        assertEquals(ownerUrn, UuidUtil.getUrnFromUuid(entityList.get(1).getOwnerId()));
-        assertEquals("String", entityList.get(1).getDataType());
-        assertEquals("Text", entityList.get(1).getValue());
+        assertEquals(5, entityList.size());
     }
 
     // endregion */

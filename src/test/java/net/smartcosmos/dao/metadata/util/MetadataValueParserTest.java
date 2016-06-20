@@ -67,7 +67,7 @@ public class MetadataValueParserTest {
 
         String input = "{\"x\":1,\"y\":2}";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("JsonNode")
+            .dataType("ObjectNode")
             .value(input.toString())
             .build();
 
@@ -83,7 +83,7 @@ public class MetadataValueParserTest {
 
         String input = "[{\"x\":1},{\"x\":2}]";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("JsonNode")
+            .dataType("ObjectNode")
             .value(input.toString())
             .build();
 

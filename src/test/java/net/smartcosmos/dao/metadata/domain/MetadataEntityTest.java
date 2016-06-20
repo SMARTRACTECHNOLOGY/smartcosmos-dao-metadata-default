@@ -307,7 +307,7 @@ public class MetadataEntityTest {
     // region Raw Value
 
     @Test
-    public void thatRawValueIsNotNull() {
+    public void thatRawValueAllowsNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
@@ -321,14 +321,18 @@ public class MetadataEntityTest {
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
 
+        assertTrue(violationSet.isEmpty());
+
+        /*
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
         assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
+        */
     }
 
     @Test
-    public void thatRawValueIsNotEmpty() {
+    public void thatRawValueAllowsEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .id(ID)
@@ -342,10 +346,14 @@ public class MetadataEntityTest {
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
 
+        assertTrue(violationSet.isEmpty());
+
+        /*
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
         assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
+        */
     }
 
     @Test

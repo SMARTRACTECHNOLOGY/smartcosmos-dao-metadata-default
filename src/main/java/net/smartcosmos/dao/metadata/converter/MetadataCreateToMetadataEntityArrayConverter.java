@@ -25,9 +25,9 @@ public class MetadataCreateToMetadataEntityArrayConverter
             MetadataEntity newEntity = MetadataEntity.builder()
                 .ownerType(entity.getOwnerType())
                 .ownerId(UuidUtil.getUuidFromUrn(entity.getOwnerUrn()))
-                .dataType(entry.getValue().getClass().getSimpleName())
+                .dataType(entry.getValue() != null ? entry.getValue().getClass().getSimpleName() : "null")
                 .keyName(entry.getKey())
-                .value(entry.getValue().toString())
+                .value(entry.getValue() != null ? entry.getValue().toString() : null)
                 .build();
 
             metadataEntities[i++] = newEntity;

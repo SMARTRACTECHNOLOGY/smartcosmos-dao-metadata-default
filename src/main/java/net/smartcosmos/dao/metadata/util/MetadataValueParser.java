@@ -1,8 +1,8 @@
 package net.smartcosmos.dao.metadata.util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 
@@ -15,7 +15,7 @@ public class MetadataValueParser {
         Object o = null;
 
         // Null
-        if (entity.getValue() == null) {
+        if ((entity.getValue() == null) || (entity.getDataType().equalsIgnoreCase("null"))) {
             return null;
         }
         // Boolean
@@ -43,7 +43,7 @@ public class MetadataValueParser {
             o = entity.getValue();
         }
         // JSONObject
-        if (JsonNode.class.getSimpleName().equals(entity.getDataType())) {
+        if (ObjectNode.class.getSimpleName().equals(entity.getDataType())) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
