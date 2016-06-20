@@ -7,7 +7,6 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 
@@ -257,7 +256,7 @@ public class MetadataPersistenceServiceTest {
 
         metadataPersistenceService.create(tenantUrn, create);
 
-        Optional<Object> response = metadataPersistenceService.findByKeyName(tenantUrn, ownerType, ownerUrn, keyName);
+        Optional<Object> response = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertTrue(response.isPresent());
         assertEquals(true, response.get());
@@ -270,7 +269,7 @@ public class MetadataPersistenceServiceTest {
         final String ownerType = "Thing";
         final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        Optional<Object> response = metadataPersistenceService.findByKeyName(tenantUrn, ownerType, ownerUrn, keyName);
+        Optional<Object> response = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertFalse(response.isPresent());
     }

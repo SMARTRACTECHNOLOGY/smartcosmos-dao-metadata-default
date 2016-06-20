@@ -74,10 +74,10 @@ public class MetadataPersistenceService implements MetadataDao {
 
     @Override
     public Optional<MetadataResponse> update(
-        String tenantId,
+        String tenantUrn,
         String ownerType,
-        String ownerId,
-        String keyName,
+        String ownerUrn,
+        String key,
         Object value)
         throws ConstraintViolationException {
 
@@ -85,7 +85,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public List<MetadataResponse> delete(String tenantUrn, String ownerType, String ownerUrn, String keyName) {
+    public List<MetadataResponse> delete(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
         UUID accountId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
@@ -96,7 +96,7 @@ public class MetadataPersistenceService implements MetadataDao {
                 accountId,
                 ownerType,
                 ownerId,
-                keyName);
+                key);
         } catch (IllegalArgumentException e) {
             // empty list will be returned anyway
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
@@ -109,6 +109,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
     @Override
     public List<MetadataResponse> deleteAllByOwner(String tenantUrn, String ownerType, String ownerUrn) {
+
         UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
@@ -129,7 +130,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<Object> findByKeyName(String tenantUrn, String ownerType, String ownerUrn, String keyName) {
+    public Optional<Object> findByKey(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
         Optional<MetadataEntity> entity = Optional.empty();
         try {
@@ -140,7 +141,7 @@ public class MetadataPersistenceService implements MetadataDao {
                 tenantId,
                 ownerType,
                 ownerId,
-                keyName);
+                key);
         } catch (IllegalArgumentException e) {
             // empty Optional will be returned anyway
             log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
@@ -159,12 +160,12 @@ public class MetadataPersistenceService implements MetadataDao {
         String tenantUrn,
         String ownerType,
         String ownerUrn,
-        Collection<String> keyNames) {
+        Collection<String> keys) {
 
         UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        if (keyNames.isEmpty()) {
+        if (keys.isEmpty()) {
             try {
                 List<MetadataEntity> responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
                     tenantId,
@@ -183,7 +184,7 @@ public class MetadataPersistenceService implements MetadataDao {
         } else {
             try {
                 List<MetadataEntity> responseList = new ArrayList<>();
-                for (String keyName: keyNames) {
+                for (String keyName: keys) {
                     Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
                         tenantId,
                         ownerType,
@@ -195,7 +196,7 @@ public class MetadataPersistenceService implements MetadataDao {
                 }
                 MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
                 if (response != null) {
-                    return Optional.ofNullable(response);
+                    return Optional.of(response);
                 }
             } catch (IllegalArgumentException e) {
                 // empty Optional will be returned anyway
