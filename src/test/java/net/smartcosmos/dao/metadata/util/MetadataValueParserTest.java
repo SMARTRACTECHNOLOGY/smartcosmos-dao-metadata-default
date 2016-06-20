@@ -1,5 +1,6 @@
 package net.smartcosmos.dao.metadata.util;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import org.junit.Test;
@@ -75,6 +76,22 @@ public class MetadataValueParserTest {
 
         assertEquals(1, output.findValue("x").asInt());
         assertEquals(2, output.findValue("y").asInt());
+    }
+
+    @Test
+    public void thatJsonArrayCanBeParsed() throws Exception {
+
+        String input = "[{\"x\":1},{\"x\":2}]";
+        MetadataEntity entity = MetadataEntity.builder()
+            .dataType("JsonNode")
+            .value(input.toString())
+            .build();
+
+        Object o = MetadataValueParser.parseValue(entity);
+        ArrayNode output = (ArrayNode) o;
+
+        assertEquals(1, output.get(0).findValue("x").asInt());
+        assertEquals(2, output.get(1).findValue("x").asInt());
     }
 
 }
