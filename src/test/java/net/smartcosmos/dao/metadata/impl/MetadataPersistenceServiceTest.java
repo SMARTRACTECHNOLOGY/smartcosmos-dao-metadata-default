@@ -145,6 +145,60 @@ public class MetadataPersistenceServiceTest {
     // region update
 
     @Test
+    public void testUpsert() throws Exception {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        Object o = mapper.readTree("{\"x\":1,\"y\":2}");
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("upsertBool", true);
+        keyValues.put("upsertJson", o);
+        keyValues.put("upsertNumber", 123);
+        keyValues.put("upsertNull", null);
+        keyValues.put("upsertString", "Text");
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
+            .build();
+
+        Optional<MetadataResponse> response = metadataPersistenceService.upsert(tenantUrn, create);
+
+        assertTrue(response.isPresent());
+        assertEquals(ownerType, response.get().getOwnerType());
+        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(5, response.get().getMetadata().size());
+        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("upsertBool").toString()));
+        assertEquals("Text", response.get().getMetadata().get("upsertString").toString());
+
+        ObjectNode output = (ObjectNode) response.get().getMetadata().get("upsertJson");
+        assertEquals(1, output.findValue("x").asInt());
+        assertEquals(2, output.findValue("y").asInt());
+
+        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+            tenantId,
+            ownerType,
+            UuidUtil.getUuidFromUrn(ownerUrn));
+
+        assertFalse(entityList.isEmpty());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(5, entityList.size());
+    }
+
+    // TODO: add upsert tests
+
+    // endregion */
+
+    // region update
+
+    @Test
     public void testUpdate() throws Exception {
 
         final String keyName = "updateMe";

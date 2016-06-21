@@ -62,7 +62,6 @@ public class MetadataPersistenceService implements MetadataDao {
         }
 
         List<MetadataEntity> responseList = new ArrayList<>();
-        // Using MetadataEntity[] here, spring conversionService does not accept List<MetadataEntity> template
         MetadataEntity[] entities = conversionService.convert(createMetadata, MetadataEntity[].class);
 
         for (MetadataEntity entity : entities) {
@@ -79,6 +78,39 @@ public class MetadataPersistenceService implements MetadataDao {
 
         MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
                 .convert(responseList);
+
+        if (response != null) {
+            return Optional.of(response);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<MetadataResponse> upsert(String tenantUrn, MetadataCreate upsertMetadata)
+        throws ConstraintViolationException {
+
+        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+
+        List<MetadataEntity> responseList = new ArrayList<>();
+        MetadataEntity[] entities = conversionService.convert(upsertMetadata, MetadataEntity[].class);
+
+        for (MetadataEntity entity : entities) {
+
+            Optional<MetadataEntity> existingEntity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+                entity.getTenantId(),
+                entity.getOwnerType(),
+                entity.getOwnerId(),
+                entity.getKeyName());
+            if (existingEntity.isPresent()) {
+                entity.setId(existingEntity.get().getId());
+            }
+            entity.setTenantId(tenantId);
+            entity = persist(entity);
+            responseList.add(entity);
+        }
+
+        MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
+            .convert(responseList);
 
         if (response != null) {
             return Optional.of(response);
