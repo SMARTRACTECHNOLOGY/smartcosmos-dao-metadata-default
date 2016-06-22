@@ -127,12 +127,20 @@ public class MetadataPersistenceService implements MetadataDao {
 
         if (entity.isPresent()) {
             MetadataEntity updateEntity = entity.get();
-            updateEntity.setDataType(value != null ? value.getClass().getSimpleName() : "null");
-            updateEntity.setValue(value != null ? value.toString() : null);
+
+            String dataType = MetadataValueParser.getDataType(value);
+            String stringValue = MetadataValueParser.getValue(value);
+
+            updateEntity.setDataType(dataType);
+            updateEntity.setValue(stringValue);
+
             updateEntity = persist(updateEntity);
+
             MetadataResponse response = conversionService.convert(updateEntity, MetadataResponse.class);
+
             return Optional.ofNullable(response);
         }
+
         return Optional.empty();
     }
 
