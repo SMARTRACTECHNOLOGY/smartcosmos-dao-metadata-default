@@ -1,8 +1,5 @@
 package net.smartcosmos.dao.metadata.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
@@ -28,18 +25,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -122,7 +110,7 @@ public class MetadataPersistenceServiceTest {
         assertFalse(entityList.isEmpty());
 
         assertFalse(entityList.isEmpty());
-        assertEquals(5, entityList.size());
+        assertEquals(6, entityList.size());
     }
 
     @Test
@@ -175,10 +163,7 @@ public class MetadataPersistenceServiceTest {
         final String ownerType = "Thing";
         final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        Object o = mapper.readTree("{\"x\":1,\"y\":2}");
+        JSONObject o = new JSONObject("{\"x\":1,\"y\":2}");
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("upsertBool", true);
@@ -196,9 +181,9 @@ public class MetadataPersistenceServiceTest {
         assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("upsertBool").toString()));
         assertEquals("Text", response.get().getMetadata().get("upsertString").toString());
 
-        ObjectNode output = (ObjectNode) response.get().getMetadata().get("upsertJson");
-        assertEquals(1, output.findValue("x").asInt());
-        assertEquals(2, output.findValue("y").asInt());
+        JSONObject output = (JSONObject) response.get().getMetadata().get("upsertJson");
+        assertEquals(1, output.getInt("x"));
+        assertEquals(2, output.getInt("y"));
 
         List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
             tenantId,
