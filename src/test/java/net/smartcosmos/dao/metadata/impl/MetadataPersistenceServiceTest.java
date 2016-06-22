@@ -149,6 +149,42 @@ public class MetadataPersistenceServiceTest {
         assertFalse(response2.isPresent());
     }
 
+    @Test
+    public void testCreateFailOnEmptyMetadataMap() {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        Map<String, Object> keyValues = new HashMap<>();
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
+            .build();
+
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, create);
+        assertFalse(response.isPresent());
+    }
+
+    @Test
+    public void testCreateFailOnNullMetadataMap() {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        Map<String, Object> keyValues = null;
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
+            .build();
+
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, create);
+        assertFalse(response.isPresent());
+    }
+
     // endregion */
 
     // region Upsert
