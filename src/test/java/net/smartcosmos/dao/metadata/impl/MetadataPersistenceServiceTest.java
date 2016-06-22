@@ -208,8 +208,14 @@ public class MetadataPersistenceServiceTest {
         Optional<MetadataResponse> response1 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response1.isPresent());
 
-        Optional<MetadataResponse> response2 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
+        assertTrue((Boolean) response1.get().getMetadata().get("duplicateUpsert"));
+        
+        keyValues.put("duplicateUpsert", false);
+
+        Optional<MetadataResponse> response2 = metadataPersistenceService.upsert(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response2.isPresent());
+
+        assertFalse((Boolean) response2.get().getMetadata().get("duplicateUpsert"));
     }
 
     @Test
