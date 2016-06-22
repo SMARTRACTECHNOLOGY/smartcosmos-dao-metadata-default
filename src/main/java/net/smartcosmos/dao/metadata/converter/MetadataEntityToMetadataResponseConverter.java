@@ -20,8 +20,8 @@ public class MetadataEntityToMetadataResponseConverter
     public MetadataResponse convert(MetadataEntity entity) {
 
         Map<String, Object> metadata = new HashMap<>();
-        Object o = MetadataValueParser.parseValue(entity);
-        metadata.put(entity.getKeyName(), o);
+        Object value = MetadataValueParser.parseValue(entity);
+        metadata.put(entity.getKeyName(), value);
 
         return MetadataResponse.builder()
             .ownerType(entity.getOwnerType())

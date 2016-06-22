@@ -16,13 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
 import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,27 +39,29 @@ public class MetadataPersistenceService implements MetadataDao {
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-
-        if (MapUtils.isEmpty(metadataMap)) {
-            return Optional.empty();
-        }
-
-        if (alreadyExists(tenantId, ownerType, ownerId, metadataMap.keySet())) {
+        
+        if (alreadyExists(tenantId, ownerType, ownerId, metadataMap)) {
             return Optional.empty();
         }
 
         return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
     }
 
-    private boolean alreadyExists(UUID tenantId, String ownerType, UUID ownerId, Collection<String> keys) {
+    private boolean alreadyExists(UUID tenantId, String ownerType, UUID ownerId, Map<String, Object> map) {
 
-        Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
-            tenantId,
-            ownerType,
-            ownerId,
-            keys);
+        if (MapUtils.isNotEmpty(map)) {
+            Set<String> keys = map.keySet();
 
-        return count > 0;
+            Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+                tenantId,
+                ownerType,
+                ownerId,
+                keys);
+
+            return count > 0;
+        }
+
+        return false;
     }
 
     @Override
@@ -75,39 +71,40 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        if (MapUtils.isEmpty(metadataMap)) {
-            return Optional.empty();
-        }
-
         return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
     }
 
     private Optional<MetadataResponse> createOrUpdate(String ownerType, Map<String, Object> metadataMap, UUID tenantId, UUID ownerId) {
 
-        Set<String> keys = metadataMap.keySet();
+        if (MapUtils.isNotEmpty(metadataMap)) {
+            Set<String> keys = metadataMap.keySet();
 
-        List<MetadataEntity> entityList = keys.stream()
-            .map(key -> {
-                Object object = metadataMap.get(key);
-                String value = MetadataValueParser.getValue(object);
-                String dataType = MetadataValueParser.getDataType(object);
 
-                return MetadataEntity.builder()
-                    .ownerType(ownerType)
-                    .ownerId(ownerId)
-                    .keyName(key)
-                    .value(value)
-                    .dataType(dataType)
-                    .tenantId(tenantId)
-                    .build();
-            })
-            .collect(Collectors.toList());
+            List<MetadataEntity> entityList = keys.stream()
+                .map(key -> {
+                    Object object = metadataMap.get(key);
+                    String value = MetadataValueParser.getValue(object);
+                    String dataType = MetadataValueParser.getDataType(object);
 
-        persist(entityList);
+                    return MetadataEntity.builder()
+                        .ownerType(ownerType)
+                        .ownerId(ownerId)
+                        .keyName(key)
+                        .value(value)
+                        .dataType(dataType)
+                        .tenantId(tenantId)
+                        .build();
+                })
+                .collect(Collectors.toList());
 
-        MetadataResponse response = conversionService.convert(entityList, MetadataResponse.class);
+            persist(entityList);
 
-        return Optional.ofNullable(response);
+            MetadataResponse response = conversionService.convert(entityList, MetadataResponse.class);
+
+            return Optional.ofNullable(response);
+        }
+
+        return Optional.empty();
     }
 
     @Override
