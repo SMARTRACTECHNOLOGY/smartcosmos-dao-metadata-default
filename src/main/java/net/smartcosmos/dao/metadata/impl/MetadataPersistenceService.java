@@ -46,17 +46,12 @@ public class MetadataPersistenceService implements MetadataDao {
             return Optional.empty();
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(createMetadata.getOwnerUrn());
 
         List<String> keys = new ArrayList<>();
         keys.addAll(createMetadata.getMetadata().keySet());
 
-        Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
-            tenantId,
-            createMetadata.getOwnerType(),
-            UuidUtil.getUuidFromUrn(createMetadata.getOwnerUrn()),
-            keys);
-
-        if (count > 0) {
+        if (alreadyExists(tenantId, createMetadata.getOwnerType(), ownerId, keys)) {
             return Optional.empty();
         }
 
@@ -71,6 +66,17 @@ public class MetadataPersistenceService implements MetadataDao {
         MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
                 .convert(responseList);
         return Optional.ofNullable(response);
+    }
+
+    private boolean alreadyExists(UUID tenantId, String ownerType, UUID ownerId, List<String> keys) {
+
+        Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+            tenantId,
+            ownerType,
+            ownerId,
+            keys);
+
+        return count > 0;
     }
 
     @Override
