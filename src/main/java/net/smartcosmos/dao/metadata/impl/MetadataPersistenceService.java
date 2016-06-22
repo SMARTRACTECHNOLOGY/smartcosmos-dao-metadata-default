@@ -39,7 +39,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-        
+
         if (alreadyExists(tenantId, ownerType, ownerId, metadataMap)) {
             return Optional.empty();
         }
@@ -214,40 +214,30 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
         if (keys.isEmpty()) {
-            try {
-                List<MetadataEntity> responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
-                    tenantId,
-                    ownerType,
-                    ownerId
-                );
-                MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
-                if (response != null) {
-                    return Optional.of(response);
-                }
-            } catch (IllegalArgumentException e) {
-                // empty Optional will be returned anyway
-                log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
+            List<MetadataEntity> responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+                tenantId,
+                ownerType,
+                ownerId
+            );
+            MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
+            if (response != null) {
+                return Optional.of(response);
             }
         } else {
-            try {
-                List<MetadataEntity> responseList = new ArrayList<>();
-                for (String keyName: keys) {
-                    Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
-                        tenantId,
-                        ownerType,
-                        ownerId,
-                        keyName);
-                    if (entity.isPresent()) {
-                        responseList.add(entity.get());
-                    }
+            List<MetadataEntity> responseList = new ArrayList<>();
+            for (String keyName: keys) {
+                Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+                    tenantId,
+                    ownerType,
+                    ownerId,
+                    keyName);
+                if (entity.isPresent()) {
+                    responseList.add(entity.get());
                 }
-                MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
-                if (response != null) {
-                    return Optional.of(response);
-                }
-            } catch (IllegalArgumentException e) {
-                // empty Optional will be returned anyway
-                log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
+            }
+            MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
+            if (response != null) {
+                return Optional.of(response);
             }
         }
         return Optional.empty();
