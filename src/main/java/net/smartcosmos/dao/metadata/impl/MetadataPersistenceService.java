@@ -2,7 +2,6 @@ package net.smartcosmos.dao.metadata.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
-import net.smartcosmos.dao.metadata.converter.MetadataEntityListToMetadataResponseConverter;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
@@ -60,8 +59,9 @@ public class MetadataPersistenceService implements MetadataDao {
             entity = persist(entity);
             responseList.add(entity);
         }
-        MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
-                .convert(responseList);
+
+        MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
+
         return Optional.ofNullable(response);
     }
 
@@ -100,8 +100,7 @@ public class MetadataPersistenceService implements MetadataDao {
             responseList.add(entity);
         }
 
-        MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
-            .convert(responseList);
+        MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
         return Optional.ofNullable(response);
     }
 
@@ -222,8 +221,7 @@ public class MetadataPersistenceService implements MetadataDao {
                     ownerType,
                     ownerId
                 );
-                MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
-                    .convert(responseList);
+                MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
                 if (response != null) {
                     return Optional.of(response);
                 }
@@ -244,8 +242,7 @@ public class MetadataPersistenceService implements MetadataDao {
                         responseList.add(entity.get());
                     }
                 }
-                MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
-                    .convert(responseList);
+                MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
                 if (response != null) {
                     return Optional.of(response);
                 }
