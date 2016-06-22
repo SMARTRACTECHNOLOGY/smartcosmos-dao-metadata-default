@@ -54,7 +54,6 @@ public class MetadataPersistenceService implements MetadataDao {
             return Optional.empty();
         }
 
-
         return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
     }
 
@@ -104,6 +103,8 @@ public class MetadataPersistenceService implements MetadataDao {
                 .build();
             entityList.add(entity);
         }
+
+        persist(entityList);
 
         MetadataResponse response = conversionService.convert(entityList, MetadataResponse.class);
 
