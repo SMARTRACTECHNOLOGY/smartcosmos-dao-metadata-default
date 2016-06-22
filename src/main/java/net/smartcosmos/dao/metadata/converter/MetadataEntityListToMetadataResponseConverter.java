@@ -22,12 +22,17 @@ public class MetadataEntityListToMetadataResponseConverter
         Map<String, Object> metadata = entities.stream()
             .collect(Collectors.toMap(MetadataEntity::getKeyName, MetadataValueParser::parseValue));
 
-        return MetadataResponse.builder()
-            .ownerType(entities.get(0).getOwnerType())
-            .ownerUrn(UuidUtil.getThingUrnFromUuid(entities.get(0).getOwnerId()))
-            .metadata(metadata)
-            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entities.get(0).getTenantId()))
-            .build();
+        if (!metadata.isEmpty()) {
+
+            return MetadataResponse.builder()
+                .ownerType(entities.get(0).getOwnerType())
+                .ownerUrn(UuidUtil.getThingUrnFromUuid(entities.get(0).getOwnerId()))
+                .metadata(metadata)
+                .tenantUrn(UuidUtil.getTenantUrnFromUuid(entities.get(0).getTenantId()))
+                .build();
+        }
+
+        return null;
     }
 
     @Override
