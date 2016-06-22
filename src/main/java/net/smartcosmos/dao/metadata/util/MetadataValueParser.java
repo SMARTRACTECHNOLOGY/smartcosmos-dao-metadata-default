@@ -20,21 +20,12 @@ public class MetadataValueParser {
     private static final String JSON_DATA_TYPE_OBJECT = "JSONObject";
     private static final String JSON_DATA_TYPE_NULL = "<NULL>";
 
-    /**
-     * Check if an object is a number type.
-     *
-     * @param o Object
-     * @return true if o is numeric
-     */
-    public static boolean isNumber(Object o) {
-        return o != null && Number.class.equals(o.getClass().getGenericSuperclass());
-    }
 
     /**
      * Convert the MetadataEntity value into a typed Object depending on dataType
      *
      * @param entity MetadataEntity
-     * @return Object of null, Boolean, Number, String or ObjectNode (JSON)
+     * @return Object of null, Boolean, Number, String, JSONArray or JSONObject (JSON)
      */
     public static Object parseValue(MetadataEntity entity) {
 
@@ -74,6 +65,12 @@ public class MetadataValueParser {
         return JSONObject.NULL;
     }
 
+    /**
+     * Gets the String representation of an object.
+     *
+     * @param object the value object
+     * @return the object's string representation
+     */
     public static String getValue(Object object) {
         if (object != null){
             return object.toString();
@@ -82,6 +79,12 @@ public class MetadataValueParser {
         return null;
     }
 
+    /**
+     * Gets the database-compatible data type of an Object.
+     *
+     * @param object the value object
+     * @return the data type
+     */
     public static String getDataType(Object object) {
 
         if (object == JSONObject.NULL || object == null){
