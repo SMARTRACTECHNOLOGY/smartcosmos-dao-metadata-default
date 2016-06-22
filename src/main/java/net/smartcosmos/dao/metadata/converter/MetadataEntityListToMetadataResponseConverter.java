@@ -15,13 +15,6 @@ public class MetadataEntityListToMetadataResponseConverter {
 
     public MetadataResponse convert(List<MetadataEntity> entities) {
 
-        if (entities == null) {
-            return null;
-        }
-        if (entities.size() == 0) {
-            return null;
-        }
-
         Map<String, Object> metadata = new HashMap<>();
         for (MetadataEntity entity : entities) {
             Object o = MetadataValueParser.parseValue(entity);
