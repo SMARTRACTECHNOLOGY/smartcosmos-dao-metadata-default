@@ -1,8 +1,8 @@
 package net.smartcosmos.dao.metadata.converter;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataCreate;
-import net.smartcosmos.util.UuidUtil;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;

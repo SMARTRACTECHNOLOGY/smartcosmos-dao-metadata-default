@@ -2,8 +2,8 @@ package net.smartcosmos.dao.metadata.converter;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
-import net.smartcosmos.util.UuidUtil;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;
@@ -18,11 +18,11 @@ public class MetadataEntityToMetadataSingleResponseConverter
 
         return MetadataSingleResponse.builder()
             .ownerType(entity.getOwnerType())
-            .ownerUrn(UuidUtil.getUrnFromUuid(entity.getOwnerId()))
+            .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getOwnerId()))
             .key(entity.getKeyName())
             .dataType(entity.getDataType())
             .value(MetadataValueParser.parseValue(entity))
-            .tenantUrn(UuidUtil.getAccountUrnFromUuid(entity.getTenantId()))
+            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getTenantId()))
             .build();
     }
 
