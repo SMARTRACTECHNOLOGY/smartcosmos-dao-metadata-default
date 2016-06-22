@@ -214,7 +214,7 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
         List<MetadataEntity> responseList;
-        if (keys.isEmpty()) {
+        if (keys == null || keys.isEmpty()) {
             responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
                 tenantId,
                 ownerType,
