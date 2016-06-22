@@ -86,23 +86,22 @@ public class MetadataPersistenceService implements MetadataDao {
 
         Set<String> keys = metadataMap.keySet();
 
-        List<MetadataEntity> entityList = new ArrayList<>();
-        for (String key : keys) {
+        List<MetadataEntity> entityList = keys.stream()
+            .map(key -> {
+                Object object = metadataMap.get(key);
+                String value = MetadataValueParser.getValue(object);
+                String dataType = MetadataValueParser.getDataType(object);
 
-            Object object = metadataMap.get(key);
-            String value = MetadataValueParser.getValue(object);
-            String dataType = MetadataValueParser.getDataType(object);
-
-            MetadataEntity entity = MetadataEntity.builder()
-                .ownerType(ownerType)
-                .ownerId(ownerId)
-                .keyName(key)
-                .value(value)
-                .dataType(dataType)
-                .tenantId(tenantId)
-                .build();
-            entityList.add(entity);
-        }
+                return MetadataEntity.builder()
+                    .ownerType(ownerType)
+                    .ownerId(ownerId)
+                    .keyName(key)
+                    .value(value)
+                    .dataType(dataType)
+                    .tenantId(tenantId)
+                    .build();
+            })
+            .collect(Collectors.toList());
 
         persist(entityList);
 
@@ -194,8 +193,7 @@ public class MetadataPersistenceService implements MetadataDao {
                 ownerId,
                 key);
 
-            if (entity.isPresent())
-            {
+            if (entity.isPresent()) {
                 Object value = MetadataValueParser.parseValue(entity.get());
 
                 return Optional.ofNullable(value);
