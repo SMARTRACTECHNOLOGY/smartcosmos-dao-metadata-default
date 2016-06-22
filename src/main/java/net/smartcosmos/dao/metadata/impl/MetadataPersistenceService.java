@@ -6,9 +6,9 @@ import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
-import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -19,7 +19,9 @@ import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,34 +40,25 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<MetadataResponse> create(String tenantUrn, MetadataCreate createMetadata)
+    public Optional<MetadataResponse> create(String tenantUrn, String ownerType, String ownerUrn, Map<String, Object> metadataMap)
         throws ConstraintViolationException {
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
-        UUID ownerId = UuidUtil.getUuidFromUrn(createMetadata.getOwnerUrn());
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        List<String> keys = new ArrayList<>();
-        keys.addAll(createMetadata.getMetadata().keySet());
-
-        if (alreadyExists(tenantId, createMetadata.getOwnerType(), ownerId, keys)) {
+        if (MapUtils.isEmpty(metadataMap)) {
             return Optional.empty();
         }
 
-        List<MetadataEntity> responseList = new ArrayList<>();
-        MetadataEntity[] entities = conversionService.convert(createMetadata, MetadataEntity[].class);
-
-        for (MetadataEntity entity : entities) {
-            entity.setTenantId(tenantId);
-            entity = persist(entity);
-            responseList.add(entity);
+        if (alreadyExists(tenantId, ownerType, ownerId, metadataMap.keySet())) {
+            return Optional.empty();
         }
 
-        MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
 
-        return Optional.ofNullable(response);
+        return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
     }
 
-    private boolean alreadyExists(UUID tenantId, String ownerType, UUID ownerId, List<String> keys) {
+    private boolean alreadyExists(UUID tenantId, String ownerType, UUID ownerId, Collection<String> keys) {
 
         Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
             tenantId,
@@ -77,30 +70,43 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<MetadataResponse> upsert(String tenantUrn, MetadataCreate upsertMetadata)
+    public Optional<MetadataResponse> upsert(String tenantUrn, String ownerType, String ownerUrn, Map<String, Object> metadataMap)
         throws ConstraintViolationException {
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        List<MetadataEntity> responseList = new ArrayList<>();
-        MetadataEntity[] entities = conversionService.convert(upsertMetadata, MetadataEntity[].class);
-
-        for (MetadataEntity entity : entities) {
-
-            Optional<MetadataEntity> existingEntity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
-                entity.getTenantId(),
-                entity.getOwnerType(),
-                entity.getOwnerId(),
-                entity.getKeyName());
-            if (existingEntity.isPresent()) {
-                entity.setId(existingEntity.get().getId());
-            }
-            entity.setTenantId(tenantId);
-            entity = persist(entity);
-            responseList.add(entity);
+        if (MapUtils.isEmpty(metadataMap)) {
+            return Optional.empty();
         }
 
-        MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
+        return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
+    }
+
+    private Optional<MetadataResponse> createOrUpdate(String ownerType, Map<String, Object> metadataMap, UUID tenantId, UUID ownerId) {
+
+        Set<String> keys = metadataMap.keySet();
+
+        List<MetadataEntity> entityList = new ArrayList<>();
+        for (String key : keys) {
+
+            Object object = metadataMap.get(key);
+            String value = MetadataValueParser.getValue(object);
+            String dataType = MetadataValueParser.getDataType(object);
+
+            MetadataEntity entity = MetadataEntity.builder()
+                .ownerType(ownerType)
+                .ownerId(ownerId)
+                .keyName(key)
+                .value(value)
+                .dataType(dataType)
+                .tenantId(tenantId)
+                .build();
+            entityList.add(entity);
+        }
+
+        MetadataResponse response = conversionService.convert(entityList, MetadataResponse.class);
+
         return Optional.ofNullable(response);
     }
 
@@ -272,6 +278,22 @@ public class MetadataPersistenceService implements MetadataDao {
     private MetadataEntity persist(MetadataEntity entity) throws ConstraintViolationException, TransactionException {
         try {
             return metadataRepository.save(entity);
+        } catch (TransactionException e) {
+            // we expect constraint violations to be the root cause for exceptions here,
+            // so we throw this particular exception back to the caller
+            if (ExceptionUtils.getRootCause(e) instanceof ConstraintViolationException) {
+                throw (ConstraintViolationException) ExceptionUtils.getRootCause(e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private void persist(Collection<MetadataEntity> entities)
+        throws ConstraintViolationException, TransactionException {
+
+        try {
+            metadataRepository.save(entities);
         } catch (TransactionException e) {
             // we expect constraint violations to be the root cause for exceptions here,
             // so we throw this particular exception back to the caller
