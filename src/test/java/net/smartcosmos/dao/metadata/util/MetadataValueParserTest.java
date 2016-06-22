@@ -1,8 +1,8 @@
 package net.smartcosmos.dao.metadata.util;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -28,11 +28,13 @@ public class MetadataValueParserTest {
 
     @Test
     public void thatNullCanBeParsed() {
-        MetadataEntity entity = MetadataEntity.builder().build();
+        MetadataEntity entity = MetadataEntity.builder()
+            .dataType("<NULL>")
+            .build();
 
         Object o = MetadataValueParser.parseValue(entity);
 
-        assertEquals(null, o);
+        assertEquals(JSONObject.NULL, o);
     }
 
     @Test
@@ -96,15 +98,16 @@ public class MetadataValueParserTest {
 
         String input = "{\"x\":1,\"y\":2}";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("ObjectNode")
+            .dataType("JSONObject")
             .value(input.toString())
             .build();
 
         Object o = MetadataValueParser.parseValue(entity);
-        ObjectNode output = (ObjectNode) o;
+        assertTrue(o instanceof JSONObject);
+        JSONObject output = (JSONObject) o;
 
-        assertEquals(1, output.findValue("x").asInt());
-        assertEquals(2, output.findValue("y").asInt());
+        assertEquals(1, output.get("x"));
+        assertEquals(2, output.get("y"));
     }
 
     @Test
@@ -112,15 +115,16 @@ public class MetadataValueParserTest {
 
         String input = "[{\"x\":1},{\"x\":2}]";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("ObjectNode")
+            .dataType("JSONArray")
             .value(input.toString())
             .build();
 
         Object o = MetadataValueParser.parseValue(entity);
-        ArrayNode output = (ArrayNode) o;
+        assertTrue(o instanceof JSONArray);
+        JSONArray output = (JSONArray) o;
 
-        assertEquals(1, output.get(0).findValue("x").asInt());
-        assertEquals(2, output.get(1).findValue("x").asInt());
+        assertEquals(1, ((JSONArray)output).getJSONObject(0).get("x"));
+        assertEquals(2, ((JSONArray)output).getJSONObject(1).get("x"));
     }
 
 }
