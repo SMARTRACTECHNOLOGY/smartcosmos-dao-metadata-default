@@ -158,9 +158,7 @@ public class MetadataPersistenceService implements MetadataDao {
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
         }
 
-        return deleteList.stream()
-            .map(o -> conversionService.convert(o, MetadataResponse.class))
-            .collect(Collectors.toList());
+        return convert(deleteList);
     }
 
     @Override
@@ -180,34 +178,33 @@ public class MetadataPersistenceService implements MetadataDao {
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
         }
 
-        return deleteList.stream()
-            .map(o -> conversionService.convert(o, MetadataResponse.class))
-            .collect(Collectors.toList());
+        return convert(deleteList);
     }
 
     @Override
     public Optional<Object> findByKey(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
-        Optional<MetadataEntity> entity = Optional.empty();
         try {
             UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-            entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
                 tenantId,
                 ownerType,
                 ownerId,
                 key);
+
+            if (entity.isPresent())
+            {
+                Object value = MetadataValueParser.parseValue(entity.get());
+
+                return Optional.ofNullable(value);
+            }
         } catch (IllegalArgumentException e) {
             // empty Optional will be returned anyway
             log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
         }
 
-        if (entity.isPresent())
-        {
-            Object o = MetadataValueParser.parseValue(entity.get());
-            return Optional.ofNullable(o);
-        }
         return Optional.empty();
     }
 
@@ -304,5 +301,11 @@ public class MetadataPersistenceService implements MetadataDao {
                 throw e;
             }
         }
+    }
+
+    private List<MetadataResponse> convert(List<MetadataEntity> entityList) {
+        return entityList.stream()
+            .map(o -> conversionService.convert(o, MetadataResponse.class))
+            .collect(Collectors.toList());
     }
 }
