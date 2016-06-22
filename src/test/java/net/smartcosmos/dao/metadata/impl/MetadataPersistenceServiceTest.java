@@ -8,10 +8,10 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
-import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
-
 import net.smartcosmos.security.user.SmartCosmosUser;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,36 +85,34 @@ public class MetadataPersistenceServiceTest {
         final String ownerType = "Thing";
         final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        Object o = mapper.readTree("{\"x\":1,\"y\":2}");
+        final Boolean bool = true;
+        final JSONObject jsonObject = new JSONObject("{\"x\":1,\"y\":2}");
+        final JSONArray jsonArray = new JSONArray("[\"x\",\"y\"]");
+        final Number number = 123;
+        final String text = "Text";
 
         Map<String, Object> keyValues = new HashMap<>();
-        keyValues.put("someBool", true);
-        keyValues.put("someJson", o);
-        keyValues.put("someNumber", 123);
+        keyValues.put("someBool", bool);
+        keyValues.put("someJsonObject", jsonObject);
+        keyValues.put("someJsonArray", jsonArray);
+        keyValues.put("someNumber", number);
         keyValues.put("someNull", null);
-        keyValues.put("someString", "Text");
+        keyValues.put("someString", text);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, create);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         assertTrue(response.isPresent());
         assertEquals(ownerType, response.get().getOwnerType());
         assertEquals(ownerUrn, response.get().getOwnerUrn());
-        assertEquals(5, response.get().getMetadata().size());
-        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("someBool").toString()));
-        assertEquals("Text", response.get().getMetadata().get("someString").toString());
 
-        ObjectNode output = (ObjectNode) response.get().getMetadata().get("someJson");
-        assertEquals(1, output.findValue("x").asInt());
-        assertEquals(2, output.findValue("y").asInt());
+        assertEquals(6, response.get().getMetadata().size());
+
+        assertEquals(bool, response.get().getMetadata().get("someBool"));
+        assertEquals(jsonObject.toString(), response.get().getMetadata().get("someJsonObject").toString());
+        assertEquals(jsonArray.toString(), response.get().getMetadata().get("someJsonArray").toString());
+        assertEquals(number, response.get().getMetadata().get("someNumber"));
+        assertEquals(JSONObject.NULL, response.get().getMetadata().get("someNull"));
+        assertEquals(text, response.get().getMetadata().get("someString"));
 
         List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
             tenantId,
@@ -136,16 +134,10 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("duplicateCreate", true);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response1 = metadataPersistenceService.create(tenantUrn, create);
+        Optional<MetadataResponse> response1 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response1.isPresent());
 
-        Optional<MetadataResponse> response2 = metadataPersistenceService.create(tenantUrn, create);
+        Optional<MetadataResponse> response2 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertFalse(response2.isPresent());
     }
 
@@ -157,13 +149,7 @@ public class MetadataPersistenceServiceTest {
 
         Map<String, Object> keyValues = new HashMap<>();
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, create);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertFalse(response.isPresent());
     }
 
@@ -175,13 +161,7 @@ public class MetadataPersistenceServiceTest {
 
         Map<String, Object> keyValues = null;
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, create);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertFalse(response.isPresent());
     }
 
@@ -207,13 +187,7 @@ public class MetadataPersistenceServiceTest {
         keyValues.put("upsertNull", null);
         keyValues.put("upsertString", "Text");
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.upsert(tenantUrn, create);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         assertTrue(response.isPresent());
         assertEquals(ownerType, response.get().getOwnerType());
@@ -246,16 +220,10 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("duplicateUpsert", true);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response1 = metadataPersistenceService.upsert(tenantUrn, create);
+        Optional<MetadataResponse> response1 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response1.isPresent());
 
-        Optional<MetadataResponse> response2 = metadataPersistenceService.upsert(tenantUrn, create);
+        Optional<MetadataResponse> response2 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response2.isPresent());
     }
 
@@ -267,13 +235,7 @@ public class MetadataPersistenceServiceTest {
 
         Map<String, Object> keyValues = new HashMap<>();
 
-        MetadataCreate upsert = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.upsert(tenantUrn, upsert);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertFalse(response.isPresent());
     }
 
@@ -285,13 +247,7 @@ public class MetadataPersistenceServiceTest {
 
         Map<String, Object> keyValues = null;
 
-        MetadataCreate upsert = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.upsert(tenantUrn, upsert);
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertFalse(response.isPresent());
     }
 
@@ -309,14 +265,7 @@ public class MetadataPersistenceServiceTest {
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(keyName, value);
-
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        metadataPersistenceService.create(tenantUrn, create);
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         Optional<Object> o = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
@@ -352,13 +301,7 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(keyName, value);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        metadataPersistenceService.create(tenantUrn, create);
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         List<MetadataResponse> deleteList = metadataPersistenceService.delete(tenantUrn, ownerType, ownerUrn, keyName);
 
@@ -398,13 +341,7 @@ public class MetadataPersistenceServiceTest {
         keyValues.put("testDeleteAll1", value);
         keyValues.put("testDeleteAll2", value);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        metadataPersistenceService.create(tenantUrn, create);
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         List<MetadataResponse> deleteList = metadataPersistenceService
             .deleteAllByOwner(tenantUrn, ownerType, ownerUrn);
@@ -444,13 +381,7 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(keyName, value);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        metadataPersistenceService.create(tenantUrn, create);
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         Optional<Object> response = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
@@ -487,13 +418,7 @@ public class MetadataPersistenceServiceTest {
         keyValues.put(key1, value);
         keyValues.put(key2, value);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        metadataPersistenceService.create(tenantUrn, create);
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         Collection<String> keySet = new ArrayList<>();
         keySet.add(key1);
@@ -524,13 +449,7 @@ public class MetadataPersistenceServiceTest {
         keyValues.put(key1, value);
         keyValues.put(key2, value);
 
-        MetadataCreate create = MetadataCreate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .metadata(keyValues)
-            .build();
-
-        metadataPersistenceService.create(tenantUrn, create);
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         Collection<String> keySet = new ArrayList<>();
 
