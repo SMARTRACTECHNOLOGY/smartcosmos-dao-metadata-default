@@ -42,6 +42,9 @@ public class MetadataPersistenceService implements MetadataDao {
     public Optional<MetadataResponse> create(String tenantUrn, MetadataCreate createMetadata)
         throws ConstraintViolationException {
 
+        if (createMetadata.getMetadata() == null)
+            return Optional.empty();
+
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         List<String> keys = new ArrayList<>();
@@ -73,6 +76,9 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public Optional<MetadataResponse> upsert(String tenantUrn, MetadataCreate upsertMetadata)
         throws ConstraintViolationException {
+
+        if (upsertMetadata.getMetadata() == null)
+            return Optional.empty();
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
