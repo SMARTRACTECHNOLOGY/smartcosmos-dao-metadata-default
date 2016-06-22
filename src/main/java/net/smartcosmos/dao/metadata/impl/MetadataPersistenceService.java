@@ -213,34 +213,29 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
+        List<MetadataEntity> responseList;
         if (keys.isEmpty()) {
-            List<MetadataEntity> responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+            responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
                 tenantId,
                 ownerType,
                 ownerId
             );
-            MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
-            if (response != null) {
-                return Optional.of(response);
-            }
-        } else {
-            List<MetadataEntity> responseList = new ArrayList<>();
-            for (String keyName: keys) {
-                Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+        }
+        else {
+            responseList = keys.stream()
+                .map(key -> metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
                     tenantId,
                     ownerType,
                     ownerId,
-                    keyName);
-                if (entity.isPresent()) {
-                    responseList.add(entity.get());
-                }
-            }
-            MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
-            if (response != null) {
-                return Optional.of(response);
-            }
+                    key))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
         }
-        return Optional.empty();
+
+        MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
+
+        return Optional.ofNullable(response);
     }
 
     @Override
