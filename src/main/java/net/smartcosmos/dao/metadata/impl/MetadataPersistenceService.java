@@ -6,10 +6,10 @@ import net.smartcosmos.dao.metadata.converter.MetadataEntityListToMetadataRespon
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
-import net.smartcosmos.util.UuidUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -42,7 +42,7 @@ public class MetadataPersistenceService implements MetadataDao {
     public Optional<MetadataResponse> create(String tenantUrn, MetadataCreate createMetadata)
         throws ConstraintViolationException {
 
-        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         List<String> keys = new ArrayList<>();
         keys.addAll(createMetadata.getMetadata().keySet());
@@ -74,7 +74,7 @@ public class MetadataPersistenceService implements MetadataDao {
     public Optional<MetadataResponse> upsert(String tenantUrn, MetadataCreate upsertMetadata)
         throws ConstraintViolationException {
 
-        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         List<MetadataEntity> responseList = new ArrayList<>();
         MetadataEntity[] entities = conversionService.convert(upsertMetadata, MetadataEntity[].class);
@@ -108,7 +108,7 @@ public class MetadataPersistenceService implements MetadataDao {
         Object value)
         throws ConstraintViolationException {
 
-        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
         Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
@@ -131,7 +131,7 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public List<MetadataResponse> delete(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
-        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
         try {
@@ -154,7 +154,7 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public List<MetadataResponse> deleteAllByOwner(String tenantUrn, String ownerType, String ownerUrn) {
 
-        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
         try {
@@ -178,7 +178,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         Optional<MetadataEntity> entity = Optional.empty();
         try {
-            UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+            UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
             entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
@@ -206,7 +206,7 @@ public class MetadataPersistenceService implements MetadataDao {
         String ownerUrn,
         Collection<String> keys) {
 
-        UUID tenantId = UuidUtil.getUuidFromAccountUrn(tenantUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
         if (keys.isEmpty()) {

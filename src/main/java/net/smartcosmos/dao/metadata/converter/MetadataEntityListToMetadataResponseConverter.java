@@ -2,8 +2,8 @@ package net.smartcosmos.dao.metadata.converter;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataResponse;
-import net.smartcosmos.util.UuidUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -30,9 +30,9 @@ public class MetadataEntityListToMetadataResponseConverter {
 
         return MetadataResponse.builder()
             .ownerType(entities.get(0).getOwnerType())
-            .ownerUrn(UuidUtil.getUrnFromUuid(entities.get(0).getOwnerId()))
+            .ownerUrn(UuidUtil.getThingUrnFromUuid(entities.get(0).getOwnerId()))
             .metadata(metadata)
-            .tenantUrn(UuidUtil.getAccountUrnFromUuid(entities.get(0).getTenantId()))
+            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entities.get(0).getTenantId()))
             .build();
     }
 }
