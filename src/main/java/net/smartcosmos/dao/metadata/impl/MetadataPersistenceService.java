@@ -32,7 +32,6 @@ public class MetadataPersistenceService implements MetadataDao {
 
     private final MetadataRepository metadataRepository;
     private final ConversionService conversionService;
-    //private final SearchSpecifications<MetadataEntity> searchSpecifications = new SearchSpecifications<>();
 
     @Autowired
     public MetadataPersistenceService(MetadataRepository metadataRepository,
@@ -57,7 +56,6 @@ public class MetadataPersistenceService implements MetadataDao {
             keys);
 
         if (count > 0) {
-            // FIXME: throw suitable exception
             return Optional.empty();
         }
 
@@ -69,20 +67,9 @@ public class MetadataPersistenceService implements MetadataDao {
             entity = persist(entity);
             responseList.add(entity);
         }
-
-        //MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
-        /* FIXME:
-         * Bug in Spring framework: conversionService coverts first array element only
-         * Temporary solution: call converter directly until fixed
-         */
-
         MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
                 .convert(responseList);
-
-        if (response != null) {
-            return Optional.of(response);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(response);
     }
 
     @Override
@@ -111,11 +98,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
             .convert(responseList);
-
-        if (response != null) {
-            return Optional.of(response);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(response);
     }
 
     @Override
@@ -235,8 +218,8 @@ public class MetadataPersistenceService implements MetadataDao {
                     ownerType,
                     ownerId
                 );
-
-                MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
+                MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
+                    .convert(responseList);
                 if (response != null) {
                     return Optional.of(response);
                 }
@@ -257,7 +240,8 @@ public class MetadataPersistenceService implements MetadataDao {
                         responseList.add(entity.get());
                     }
                 }
-                MetadataResponse response = conversionService.convert(responseList.toArray(), MetadataResponse.class);
+                MetadataResponse response = new MetadataEntityListToMetadataResponseConverter()
+                    .convert(responseList);
                 if (response != null) {
                     return Optional.of(response);
                 }
@@ -274,7 +258,6 @@ public class MetadataPersistenceService implements MetadataDao {
         // TODO: ...
         throw new RuntimeException("Not implemented yet");
     }
-
 
     /**
      * Saves an metadata entity in an {@link MetadataRepository}.

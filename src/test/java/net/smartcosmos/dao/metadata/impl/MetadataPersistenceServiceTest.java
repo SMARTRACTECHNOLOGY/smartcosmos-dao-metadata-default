@@ -28,9 +28,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -125,7 +134,7 @@ public class MetadataPersistenceServiceTest {
         final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
         Map<String, Object> keyValues = new HashMap<>();
-        keyValues.put("duplicate", true);
+        keyValues.put("duplicateCreate", true);
 
         MetadataCreate create = MetadataCreate.builder()
             .ownerType(ownerType)
@@ -142,7 +151,7 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
-    // region update
+    // region Upsert
 
     @Test
     public void testUpsert() throws Exception {
@@ -192,11 +201,31 @@ public class MetadataPersistenceServiceTest {
         assertEquals(5, entityList.size());
     }
 
-    // TODO: add upsert tests
+    @Test
+    public void testUpsertWorksOnDuplicateKey() {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("duplicateUpsert", true);
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
+            .build();
+
+        Optional<MetadataResponse> response1 = metadataPersistenceService.upsert(tenantUrn, create);
+        assertTrue(response1.isPresent());
+
+        Optional<MetadataResponse> response2 = metadataPersistenceService.upsert(tenantUrn, create);
+        assertTrue(response2.isPresent());
+    }
 
     // endregion */
 
-    // region update
+    // region Update
 
     @Test
     public void testUpdate() throws Exception {
@@ -284,6 +313,52 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
+    // region DeleteAllByOwner
+
+    @Test
+    public void testDeleteAllByOwner() {
+
+        final Boolean value = true;
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("testDeleteAll1", value);
+        keyValues.put("testDeleteAll2", value);
+
+        MetadataCreate create = MetadataCreate.builder()
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
+            .build();
+
+        metadataPersistenceService.create(tenantUrn, create);
+
+        List<MetadataResponse> deleteList = metadataPersistenceService
+            .deleteAllByOwner(tenantUrn, ownerType, ownerUrn);
+
+        assertFalse(deleteList.isEmpty());
+        assertEquals(2, deleteList.size());
+        assertEquals(ownerType, deleteList.get(0).getOwnerType());
+        assertEquals(ownerUrn, deleteList.get(0).getOwnerUrn());
+        assertEquals(1, deleteList.get(0).getMetadata().size());
+    }
+
+    @Test
+    public void testDeleteAllByOwnerNonexistent() {
+
+        final String keyName = "these-does-not-exist";
+        final String ownerType = "Object";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+
+        List<MetadataResponse> deleteList = metadataPersistenceService
+            .deleteAllByOwner(tenantUrn, ownerType, ownerUrn);
+
+        assertTrue(deleteList.isEmpty());
+    }
+
+    // endregion */
+
     // region Find by Key
 
     @Test
@@ -325,361 +400,92 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
-    /* region Query
+    // region Find by Owner
 
     @Test
-    public void testFindBySingleSearchCriteriaKey() {
+    public void testFindByOwner() {
 
-        populateQueryData();
+        final Boolean value = true;
+        final String key1 = "testFindByKey1";
+        final String key2 = "testFindByKey2";
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        final String key = "searchMe";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put(key1, value);
+        keyValues.put(key2, value);
 
         MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
             .build();
 
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
-        metadataPersistenceService.upsert(tenantUrn, createList);
+        metadataPersistenceService.create(tenantUrn, create);
 
-        MetadataQuery query1 = MetadataQuery.builder()
-            .key(key)
-            .build();
+        Collection<String> keySet = new ArrayList<>();
+        keySet.add(key1);
+        keySet.add(key2);
 
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
+        Optional<MetadataResponse> response = metadataPersistenceService
+                .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
 
-        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            entityReferenceType,
-            queryCollection,
-            20);
+        assertTrue(response.isPresent());
 
-        assertFalse(responseList.isEmpty());
-        assertEquals(1, responseList.size());
+        assertEquals(ownerType, response.get().getOwnerType());
+        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(keySet.size(), response.get().getMetadata().size());
+        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key1).toString()));
+        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key2).toString()));
     }
 
     @Test
-    public void testFindBySingleSearchCriteriaRawValue() {
+    public void testFindByOwnerWithoutKeys() {
 
-        populateQueryData();
+        final Boolean value = true;
+        final String key1 = "testFindWithoutKey1";
+        final String key2 = "testFindWithoutKey2";
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        final String key = "searchMe";
-        final String dataType = "IntegerType";
-        final String rawValue = "42";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put(key1, value);
+        keyValues.put(key2, value);
 
         MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
+            .ownerType(ownerType)
+            .ownerUrn(ownerUrn)
+            .metadata(keyValues)
             .build();
 
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
-        metadataPersistenceService.upsert(tenantUrn, createList);
+        metadataPersistenceService.create(tenantUrn, create);
 
-        MetadataQuery query1 = MetadataQuery.builder()
-            .rawValue(rawValue)
-            .build();
+        Collection<String> keySet = new ArrayList<>();
 
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
+        Optional<MetadataResponse> response = metadataPersistenceService
+            .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
 
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            entityReferenceType,
-            queryCollection,
-            20);
+        assertTrue(response.isPresent());
 
-        assertFalse(responses.isEmpty());
-        assertEquals(1, responses.size());
-        assertEquals(referenceUrn, responses.iterator().next().getUrn());
+        assertEquals(ownerType, response.get().getOwnerType());
+        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(2, response.get().getMetadata().size());
+        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key1).toString()));
+        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key2).toString()));
     }
 
     @Test
-    public void testFindBySingleSearchCriteriaDataType() {
+    public void testFindByOwnerNonexistent() {
 
-        populateQueryData();
+        final String ownerType = "Thing";
+        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
 
-        final String key = "searchMe";
-        final String dataType = "DoubleType";
-        final String rawValue = "23";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        Collection<String> keySet = new ArrayList<>();
 
-        MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
-            .build();
+        Optional<MetadataResponse> response = metadataPersistenceService
+                .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
 
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
-        metadataPersistenceService.upsert(tenantUrn, createList);
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .dataType(dataType)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            entityReferenceType,
-            queryCollection,
-            20);
-
-        assertFalse(responses.isEmpty());
-        assertEquals(1, responses.size());
-        assertEquals(referenceUrn, responses.iterator().next().getUrn());
-    }
-
-    @Test
-    public void testFindBySearchCriteriaNonexistent() {
-
-        final String key = "does-not-exist";
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .key(key)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            "anyEntityReferenceType",
-            queryCollection,
-            20);
-
-        assertTrue(responses.isEmpty());
-    }
-
-    @Test
-    public void testFindByComplexSearchCriteriaDataTypeStringKeyA() {
-        populateQueryData();
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .key(KEY_A)
-            .dataType(DATA_TYPE_STRING)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-
-        Set<MetadataQueryMatchResponse> responseList = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            ENTITY_REFERENCE_TYPE,
-            queryCollection,
-            20);
-
-        assertFalse(responseList.isEmpty());
-        assertEquals(2, responseList.size());
-
-        List<UUID> uuidList = responseList.stream()
-            .map(response -> UuidUtil.getUuidFromUrn(response.getUrn()))
-            .collect(Collectors.toList());
-
-        assertTrue(uuidList.contains(REFERENCE_ID_ONE));
-        assertTrue(uuidList.contains(REFERENCE_ID_THREE));
-    }
-
-    @Test
-    public void testFindByComplexSearchCriteriasDataTypeBooleanValueAAndKeyA() {
-        populateQueryData();
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .dataType(DATA_TYPE_BOOLEAN)
-            .rawValue(RAW_VALUE_BOOLEAN_A)
-            .build();
-
-        MetadataQuery query2 = MetadataQuery.builder()
-            .key(KEY_A)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-        queryCollection.add(query2);
-
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            ENTITY_REFERENCE_TYPE,
-            queryCollection,
-            20);
-
-        assertFalse(responses.isEmpty());
-        assertEquals(1, responses.size());
-
-        List<UUID> uuidList = responses.stream()
-            .map(response -> UuidUtil.getUuidFromUrn(response.getUrn()))
-            .collect(Collectors.toList());
-
-        assertTrue(uuidList.contains(REFERENCE_ID_TWO));
-    }
-
-    @Test
-    public void testFindByComplexSearchCriteriaNothingMatches() {
-        populateQueryData();
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .dataType(DATA_TYPE_BOOLEAN)
-            .rawValue(RAW_VALUE_BOOLEAN_A)
-            .build();
-
-        MetadataQuery query2 = MetadataQuery.builder()
-            .key(KEY_A)
-            .build();
-
-        MetadataQuery query3 = MetadataQuery.builder()
-            .dataType(DATA_TYPE_STRING)
-            .key(KEY_B)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-        queryCollection.add(query2);
-        queryCollection.add(query3);
-
-        Set<MetadataQueryMatchResponse> responses = metadataPersistenceService.findBySearchCriteria(tenantUrn,
-            ENTITY_REFERENCE_TYPE,
-            queryCollection,
-            20);
-
-        assertTrue(responses.isEmpty());
-    }
-
-    // endregion */
-
-    /* region Count
-
-    @Test
-    public void testCountBySingleSearchCriteriaKey() {
-
-        final String key = "searchMe";
-        final String dataType = "BooleanType";
-        final String rawValue = "true";
-        final String entityReferenceType = "Object";
-        final String referenceUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
-
-        MetadataCreate create = MetadataCreate.builder()
-            .referenceUrn(referenceUrn)
-            .entityReferenceType(entityReferenceType)
-            .rawValue(rawValue)
-            .dataType(dataType)
-            .key(key)
-            .build();
-
-        List<MetadataCreate> createList = new ArrayList<>();
-        createList.add(create);
-        metadataPersistenceService.upsert(tenantUrn, createList);
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .key(key)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-
-        Long count = metadataPersistenceService.countBySearchCriteria(tenantUrn,
-            ENTITY_REFERENCE_TYPE,
-            queryCollection);
-
-        assertNotNull(count);
-        assertTrue(1L == count);
-    }
-
-    @Test
-    public void testCountNonexistent() {
-        final String key = "does-not-exist";
-
-        MetadataQuery query1 = MetadataQuery.builder()
-            .key(key)
-            .build();
-
-        Collection<MetadataQuery> queryCollection = new ArrayList<>();
-        queryCollection.add(query1);
-
-        Long count = metadataPersistenceService.countBySearchCriteria(tenantUrn, ENTITY_REFERENCE_TYPE, queryCollection);
-
-        assertNotNull(count);
-        assertTrue(0L == count);
-    }
-
-    // endregion
-
-    // region Helper Methods
-
-    private void populateQueryData() {
-
-        MetadataEntity entity1 = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID_ONE)
-            .key(KEY_ONE)
-            .dataType(DATA_TYPE_ONE)
-            .rawValue(RAW_VALUE_ONE)
-            .build();
-
-        MetadataEntity entity2 = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID_TWO)
-            .key(KEY_TWO)
-            .dataType(DATA_TYPE_TWO)
-            .rawValue(RAW_VALUE_TWO)
-            .build();
-
-        MetadataEntity entity3 = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID_THREE)
-            .key(KEY_THREE)
-            .dataType(DATA_TYPE_THREE)
-            .rawValue(RAW_VALUE_THREE)
-            .build();
-
-        MetadataEntity entity4 = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID_FOUR)
-            .key(KEY_FOUR)
-            .dataType(DATA_TYPE_FOUR)
-            .rawValue(RAW_VALUE_FOUR)
-            .build();
-
-        MetadataEntity entity5 = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID_FIVE)
-            .key(KEY_FIVE)
-            .dataType(DATA_TYPE_FIVE)
-            .rawValue(RAW_VALUE_FIVE)
-            .build();
-
-        MetadataEntity entity6 = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID_SIX)
-            .key(KEY_SIX)
-            .dataType(DATA_TYPE_SIX)
-            .rawValue(RAW_VALUE_SIX)
-            .build();
-
-        metadataRepository.save(entity1);
-        metadataRepository.save(entity2);
-        metadataRepository.save(entity3);
-        metadataRepository.save(entity4);
-        metadataRepository.save(entity5);
-        metadataRepository.save(entity6);
+        assertFalse(response.isPresent());
     }
 
     // endregion */
