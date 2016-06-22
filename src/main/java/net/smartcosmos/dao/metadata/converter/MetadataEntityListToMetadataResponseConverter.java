@@ -9,9 +9,9 @@ import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class MetadataEntityListToMetadataResponseConverter
@@ -19,11 +19,8 @@ public class MetadataEntityListToMetadataResponseConverter
 
     public MetadataResponse convert(List<MetadataEntity> entities) {
 
-        Map<String, Object> metadata = new HashMap<>();
-        for (MetadataEntity entity : entities) {
-            Object o = MetadataValueParser.parseValue(entity);
-            metadata.put(entity.getKeyName(), o);
-        }
+        Map<String, Object> metadata = entities.stream()
+            .collect(Collectors.toMap(MetadataEntity::getKeyName, MetadataValueParser::parseValue));
 
         return MetadataResponse.builder()
             .ownerType(entities.get(0).getOwnerType())
