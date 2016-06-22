@@ -10,7 +10,6 @@ import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
-import net.smartcosmos.dto.metadata.MetadataUpdate;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -115,23 +114,25 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public Optional<MetadataResponse> update(
         String tenantUrn,
-        MetadataUpdate metadataUpdate)
+        String ownerType,
+        String ownerUrn,
+        String key,
+        Object value)
         throws ConstraintViolationException {
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
-        UUID ownerId = UuidUtil.getUuidFromUrn(metadataUpdate.getOwnerUrn());
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
         Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
             tenantId,
-            metadataUpdate.getOwnerType(),
+            ownerType,
             ownerId,
-            metadataUpdate.getKey());
+            key);
 
         if (entity.isPresent()) {
             MetadataEntity updateEntity = entity.get();
-            updateEntity.setDataType(metadataUpdate.getValue() != null ?
-                    metadataUpdate.getValue().getClass().getSimpleName() : "null");
-            updateEntity.setValue(metadataUpdate.getValue() != null ? metadataUpdate.getValue().toString() : null);
+            updateEntity.setDataType(value != null ? value.getClass().getSimpleName() : "null");
+            updateEntity.setValue(value != null ? value.toString() : null);
             updateEntity = persist(updateEntity);
             MetadataResponse response = conversionService.convert(updateEntity, MetadataResponse.class);
             return Optional.ofNullable(response);

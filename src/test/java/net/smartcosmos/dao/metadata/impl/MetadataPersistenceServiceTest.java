@@ -11,7 +11,6 @@ import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 
-import net.smartcosmos.dto.metadata.MetadataUpdate;
 import net.smartcosmos.security.user.SmartCosmosUser;
 import org.junit.After;
 import org.junit.Before;
@@ -324,14 +323,7 @@ public class MetadataPersistenceServiceTest {
         assertTrue(o.isPresent());
         assertEquals(true, o.get());
 
-        MetadataUpdate update = MetadataUpdate.builder()
-            .ownerType(ownerType)
-            .ownerUrn(ownerUrn)
-            .key(keyName)
-            .value(false)
-            .build();
-
-        Optional<MetadataResponse> response = metadataPersistenceService.update(tenantUrn, update);
+        Optional<MetadataResponse> response = metadataPersistenceService.update(tenantUrn, ownerType, ownerUrn, keyName, false);
 
         assertTrue(response.isPresent());
         assertEquals(ownerType, response.get().getOwnerType());
