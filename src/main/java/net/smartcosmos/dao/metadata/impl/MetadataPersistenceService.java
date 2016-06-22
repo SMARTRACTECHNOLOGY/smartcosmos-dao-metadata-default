@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 @Service
 public class MetadataPersistenceService implements MetadataDao {
 
-    public static final int NO_LIMIT_ON_QUERY_RESPONSE_SIZE = 0;
-
     private final MetadataRepository metadataRepository;
     private final ConversionService conversionService;
 
