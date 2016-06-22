@@ -7,11 +7,11 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataCreate;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 
 import net.smartcosmos.security.user.SmartCosmosUser;
-import net.smartcosmos.util.UuidUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +50,7 @@ import static org.junit.Assert.assertTrue;
 public class MetadataPersistenceServiceTest {
 
     private final UUID tenantId = UUID.randomUUID();
-    private final String tenantUrn = UuidUtil.getAccountUrnFromUuid(tenantId);
+    private final String tenantUrn = UuidUtil.getTenantUrnFromUuid(tenantId);
 
     @Autowired
     MetadataPersistenceService metadataPersistenceService;
@@ -83,7 +83,7 @@ public class MetadataPersistenceServiceTest {
     public void testCreate() throws Exception {
 
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -131,7 +131,7 @@ public class MetadataPersistenceServiceTest {
     public void testCreateFailOnDuplicateKey() {
 
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("duplicateCreate", true);
@@ -157,7 +157,7 @@ public class MetadataPersistenceServiceTest {
     public void testUpsert() throws Exception {
 
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -205,7 +205,7 @@ public class MetadataPersistenceServiceTest {
     public void testUpsertWorksOnDuplicateKey() {
 
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("duplicateUpsert", true);
@@ -233,7 +233,7 @@ public class MetadataPersistenceServiceTest {
         final String keyName = "updateMe";
         final Boolean value = true;
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(keyName, value);
@@ -275,7 +275,7 @@ public class MetadataPersistenceServiceTest {
         final String keyName = "deleteMe";
         final Boolean value = true;
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(keyName, value);
@@ -303,7 +303,7 @@ public class MetadataPersistenceServiceTest {
 
         final String keyName = "this-does-not-exist";
         final String ownerType = "Object";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         List<MetadataResponse> deleteList = metadataPersistenceService
             .delete(tenantUrn, ownerType, ownerUrn, keyName);
@@ -320,7 +320,7 @@ public class MetadataPersistenceServiceTest {
 
         final Boolean value = true;
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put("testDeleteAll1", value);
@@ -349,7 +349,7 @@ public class MetadataPersistenceServiceTest {
 
         final String keyName = "these-does-not-exist";
         final String ownerType = "Object";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         List<MetadataResponse> deleteList = metadataPersistenceService
             .deleteAllByOwner(tenantUrn, ownerType, ownerUrn);
@@ -367,7 +367,7 @@ public class MetadataPersistenceServiceTest {
         final String keyName = "findMe";
         final Boolean value = true;
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(keyName, value);
@@ -391,7 +391,7 @@ public class MetadataPersistenceServiceTest {
 
         final String keyName = "this-does-not-exist";
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Optional<Object> response = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
@@ -409,7 +409,7 @@ public class MetadataPersistenceServiceTest {
         final String key1 = "testFindByKey1";
         final String key2 = "testFindByKey2";
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(key1, value);
@@ -446,7 +446,7 @@ public class MetadataPersistenceServiceTest {
         final String key1 = "testFindWithoutKey1";
         final String key2 = "testFindWithoutKey2";
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Map<String, Object> keyValues = new HashMap<>();
         keyValues.put(key1, value);
@@ -478,7 +478,7 @@ public class MetadataPersistenceServiceTest {
     public void testFindByOwnerNonexistent() {
 
         final String ownerType = "Thing";
-        final String ownerUrn = "urn:uuid:" + UuidUtil.getNewUuidAsString();
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
         Collection<String> keySet = new ArrayList<>();
 
