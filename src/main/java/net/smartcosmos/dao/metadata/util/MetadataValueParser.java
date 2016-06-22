@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -32,27 +33,27 @@ public class MetadataValueParser {
 
         // Null
         if ((entity.getValue() == null) || (entity.getDataType().equalsIgnoreCase("null"))) {
-            return null;
+            return JSONObject.NULL;
         }
         // Boolean
         if (Boolean.class.getSimpleName().equals(entity.getDataType())) {
-            o = Boolean.parseBoolean(entity.getValue());
+            return Boolean.parseBoolean(entity.getValue());
         }
         // Double
         if (Double.class.getSimpleName().equals(entity.getDataType())) {
-            o = Double.parseDouble(entity.getValue());
+            return Double.parseDouble(entity.getValue());
         }
         // Integer
         if (Integer.class.getSimpleName().equals(entity.getDataType())) {
-            o = Integer.parseInt(entity.getValue());
+            return Integer.parseInt(entity.getValue());
         }
         // Long
         if (Long.class.getSimpleName().equals(entity.getDataType())) {
-            o = Long.parseLong(entity.getValue());
+            return Long.parseLong(entity.getValue());
         }
         // String
         if (String.class.getSimpleName().equals(entity.getDataType())) {
-            o = entity.getValue();
+            return entity.getValue();
         }
         // JSONObject
         if (ObjectNode.class.getSimpleName().equals(entity.getDataType())) {
