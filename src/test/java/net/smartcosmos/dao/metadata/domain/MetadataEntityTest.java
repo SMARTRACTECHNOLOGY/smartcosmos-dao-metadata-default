@@ -43,7 +43,6 @@ public class MetadataEntityTest {
     public void thatEverythingIsOk() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -61,7 +60,6 @@ public class MetadataEntityTest {
     public void thatAccountIdIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
 //            .tenantId(ACCOUNT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -84,7 +82,6 @@ public class MetadataEntityTest {
     public void thatDataTypeIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
 //            .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -105,7 +102,6 @@ public class MetadataEntityTest {
     public void thatDataTypeIsNotEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType("")
             .ownerType(OWNER_TYPE)
@@ -126,7 +122,6 @@ public class MetadataEntityTest {
     public void thatDataTypeInvalidFails() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE_INVALID)
             .ownerType(OWNER_TYPE)
@@ -145,13 +140,12 @@ public class MetadataEntityTest {
 
     // endregion
 
-    // region Entity Reference Type
+    // region Owner Type
 
     @Test
-    public void thatEntityReferenceTypeIsNotNull() {
+    public void thatOwnerTypeIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
 //            .ownerType(ENTITY_REFERENCE_TYPE)
@@ -169,10 +163,9 @@ public class MetadataEntityTest {
     }
 
     @Test
-    public void thatEntityReferenceTypeIsNotEmpty() {
+    public void thatOwnerTypeIsNotEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType("")
@@ -190,10 +183,9 @@ public class MetadataEntityTest {
     }
 
     @Test
-    public void thatEntityReferenceTypeInvalidFails() {
+    public void thatOwnerTypeInvalidFails() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE_INVALID)
@@ -212,13 +204,12 @@ public class MetadataEntityTest {
 
     // endregion
 
-    // region Reference ID
+    // region Owner ID
 
     @Test
-    public void thatReferenceIdIsNotNull() {
+    public void thatOwnerIdIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -243,7 +234,6 @@ public class MetadataEntityTest {
     public void thatKeyIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -264,7 +254,6 @@ public class MetadataEntityTest {
     public void thatKeyIsNotEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -285,7 +274,6 @@ public class MetadataEntityTest {
     public void thatKeyInvalidFails() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -304,13 +292,12 @@ public class MetadataEntityTest {
 
     // endregion
 
-    // region Raw Value
+    // region Value
 
     @Test
-    public void thatRawValueAllowsNull() {
+    public void thatValueAllowsNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -322,20 +309,12 @@ public class MetadataEntityTest {
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
 
         assertTrue(violationSet.isEmpty());
-
-        /*
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
-        */
     }
 
     @Test
-    public void thatRawValueAllowsEmpty() {
+    public void thatValueAllowsEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
@@ -347,20 +326,12 @@ public class MetadataEntityTest {
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
 
         assertTrue(violationSet.isEmpty());
-
-        /*
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
-        */
     }
 
     @Test
-    public void thatRawValueInvalidFails() {
+    public void thatValueInvalidFails() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
             .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
             .ownerType(OWNER_TYPE)
