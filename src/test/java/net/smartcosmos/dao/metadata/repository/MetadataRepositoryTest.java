@@ -39,8 +39,7 @@ public class MetadataRepositoryTest {
     @Autowired
     MetadataRepository metadataRepository;
 
-    final UUID tenantId = UUID.randomUUID();
-    private UUID id;
+    private UUID tenantId;
     private UUID ownerId;
     private String ownerType = "Thing";
     private String keyName = "test";
@@ -51,6 +50,7 @@ public class MetadataRepositoryTest {
     public void setUp() throws Exception {
 
         ownerId = UuidUtil.getNewUuid();
+        tenantId = UUID.randomUUID();
 
         MetadataEntity entity = MetadataEntity.builder()
             .tenantId(tenantId)
@@ -62,7 +62,6 @@ public class MetadataRepositoryTest {
             .build();
 
         entity = metadataRepository.save(entity);
-        id = entity.getId();
     }
 
     @Test
