@@ -5,16 +5,42 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity> {
 
-    List<MetadataEntity> findByAccountIdAndReferenceId(UUID accountId, UUID referenceId);
+    Long countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+        UUID tenantId,
+        String ownerType,
+        UUID ownerId,
+        Collection<String> keyNames);
 
-    Optional<MetadataEntity> findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(UUID accountId, String entityReferenceType, UUID referenceId, String key);
+    List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
+
+    Optional<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+        UUID tenantId,
+        String ownerType,
+        UUID ownerId,
+        String keyName);
+
+    List<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerId(
+        UUID tenantId,
+        String ownerType,
+        UUID ownerId);
 
     @Transactional
-    List<MetadataEntity> deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(UUID accountId, String entityReferenceType, UUID referenceId, String key);
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+        UUID tenantId,
+        String ownerType,
+        UUID ownerId,
+        String keyName);
+
+    @Transactional
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerId(
+        UUID tenantId,
+        String ownerType,
+        UUID ownerId);
 }

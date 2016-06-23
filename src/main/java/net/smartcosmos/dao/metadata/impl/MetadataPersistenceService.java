@@ -1,48 +1,31 @@
 package net.smartcosmos.dao.metadata.impl;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.SearchSpecifications;
-import net.smartcosmos.dto.metadata.MetadataQuery;
-import net.smartcosmos.dto.metadata.MetadataQueryMatchResponse;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataResponse;
-import net.smartcosmos.dto.metadata.MetadataUpsert;
-import net.smartcosmos.util.UuidUtil;
-import org.apache.commons.lang.StringUtils;
+import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
 import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.springframework.data.jpa.domain.Specifications.where;
 
 @Slf4j
 @Service
 public class MetadataPersistenceService implements MetadataDao {
 
-    public static final int NO_LIMIT_ON_QUERY_RESPONSE_SIZE = 0;
-
     private final MetadataRepository metadataRepository;
     private final ConversionService conversionService;
-    private final SearchSpecifications<MetadataEntity> searchSpecifications = new SearchSpecifications<>();
 
     @Autowired
     public MetadataPersistenceService(MetadataRepository metadataRepository,
@@ -52,121 +35,222 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public List<MetadataResponse> upsert(String accountUrn, Collection<MetadataUpsert> upsertMetadataCollection) throws ConstraintViolationException {
+    public Optional<MetadataResponse> create(String tenantUrn, String ownerType, String ownerUrn, Map<String, Object> metadataMap)
+        throws ConstraintViolationException {
 
-        List<MetadataResponse> responseList = new ArrayList<>();
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
-
-        for (MetadataUpsert upsertMetadata : upsertMetadataCollection) {
-            UUID existingEntityId = getExistingEntityId(accountId, upsertMetadata);
-
-            MetadataEntity entity = conversionService.convert(upsertMetadata, MetadataEntity.class);
-            entity.setAccountId(accountId);
-            entity.setId(existingEntityId);
-            entity = persist(entity);
-
-            responseList.add(conversionService.convert(entity, MetadataResponse.class));
+        if (alreadyExists(tenantId, ownerType, ownerId, metadataMap)) {
+            return Optional.empty();
         }
 
-        return responseList;
+        return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
+    }
+
+    private boolean alreadyExists(UUID tenantId, String ownerType, UUID ownerId, Map<String, Object> map) {
+
+        if (MapUtils.isNotEmpty(map)) {
+            Set<String> keys = map.keySet();
+
+            Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+                tenantId,
+                ownerType,
+                ownerId,
+                keys);
+
+            return count > 0;
+        }
+
+        return false;
     }
 
     @Override
-    public List<MetadataResponse> delete(String accountUrn, String entityReferenceType, String referenceUrn, String key) {
+    public Optional<MetadataResponse> upsert(String tenantUrn, String ownerType, String ownerUrn, Map<String, Object> metadataMap)
+        throws ConstraintViolationException {
 
-        UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
-        List<MetadataEntity> deleteList = new ArrayList<>();
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        try {
-            UUID referenceId = UuidUtil.getUuidFromUrn(referenceUrn);
-            deleteList = metadataRepository.deleteByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
-                accountId,
-                entityReferenceType,
-                referenceId,
-                key);
-        } catch (IllegalArgumentException e) {
-            // empty list will be returned anyway
-            log.warn("Illegal URN submitted: %s by account %s", referenceUrn, accountUrn);
-        }
-
-        return deleteList.stream()
-            .map(o -> conversionService.convert(o, MetadataResponse.class))
-            .collect(Collectors.toList());
+        return createOrUpdate(ownerType, metadataMap, tenantId, ownerId);
     }
 
-    @Override
-    public Optional<MetadataResponse> findByKey(String accountUrn, String entityReferenceType, String referenceUrn, String key) {
+    private Optional<MetadataResponse> createOrUpdate(String ownerType, Map<String, Object> metadataMap, UUID tenantId, UUID ownerId) {
 
-        UUID accountId = UuidUtil.getUuidFromAccountUrn(accountUrn);
+        if (MapUtils.isNotEmpty(metadataMap)) {
+            Set<String> keys = metadataMap.keySet();
 
-        Optional<MetadataEntity> entity = Optional.empty();
-        try {
-            UUID uuid = UuidUtil.getUuidFromUrn(referenceUrn);
-            entity = metadataRepository.findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
-                accountId,
-                entityReferenceType,
-                uuid,
-                key);
-        } catch (IllegalArgumentException e) {
-            // empty Optional will be returned anyway
-            log.warn("Illegal URN submitted: %s by account %s", referenceUrn, accountUrn);
-        }
 
-        if (entity.isPresent())
-        {
-            final MetadataResponse response = conversionService.convert(entity.get(), MetadataResponse.class);
+            List<MetadataEntity> entityList = keys.stream()
+                .map(key -> {
+                    Object object = metadataMap.get(key);
+                    String value = MetadataValueParser.getValue(object);
+                    MetadataDataType dataType = MetadataValueParser.getDataType(object);
+
+                    return MetadataEntity.builder()
+                        .ownerType(ownerType)
+                        .ownerId(ownerId)
+                        .keyName(key)
+                        .value(value)
+                        .dataType(dataType)
+                        .tenantId(tenantId)
+                        .build();
+                })
+                .collect(Collectors.toList());
+
+            persist(entityList);
+
+            MetadataResponse response = conversionService.convert(entityList, MetadataResponse.class);
+
             return Optional.ofNullable(response);
         }
+
         return Optional.empty();
     }
 
     @Override
-    public Set<MetadataQueryMatchResponse> findBySearchCriteria(String accountUrn,
-                                                                String entityReferenceType,
-                                                                Collection<MetadataQuery> queryMetadataCollection,
-                                                                Integer queryLimit) {
+    public Optional<MetadataResponse> update(
+        String tenantUrn,
+        String ownerType,
+        String ownerUrn,
+        String key,
+        Object value)
+        throws ConstraintViolationException {
 
-        Set<MetadataQueryMatchResponse> allMatchResponses = new HashSet<>();
-        boolean firstPass = true;
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        for (MetadataQuery query: queryMetadataCollection) {
-            Specifications<MetadataEntity> specifications = getResponsesForQuery(accountUrn, entityReferenceType, query);
-            Collection<MetadataEntity> returnedMetadataEntities = metadataRepository.findAll(specifications);
-            Set<MetadataQueryMatchResponse> convertedList = returnedMetadataEntities.stream().map(o -> conversionService.convert(o,
-                MetadataQueryMatchResponse.class))
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            tenantId,
+            ownerType,
+            ownerId,
+            key);
 
-                .collect(Collectors.toSet());
-            // First pass? We take it all
-            if (firstPass) {
-                allMatchResponses.addAll(convertedList);
-                firstPass = false;
-            }
-            // Subsequent passes? We intersect against whatever we already have.
-            else {
-                Set<MetadataQueryMatchResponse> returnedValuesAsSet = new HashSet<>(convertedList);
-                allMatchResponses = Sets.intersection(returnedValuesAsSet, allMatchResponses);
+        if (entity.isPresent()) {
+            MetadataEntity updateEntity = entity.get();
 
-            }
+            MetadataDataType dataType = MetadataValueParser.getDataType(value);
+            String stringValue = MetadataValueParser.getValue(value);
+
+            updateEntity.setDataType(dataType);
+            updateEntity.setValue(stringValue);
+
+            updateEntity = persist(updateEntity);
+
+            MetadataResponse response = conversionService.convert(updateEntity, MetadataResponse.class);
+
+            return Optional.ofNullable(response);
         }
-        allMatchResponses.remove(null);
-        // limit size ot returns to specified queryLimit
-        if (queryLimit != NO_LIMIT_ON_QUERY_RESPONSE_SIZE)
-        {
-            return allMatchResponses.stream().limit(queryLimit).collect(Collectors.toSet());
-        }
-        return allMatchResponses;
+
+        return Optional.empty();
     }
 
     @Override
-    public Long countBySearchCriteria(String accountUrn, String entityReferenceType, Collection<MetadataQuery> queryMetadataCollection) {
+    public List<MetadataResponse> delete(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
-        Set<MetadataQueryMatchResponse> matches = findBySearchCriteria(accountUrn,
-            entityReferenceType,
-            queryMetadataCollection,
-            NO_LIMIT_ON_QUERY_RESPONSE_SIZE);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        List<MetadataEntity> deleteList = new ArrayList<>();
 
-        return new Long(matches.size());
+        try {
+            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+                tenantId,
+                ownerType,
+                ownerId,
+                key);
+        } catch (IllegalArgumentException e) {
+            // empty list will be returned anyway
+            log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
+        }
+
+        return convert(deleteList);
+    }
+
+    @Override
+    public List<MetadataResponse> deleteAllByOwner(String tenantUrn, String ownerType, String ownerUrn) {
+
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        List<MetadataEntity> deleteList = new ArrayList<>();
+
+        try {
+            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerId(
+                tenantId,
+                ownerType,
+                ownerId);
+        } catch (IllegalArgumentException e) {
+            // empty list will be returned anyway
+            log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
+        }
+
+        return convert(deleteList);
+    }
+
+    @Override
+    public Optional<Object> findByKey(String tenantUrn, String ownerType, String ownerUrn, String key) {
+
+        try {
+            UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+
+            Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+                tenantId,
+                ownerType,
+                ownerId,
+                key);
+
+            if (entity.isPresent()) {
+                Object value = MetadataValueParser.parseValue(entity.get());
+
+                return Optional.ofNullable(value);
+            }
+        } catch (IllegalArgumentException e) {
+            // empty Optional will be returned anyway
+            log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<MetadataResponse> findByOwner(
+        String tenantUrn,
+        String ownerType,
+        String ownerUrn,
+        Collection<String> keys) {
+
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+
+        List<MetadataEntity> responseList;
+        if (keys == null || keys.isEmpty()) {
+            responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+                tenantId,
+                ownerType,
+                ownerId
+            );
+        }
+        else {
+            responseList = keys.stream()
+                .map(key -> metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+                    tenantId,
+                    ownerType,
+                    ownerId,
+                    key))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+        }
+
+        MetadataResponse response = conversionService.convert(responseList, MetadataResponse.class);
+
+        return Optional.ofNullable(response);
+    }
+
+    @Override
+    public List<MetadataSingleResponse> findAll(String tenantUrn, Long page, Integer size) {
+        // TODO: ...
+        throw new RuntimeException("Not implemented yet");
     }
 
     /**
@@ -192,50 +276,25 @@ public class MetadataPersistenceService implements MetadataDao {
         }
     }
 
-    private UUID getExistingEntityId(UUID accountId, MetadataUpsert upsertMetadata) {
-        Optional<MetadataEntity> existingEntity = metadataRepository.findByAccountIdAndEntityReferenceTypeAndReferenceIdAndKey(
-            accountId,
-            upsertMetadata.getEntityReferenceType(),
-            UuidUtil.getUuidFromUrn(upsertMetadata.getReferenceUrn()),
-            upsertMetadata.getKey());
+    private void persist(Collection<MetadataEntity> entities)
+        throws ConstraintViolationException, TransactionException {
 
-        return (existingEntity.isPresent() ? existingEntity.get().getId() : null);
+        try {
+            metadataRepository.save(entities);
+        } catch (TransactionException e) {
+            // we expect constraint violations to be the root cause for exceptions here,
+            // so we throw this particular exception back to the caller
+            if (ExceptionUtils.getRootCause(e) instanceof ConstraintViolationException) {
+                throw (ConstraintViolationException) ExceptionUtils.getRootCause(e);
+            } else {
+                throw e;
+            }
+        }
     }
 
-    private Specifications<MetadataEntity> getResponsesForQuery(String accountUrn, String entityReferenceType, MetadataQuery query) {
-
-        Specification<MetadataEntity> accountUrnSpecification = null;
-
-        if (StringUtils.isNotBlank(accountUrn)) {
-            UUID accountUuid = UuidUtil.getUuidFromAccountUrn(accountUrn);
-            accountUrnSpecification = searchSpecifications.matchUuid(accountUuid, "accountId");
-        }
-
-        Specifications<MetadataEntity> specifications = where(accountUrnSpecification);
-
-        Specification<MetadataEntity> keySpecification = getSearchSpecification(MetadataEntity.KEY_FIELD_NAME, query.getKey());
-        specifications = specifications.and(keySpecification);
-
-        Specification<MetadataEntity> dataTypeSpecification = getSearchSpecification(MetadataEntity.DATA_TYPE_FIELD_NAME, query.getDataType());
-        specifications = specifications.and(dataTypeSpecification);
-
-        Specification<MetadataEntity> rawValueSpecification = getSearchSpecification(MetadataEntity.RAW_VALUE_FIELD_NAME, query.getRawValue());
-        specifications = specifications.and(rawValueSpecification);
-
-        Specification<MetadataEntity> entityReferenceTypeSpecification = getSearchSpecification(MetadataEntity.ENTITY_REFERENCE_TYPE_FIELD_NAME,
-            entityReferenceType);
-        specifications = specifications.and(entityReferenceTypeSpecification);
-
-        return specifications;
-    }
-
-    private Specification<MetadataEntity> getSearchSpecification(String fieldName, String query) {
-        Specification<MetadataEntity> specification = null;
-
-        if (StringUtils.isNotBlank(fieldName) && StringUtils.isNotBlank(query)) {
-            specification = searchSpecifications.stringMatchesExactly(query, fieldName);
-        }
-
-        return specification;
+    private List<MetadataResponse> convert(List<MetadataEntity> entityList) {
+        return entityList.stream()
+            .map(o -> conversionService.convert(o, MetadataResponse.class))
+            .collect(Collectors.toList());
     }
 }

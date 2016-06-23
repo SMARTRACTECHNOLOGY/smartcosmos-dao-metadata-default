@@ -21,19 +21,15 @@ public class MetadataEntityTest {
 
     private static Validator validator;
 
-    private static final UUID ID = UuidUtil.getNewUuid();
-    private static final UUID ACCOUNT_ID = UuidUtil.getNewUuid();
-    private static final String DATA_TYPE = "StringType";
-    private static final String DATA_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final String ENTITY_REFERENCE_TYPE = "Object";
-    private static final String ENTITY_REFERENCE_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final UUID REFERENCE_ID = UuidUtil.getNewUuid();
-    private static final String KEY = RandomStringUtils.randomAlphanumeric(255);
-    private static final String KEY_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final String RAW_VALUE = RandomStringUtils.randomAlphanumeric(767);
-    private static final String RAW_VALUE_INVALID = RandomStringUtils.randomAlphanumeric(768);
-    private static final String MONIKER = RandomStringUtils.randomAlphanumeric(2048);
-    private static final String MONIKER_INVALID = RandomStringUtils.randomAlphanumeric(2049);
+    private static final UUID TENANT_ID = UuidUtil.getNewUuid();
+    private static final MetadataDataType DATA_TYPE = MetadataDataType.STRING;
+    private static final String OWNER_TYPE = "Object";
+    private static final String OWNER_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
+    private static final UUID OWNER_ID = UuidUtil.getNewUuid();
+    private static final String KEY_NAME = RandomStringUtils.randomAlphanumeric(255);
+    private static final String KEY_NAME_INVALID = RandomStringUtils.randomAlphanumeric(256);
+    private static final String VALUE = RandomStringUtils.randomAlphanumeric(767);
+    private static final String VALUE_INVALID = RandomStringUtils.randomAlphanumeric(768);
 
     @BeforeClass
     public static void setUp() {
@@ -45,14 +41,12 @@ public class MetadataEntityTest {
     public void thatEverythingIsOk() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -64,14 +58,12 @@ public class MetadataEntityTest {
     public void thatAccountIdIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-//            .accountId(ACCOUNT_ID)
+//            .tenantId(ACCOUNT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -79,7 +71,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("accountId", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("tenantId", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // region Data Type
@@ -88,154 +80,12 @@ public class MetadataEntityTest {
     public void thatDataTypeIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
 //            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatDataTypeIsNotEmpty() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType("")
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatDataTypeInvalidFails() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE_INVALID)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    // endregion
-
-    // region Entity Reference Type
-
-    @Test
-    public void thatEntityReferenceTypeIsNotNull() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-//            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("entityReferenceType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatEntityReferenceTypeIsNotEmpty() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType("")
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("entityReferenceType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatEntityReferenceTypeInvalidFails() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE_INVALID)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("entityReferenceType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    // endregion
-
-    // region Reference ID
-
-    @Test
-    public void thatReferenceIdIsNotNull() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-//            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -243,7 +93,95 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("referenceId", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
+    }
+
+    // endregion
+
+    // region Owner Type
+
+    @Test
+    public void thatOwnerTypeIsNotNull() {
+
+        MetadataEntity metadataEntity = MetadataEntity.builder()
+            .tenantId(TENANT_ID)
+            .dataType(DATA_TYPE)
+//            .ownerType(ENTITY_REFERENCE_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
+            .build();
+
+        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
+
+        assertFalse(violationSet.isEmpty());
+        assertEquals(1, violationSet.size());
+        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
+        assertEquals("ownerType", violationSet.iterator().next().getPropertyPath().toString());
+    }
+
+    @Test
+    public void thatOwnerTypeIsNotEmpty() {
+
+        MetadataEntity metadataEntity = MetadataEntity.builder()
+            .tenantId(TENANT_ID)
+            .dataType(DATA_TYPE)
+            .ownerType("")
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
+            .build();
+
+        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
+
+        assertFalse(violationSet.isEmpty());
+        assertEquals(1, violationSet.size());
+        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
+        assertEquals("ownerType", violationSet.iterator().next().getPropertyPath().toString());
+    }
+
+    @Test
+    public void thatOwnerTypeInvalidFails() {
+
+        MetadataEntity metadataEntity = MetadataEntity.builder()
+            .tenantId(TENANT_ID)
+            .dataType(DATA_TYPE)
+            .ownerType(OWNER_TYPE_INVALID)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
+            .build();
+
+        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
+
+        assertFalse(violationSet.isEmpty());
+        assertEquals(1, violationSet.size());
+        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
+        assertEquals("ownerType", violationSet.iterator().next().getPropertyPath().toString());
+    }
+
+    // endregion
+
+    // region Owner ID
+
+    @Test
+    public void thatOwnerIdIsNotNull() {
+
+        MetadataEntity metadataEntity = MetadataEntity.builder()
+            .tenantId(TENANT_ID)
+            .dataType(DATA_TYPE)
+            .ownerType(OWNER_TYPE)
+//            .ownerId(REFERENCE_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE)
+            .build();
+
+        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
+
+        assertFalse(violationSet.isEmpty());
+        assertEquals(1, violationSet.size());
+        assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
+        assertEquals("ownerId", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
@@ -254,14 +192,12 @@ public class MetadataEntityTest {
     public void thatKeyIsNotNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-//            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+//            .keyName(KEY)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -269,21 +205,19 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("key", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
     public void thatKeyIsNotEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key("")
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName("")
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -291,21 +225,19 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("key", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     @Test
     public void thatKeyInvalidFails() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY_INVALID)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME_INVALID)
+            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -313,95 +245,23 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("key", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
 
-    // region Raw Value
+    // region Value
 
     @Test
-    public void thatRawValueIsNotNull() {
+    public void thatValueAllowsNull() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-//            .rawValue(RAW_VALUE)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("rawValue", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatRawValueIsNotEmpty() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue("")
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("rawValue", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatRawValueInvalidFails() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE_INVALID)
-            .moniker(MONIKER)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("rawValue", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    // endregion
-
-    // region Moniker
-
-    @Test
-    public void thatMonikerMayBeNull() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
-            .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-//            .moniker(MONIKER)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+//            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -410,17 +270,15 @@ public class MetadataEntityTest {
     }
 
     @Test
-    public void thatMonikerMayBeEmpty() {
+    public void thatValueAllowsEmpty() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker("")
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value("")
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -429,17 +287,15 @@ public class MetadataEntityTest {
     }
 
     @Test
-    public void thatMonikerInvalidFails() {
+    public void thatValueInvalidFails() {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
-            .id(ID)
-            .accountId(ACCOUNT_ID)
+            .tenantId(TENANT_ID)
             .dataType(DATA_TYPE)
-            .entityReferenceType(ENTITY_REFERENCE_TYPE)
-            .referenceId(REFERENCE_ID)
-            .key(KEY)
-            .rawValue(RAW_VALUE)
-            .moniker(MONIKER_INVALID)
+            .ownerType(OWNER_TYPE)
+            .ownerId(OWNER_ID)
+            .keyName(KEY_NAME)
+            .value(VALUE_INVALID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -447,7 +303,7 @@ public class MetadataEntityTest {
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
         assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("moniker", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
     }
 
     // endregion
