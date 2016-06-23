@@ -9,19 +9,6 @@ import org.json.JSONObject;
 @Slf4j
 public class MetadataValueParser {
 
-    /*private static final String JSON_DATA_TYPE_STRING = "String";
-    private static final String BOOLEAN = "Boolean";
-    private static final String INTEGER = "Integer";
-    private static final String LONG = "Long";
-    private static final String FLOAT = "Float";
-    private static final String DOUBLE = "Double";
-    private static final String BYTE = "Byte";
-    private static final String SHORT = "Short";
-    private static final String JSON_ARRAY = "JSONArray";
-    private static final String JSON_OBJECT = "JSONObject";
-    private static final String JSON_LITERAL_NULL = "<NULL>";*/
-
-
     /**
      * Convert the MetadataEntity value into a typed Object depending on dataType
      *
