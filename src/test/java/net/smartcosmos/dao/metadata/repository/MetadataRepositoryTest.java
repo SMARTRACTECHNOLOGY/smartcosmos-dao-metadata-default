@@ -42,7 +42,7 @@ public class MetadataRepositoryTest {
 
     private UUID tenantId;
     private UUID ownerId;
-    private String ownerType = "Thing";
+    private String ownerType = "Person";
     private String keyName = "test";
 
     private Map<String, Object> keyValues;
@@ -99,4 +99,18 @@ public class MetadataRepositoryTest {
         assertEquals(keyName, entity.get().getKeyName());
     }
 
+    @Test
+    public void thatTypeAndKeyCaseInsensitive() throws Exception {
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
+            tenantId,
+            ownerType.toUpperCase(),
+            ownerId,
+            keyName.toUpperCase());
+
+        assertTrue(entity.isPresent());
+
+        assertEquals("true", entity.get().getValue());
+        assertEquals("Boolean", entity.get().getDataType().toString());
+        assertEquals(keyName, entity.get().getKeyName());
+    }
 }
