@@ -68,7 +68,7 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyName(
+        List<MetadataEntity> entityList = metadataRepository.deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
             tenantId,
             ownerType,
             ownerId,
@@ -86,7 +86,7 @@ public class MetadataRepositoryTest {
 
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyName(
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
             tenantId,
             ownerType,
             ownerId,

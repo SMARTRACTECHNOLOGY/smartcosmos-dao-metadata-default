@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity> {
 
-    Long countByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIn(
+    Long countByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCaseIn(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
@@ -20,7 +20,7 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
 
     List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
-    Optional<MetadataEntity> findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyName(
+    Optional<MetadataEntity> findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
@@ -32,7 +32,7 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
         UUID ownerId);
 
     @Transactional
-    List<MetadataEntity> deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyName(
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
