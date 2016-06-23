@@ -1,5 +1,6 @@
 package net.smartcosmos.dao.metadata.util;
 
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,7 +14,7 @@ public class MetadataValueParserTest {
     @Test
     public void thatNullCanBeParsed() {
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("<NULL>")
+            .dataType(MetadataDataType.JSON_LITERAL_NULL)
             .build();
 
         Object o = MetadataValueParser.parseValue(entity);
@@ -26,7 +27,7 @@ public class MetadataValueParserTest {
 
         Boolean input = true;
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType(input.getClass().getSimpleName())
+            .dataType(MetadataValueParser.getDataType(input))
             .value(input.toString())
             .build();
 
@@ -40,7 +41,7 @@ public class MetadataValueParserTest {
 
         Double input = 123.45;
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType(input.getClass().getSimpleName())
+            .dataType(MetadataValueParser.getDataType(input))
             .value(input.toString())
             .build();
 
@@ -54,7 +55,7 @@ public class MetadataValueParserTest {
 
         String input = "someString";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType(input.getClass().getSimpleName())
+            .dataType(MetadataValueParser.getDataType(input))
             .value(input.toString())
             .build();
 
@@ -68,7 +69,7 @@ public class MetadataValueParserTest {
 
         Integer input = 1234567890;
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType(input.getClass().getSimpleName())
+            .dataType(MetadataValueParser.getDataType(input))
             .value(input.toString())
             .build();
 
@@ -82,7 +83,7 @@ public class MetadataValueParserTest {
 
         String input = "{\"x\":1,\"y\":2}";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("JSONObject")
+            .dataType(MetadataDataType.JSON_OBJECT)
             .value(input.toString())
             .build();
 
@@ -99,7 +100,7 @@ public class MetadataValueParserTest {
 
         String input = "[{\"x\":1},{\"x\":2}]";
         MetadataEntity entity = MetadataEntity.builder()
-            .dataType("JSONArray")
+            .dataType(MetadataDataType.JSON_ARRAY)
             .value(input.toString())
             .build();
 

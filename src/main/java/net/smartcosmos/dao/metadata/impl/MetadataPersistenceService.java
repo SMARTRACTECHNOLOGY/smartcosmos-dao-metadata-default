@@ -2,6 +2,7 @@ package net.smartcosmos.dao.metadata.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
@@ -84,7 +85,7 @@ public class MetadataPersistenceService implements MetadataDao {
                 .map(key -> {
                     Object object = metadataMap.get(key);
                     String value = MetadataValueParser.getValue(object);
-                    String dataType = MetadataValueParser.getDataType(object);
+                    MetadataDataType dataType = MetadataValueParser.getDataType(object);
 
                     return MetadataEntity.builder()
                         .ownerType(ownerType)
@@ -128,7 +129,7 @@ public class MetadataPersistenceService implements MetadataDao {
         if (entity.isPresent()) {
             MetadataEntity updateEntity = entity.get();
 
-            String dataType = MetadataValueParser.getDataType(value);
+            MetadataDataType dataType = MetadataValueParser.getDataType(value);
             String stringValue = MetadataValueParser.getValue(value);
 
             updateEntity.setDataType(dataType);

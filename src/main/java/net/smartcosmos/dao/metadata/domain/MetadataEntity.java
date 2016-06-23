@@ -42,10 +42,10 @@ public class MetadataEntity implements Serializable {
     @Column(name = "ownerId", length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID ownerId;
 
-    @NotEmpty
-    @Size(max = DATA_TYPE_LENGTH)
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "dataType", length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
-    private String dataType;
+    private MetadataDataType dataType;
 
     @Id
     @NotEmpty

@@ -21,10 +21,8 @@ public class MetadataEntityTest {
 
     private static Validator validator;
 
-    private static final UUID ID = UuidUtil.getNewUuid();
     private static final UUID TENANT_ID = UuidUtil.getNewUuid();
-    private static final String DATA_TYPE = "String";
-    private static final String DATA_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
+    private static final MetadataDataType DATA_TYPE = MetadataDataType.STRING;
     private static final String OWNER_TYPE = "Object";
     private static final String OWNER_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
     private static final UUID OWNER_ID = UuidUtil.getNewUuid();
@@ -94,47 +92,7 @@ public class MetadataEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatDataTypeIsNotEmpty() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .tenantId(TENANT_ID)
-            .dataType("")
-            .ownerType(OWNER_TYPE)
-            .ownerId(OWNER_ID)
-            .keyName(KEY_NAME)
-            .value(VALUE)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    public void thatDataTypeInvalidFails() {
-
-        MetadataEntity metadataEntity = MetadataEntity.builder()
-            .tenantId(TENANT_ID)
-            .dataType(DATA_TYPE_INVALID)
-            .ownerType(OWNER_TYPE)
-            .ownerId(OWNER_ID)
-            .keyName(KEY_NAME)
-            .value(VALUE)
-            .build();
-
-        Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
-
-        assertFalse(violationSet.isEmpty());
-        assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
+        assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
         assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
     }
 

@@ -1,6 +1,7 @@
 package net.smartcosmos.dao.metadata.util;
 
 import lombok.extern.slf4j.Slf4j;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -8,17 +9,17 @@ import org.json.JSONObject;
 @Slf4j
 public class MetadataValueParser {
 
-    private static final String JSON_DATA_TYPE_STRING = "String";
-    private static final String JSON_DATA_TYPE_BOOLEAN = "Boolean";
-    private static final String JSON_DATA_TYPE_INTEGER = "Integer";
-    private static final String JSON_DATA_TYPE_LONG = "Long";
-    private static final String JSON_DATA_TYPE_FLOAT = "Float";
-    private static final String JSON_DATA_TYPE_DOUBLE = "Double";
-    private static final String JSON_DATA_TYPE_BYTE = "Byte";
-    private static final String JSON_DATA_TYPE_SHORT = "Short";
-    private static final String JSON_DATA_TYPE_ARRAY = "JSONArray";
-    private static final String JSON_DATA_TYPE_OBJECT = "JSONObject";
-    private static final String JSON_DATA_TYPE_NULL = "<NULL>";
+    /*private static final String JSON_DATA_TYPE_STRING = "String";
+    private static final String BOOLEAN = "Boolean";
+    private static final String INTEGER = "Integer";
+    private static final String LONG = "Long";
+    private static final String FLOAT = "Float";
+    private static final String DOUBLE = "Double";
+    private static final String BYTE = "Byte";
+    private static final String SHORT = "Short";
+    private static final String JSON_ARRAY = "JSONArray";
+    private static final String JSON_OBJECT = "JSONObject";
+    private static final String JSON_LITERAL_NULL = "<NULL>";*/
 
 
     /**
@@ -35,28 +36,28 @@ public class MetadataValueParser {
 
             switch (entity.getDataType()) {
 
-                case JSON_DATA_TYPE_BOOLEAN:
+                case BOOLEAN:
                     return Boolean.parseBoolean(value);
-                case JSON_DATA_TYPE_INTEGER:
+                case INTEGER:
                     return Integer.valueOf(value);
-                case JSON_DATA_TYPE_LONG:
+                case LONG:
                     return Long.valueOf(value);
-                case JSON_DATA_TYPE_FLOAT:
+                case FLOAT:
                     return Float.valueOf(value);
-                case JSON_DATA_TYPE_DOUBLE:
+                case DOUBLE:
                     return Double.valueOf(value);
-                case JSON_DATA_TYPE_BYTE:
+                case BYTE:
                     return Byte.valueOf(value);
-                case JSON_DATA_TYPE_SHORT:
+                case SHORT:
                     return Short.valueOf(value);
-                case JSON_DATA_TYPE_ARRAY:
+                case JSON_ARRAY:
                     return new JSONArray(value);
-                case JSON_DATA_TYPE_OBJECT:
+                case JSON_OBJECT:
                     return new JSONObject(value);
-                case JSON_DATA_TYPE_NULL:
+                case JSON_LITERAL_NULL:
                     return JSONObject.NULL;
 
-                case JSON_DATA_TYPE_STRING:
+                case STRING:
                 default:
                     return value;
             }
@@ -85,44 +86,44 @@ public class MetadataValueParser {
      * @param object the value object
      * @return the data type
      */
-    public static String getDataType(Object object) {
+    public static MetadataDataType getDataType(Object object) {
 
         if (object == JSONObject.NULL || object == null){
-            return JSON_DATA_TYPE_NULL;
+            return MetadataDataType.JSON_LITERAL_NULL;
         }
 
         if (object instanceof Boolean) {
-            return JSON_DATA_TYPE_BOOLEAN;
+            return MetadataDataType.BOOLEAN;
         }
 
         if (object instanceof Integer) {
-            return JSON_DATA_TYPE_INTEGER;
+            return MetadataDataType.INTEGER;
         }
 
         if (object instanceof Float) {
-            return JSON_DATA_TYPE_FLOAT;
+            return MetadataDataType.FLOAT;
         }
 
         if (object instanceof Double) {
-            return JSON_DATA_TYPE_DOUBLE;
+            return MetadataDataType.DOUBLE;
         }
 
         if (object instanceof Byte) {
-            return JSON_DATA_TYPE_BYTE;
+            return MetadataDataType.BYTE;
         }
 
         if (object instanceof Short) {
-            return JSON_DATA_TYPE_SHORT;
+            return MetadataDataType.SHORT;
         }
 
         if (object instanceof JSONObject) {
-            return JSON_DATA_TYPE_OBJECT;
+            return MetadataDataType.JSON_OBJECT;
         }
 
         if (object instanceof JSONArray) {
-            return JSON_DATA_TYPE_ARRAY;
+            return MetadataDataType.JSON_ARRAY;
         }
 
-        return JSON_DATA_TYPE_STRING;
+        return MetadataDataType.STRING;
     }
 }

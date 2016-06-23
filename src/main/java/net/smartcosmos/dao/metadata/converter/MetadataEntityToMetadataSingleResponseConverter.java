@@ -20,7 +20,7 @@ public class MetadataEntityToMetadataSingleResponseConverter
             .ownerType(entity.getOwnerType())
             .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getOwnerId()))
             .key(entity.getKeyName())
-            .dataType(entity.getDataType())
+            .dataType(entity.getDataType().toString())
             .value(MetadataValueParser.parseValue(entity))
             .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getTenantId()))
             .build();

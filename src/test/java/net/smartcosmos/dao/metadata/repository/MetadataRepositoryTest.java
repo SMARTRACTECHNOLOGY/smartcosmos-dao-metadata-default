@@ -2,6 +2,7 @@ package net.smartcosmos.dao.metadata.repository;
 
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.util.UuidUtil;
 import org.junit.Before;
@@ -58,7 +59,7 @@ public class MetadataRepositoryTest {
             .ownerType(ownerType)
             .keyName(keyName)
             .value("true")
-            .dataType("Boolean")
+            .dataType(MetadataDataType.BOOLEAN)
             .build();
 
         entity = metadataRepository.save(entity);
@@ -79,7 +80,7 @@ public class MetadataRepositoryTest {
         MetadataEntity entity = entityList.get(0);
 
         assertEquals("true", entity.getValue());
-        assertEquals("Boolean", entity.getDataType());
+        assertEquals("Boolean", entity.getDataType().toString());
         assertEquals(keyName, entity.getKeyName());
     }
 
@@ -94,7 +95,7 @@ public class MetadataRepositoryTest {
         assertTrue(entity.isPresent());
 
         assertEquals("true", entity.get().getValue());
-        assertEquals("Boolean", entity.get().getDataType());
+        assertEquals("Boolean", entity.get().getDataType().toString());
         assertEquals(keyName, entity.get().getKeyName());
     }
 
