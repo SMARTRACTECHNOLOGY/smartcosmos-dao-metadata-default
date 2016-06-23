@@ -2,10 +2,13 @@ package net.smartcosmos.dao.metadata.impl;
 
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataResponse;
+import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dto.metadata.Page;
 import net.smartcosmos.security.user.SmartCosmosUser;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -39,6 +42,20 @@ public class MetadataPersistenceServiceTest {
 
     private final UUID tenantId = UUID.randomUUID();
     private final String tenantUrn = UuidUtil.getTenantUrnFromUuid(tenantId);
+
+    private static final String[] urns = {
+        "urn:thing:uuid:8614fac9-693d-4bee-886f-f9eefd60180a",
+        "urn:thing:uuid:73f81ca4-0800-4769-bb6f-db4a61b0fea1",
+        "urn:thing:uuid:2650c7d5-9dc5-4455-9eda-e34066050f76",
+        "urn:thing:uuid:10857865-4230-4d27-9dcc-9ef17ace3921",
+        "urn:thing:uuid:28124b54-edc4-4eed-b307-2af056119db2",
+        "urn:thing:uuid:fe55664a-0896-42bb-86c6-ba0c668eb348",
+        "urn:thing:uuid:9f1e8d9e-8d8e-4d04-b776-bbfcdf760405",
+        "urn:thing:uuid:71a03bc2-d41a-4c08-a355-6d0d5dc6f8a4",
+        "urn:thing:uuid:17f890b8-caa6-4ad2-98d6-641f3999128e",
+        "urn:thing:uuid:5926a69f-ff56-4a9c-ab79-e90b829f2ec4",
+        "urn:thing:uuid:97005fff-da53-4ad2-8a40-128da31e9cd4",
+        "urn:thing:uuid:4d872a55-ea69-4b9f-935a-9d21303085a5"};
 
     @Autowired
     MetadataPersistenceService metadataPersistenceService;
@@ -468,6 +485,55 @@ public class MetadataPersistenceServiceTest {
                 .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
 
         assertFalse(response.isPresent());
+    }
+
+    // endregion */
+
+    // region findAll
+
+    @Test
+    public void testFindByTypePaging() throws Exception {
+
+        populateData();
+
+        int expectedPageSize = 3;
+        int actualPageSize = 0;
+
+        long expectedTotalSize = 12;
+        long actualTotalSize = 0;
+
+        Page<MetadataSingleResponse> response = metadataPersistenceService.findAll(tenantUrn, 1, 3);
+
+        assertNotNull(response);
+        assertNotNull(response.getData());
+        assertNotNull(response.getPage());
+
+        actualPageSize = response.getData().size();
+        assertTrue("Expected " + expectedPageSize + " elements on page, but received " + actualPageSize, actualPageSize == expectedPageSize);
+
+        actualTotalSize = response.getPage().getTotalElements();
+        assertTrue("Expected " + expectedTotalSize + " total elements, but received " + actualTotalSize, actualTotalSize == expectedTotalSize);
+    }
+
+    // endregion */
+
+    // region populateData
+    private void populateData() throws Exception {
+
+        int i = 0;
+        for (String urn : urns) {
+
+            MetadataEntity entity = MetadataEntity.builder()
+                .tenantId(tenantId)
+                .ownerType("someOwner")
+                .ownerId(UuidUtil.getUuidFromUrn(urn))
+                .keyName("someName")
+                .dataType(MetadataDataType.INTEGER)
+                .value(String.format("%d", i++))
+                .build();
+
+            metadataRepository.save(entity);
+        }
     }
 
     // endregion */
