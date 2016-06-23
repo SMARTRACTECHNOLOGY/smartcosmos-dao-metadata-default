@@ -64,10 +64,10 @@ public class MetadataEntity implements Serializable {
     private UUID tenantId;
 
     @CreatedDate
-    @Column(name = "createdTimestamp", insertable = true, updatable = false)
+    @Column(name = "created", insertable = true, updatable = false)
     private Long created;
 
     @LastModifiedDate
-    @Column(name = "lastModifiedTimestamp", nullable = false, insertable = true, updatable = true)
+    @Column(name = "lastModified", nullable = false, insertable = true, updatable = true)
     private Long lastModified;
 }
