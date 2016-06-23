@@ -9,6 +9,7 @@ import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dto.metadata.Page;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,11 +249,11 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public List<MetadataSingleResponse> findAll(String tenantUrn, Long page, Integer size) {
+    public Page<MetadataSingleResponse> findAll(String tenantUrn, Integer page, Integer size) {
         // TODO: ...
         throw new RuntimeException("Not implemented yet");
     }
-
+    
     /**
      * Saves an metadata entity in an {@link MetadataRepository}.
      *
