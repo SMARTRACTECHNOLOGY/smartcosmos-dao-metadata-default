@@ -119,7 +119,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(JSONObject.NULL, response.get().getMetadata().get("someNull"));
         assertEquals(text, response.get().getMetadata().get("someString"));
 
-        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
             tenantId,
             ownerType,
             UuidUtil.getUuidFromUrn(ownerUrn));
@@ -202,7 +202,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(1, output.getInt("x"));
         assertEquals(2, output.getInt("y"));
 
-        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
             tenantId,
             ownerType,
             UuidUtil.getUuidFromUrn(ownerUrn));

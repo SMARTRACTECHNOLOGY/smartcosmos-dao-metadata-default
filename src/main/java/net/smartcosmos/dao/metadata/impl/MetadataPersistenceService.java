@@ -57,7 +57,7 @@ public class MetadataPersistenceService implements MetadataDao {
         if (MapUtils.isNotEmpty(map)) {
             Set<String> keys = map.keySet();
 
-            Long count = metadataRepository.countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+            Long count = metadataRepository.countByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCaseIn(
                 tenantId,
                 ownerType,
                 ownerId,
@@ -124,7 +124,7 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
             tenantId,
             ownerType,
             ownerId,
@@ -157,7 +157,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         try {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
                 tenantId,
                 ownerType,
                 ownerId,
@@ -178,7 +178,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         try {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerId(
+            deleteList = metadataRepository.deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
                 tenantId,
                 ownerType,
                 ownerId);
@@ -197,7 +197,7 @@ public class MetadataPersistenceService implements MetadataDao {
             UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-            Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+            Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
                 tenantId,
                 ownerType,
                 ownerId,
@@ -228,7 +228,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         List<MetadataEntity> responseList;
         if (keys == null || keys.isEmpty()) {
-            responseList = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerId(
+            responseList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
                 tenantId,
                 ownerType,
                 ownerId
@@ -236,7 +236,7 @@ public class MetadataPersistenceService implements MetadataDao {
         }
         else {
             responseList = keys.stream()
-                .map(key -> metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+                .map(key -> metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
                     tenantId,
                     ownerType,
                     ownerId,
@@ -299,7 +299,6 @@ public class MetadataPersistenceService implements MetadataDao {
         }
     }
 
-    @SuppressWarnings("Duplicates")
     private void persist(Collection<MetadataEntity> entities)
         throws ConstraintViolationException, TransactionException {
 

@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity> {
 
-    Long countByTenantIdAndOwnerTypeAndOwnerIdAndKeyNameIn(
+    Long countByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCaseIn(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
@@ -24,26 +24,26 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
 
     List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
-    Optional<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+    Optional<MetadataEntity> findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
         String keyName);
 
-    List<MetadataEntity> findByTenantIdAndOwnerTypeAndOwnerId(
+    List<MetadataEntity> findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
         UUID tenantId,
         String ownerType,
         UUID ownerId);
 
     @Transactional
-    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
         String keyName);
 
     @Transactional
-    List<MetadataEntity> deleteByTenantIdAndOwnerTypeAndOwnerId(
+    List<MetadataEntity> deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
         UUID tenantId,
         String ownerType,
         UUID ownerId);

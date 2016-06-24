@@ -45,7 +45,7 @@ public class MetadataRepositoryTest {
 
     private UUID tenantId;
     private UUID ownerId;
-    private String ownerType = "Thing";
+    private String ownerType = "Person";
     private String keyName = "test";
 
     private Map<String, Object> keyValues;
@@ -71,7 +71,7 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+        List<MetadataEntity> entityList = metadataRepository.deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
             tenantId,
             ownerType,
             ownerId,
@@ -89,7 +89,7 @@ public class MetadataRepositoryTest {
 
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeAndOwnerIdAndKeyName(
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
             tenantId,
             ownerType,
             ownerId,
@@ -102,6 +102,20 @@ public class MetadataRepositoryTest {
         assertEquals(keyName, entity.get().getKeyName());
     }
 
+    @Test
+    public void thatTypeAndKeyCaseInsensitive() throws Exception {
+        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
+            tenantId,
+            ownerType.toUpperCase(),
+            ownerId,
+            keyName.toUpperCase());
+
+        assertTrue(entity.isPresent());
+
+        assertEquals("true", entity.get().getValue());
+        assertEquals("Boolean", entity.get().getDataType().toString());
+        assertEquals(keyName, entity.get().getKeyName());
+    }
     @Test
     public void findByTenantIdPageable() throws Exception {
 
