@@ -2,21 +2,25 @@ package net.smartcosmos.dao.metadata.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.MetadataDao;
+import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataPersistenceUtil;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
+import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -254,11 +258,23 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public Page<MetadataSingleResponse> findAll(String tenantUrn, Integer page, Integer size) {
 
-        Pageable pageable = new PageRequest(page, size);
-
-        return findAllPage(tenantUrn, pageable);
+        return findAllPage(tenantUrn, getPageable(page, size, null, null));
     }
 
+    @Override
+    public Page<MetadataSingleResponse> findAll(String tenantUrn, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+
+        Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
+        sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy);
+
+        return findAllPage(tenantUrn, getPageable(page, size, sortBy, direction));
+    }
+
+    @Override
+    public Page<MetadataOwnerResponse> findOwnersByKeyValuePairs(String tenantUrn, Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+    
     private Page<MetadataSingleResponse> findAllPage(String tenantUrn, Pageable pageable) {
 
         Page<MetadataSingleResponse> result = MetadataPersistenceUtil.emptyPage();
@@ -277,14 +293,13 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     /**
-     * Saves an metadata entity in an {@link MetadataRepository}.
+     * Saves a metadata entity in an {@link MetadataRepository}.
      *
      * @param entity the metadata entity to persist
      * @return the persisted metadata entity
      * @throws ConstraintViolationException if the transaction fails due to violated constraints
      * @throws TransactionException if the transaction fails because of something else
      */
-    @SuppressWarnings("Duplicates")
     private MetadataEntity persist(MetadataEntity entity) throws ConstraintViolationException, TransactionException {
         try {
             return metadataRepository.save(entity);
@@ -299,6 +314,13 @@ public class MetadataPersistenceService implements MetadataDao {
         }
     }
 
+    /**
+     * Saves a collection of metadata entities in an {@link MetadataRepository}.
+     *
+     * @param entities the metadata entity to persist
+     * @throws ConstraintViolationException if the transaction fails due to violated constraints
+     * @throws TransactionException if the transaction fails because of something else
+     */
     private void persist(Collection<MetadataEntity> entities)
         throws ConstraintViolationException, TransactionException {
 
@@ -319,5 +341,29 @@ public class MetadataPersistenceService implements MetadataDao {
         return entityList.stream()
             .map(o -> conversionService.convert(o, MetadataResponse.class))
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Builds the pageable for repository calls, including translation of 1-based page numbering on the API level to
+     * 0-based page numbering on the repository level.
+     *
+     * @param page the page number
+     * @param size the page size
+     * @param sortBy the name of the field to sort by
+     * @param direction the sort order direction
+     * @return the pageable object
+     */
+    protected Pageable getPageable(Integer page, Integer size, String sortBy, Sort.Direction direction) {
+
+        if (page < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one!");
+        }
+        page = page - 1;
+
+        if (StringUtils.isBlank(sortBy) || direction == null) {
+            return new PageRequest(page, size);
+        }
+
+        return new PageRequest(page, size, direction, sortBy);
     }
 }
