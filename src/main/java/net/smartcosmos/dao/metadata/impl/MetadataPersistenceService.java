@@ -271,7 +271,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Page<MetadataOwnerResponse> findOwnersByKeyValuePairs(String tenantUrn, Map<String, Object> keyValuePairs, Integer page, Integer size) {
+    public Page<MetadataOwnerResponse> findOwnersByKeyValuePairs(String tenantUrn, Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
         throw new UnsupportedOperationException("not yet implemented");
     }
     
