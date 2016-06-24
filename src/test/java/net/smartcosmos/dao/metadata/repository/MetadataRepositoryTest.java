@@ -11,10 +11,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -113,4 +116,34 @@ public class MetadataRepositoryTest {
         assertEquals("Boolean", entity.get().getDataType().toString());
         assertEquals(keyName, entity.get().getKeyName());
     }
+    @Test
+    public void findByTenantIdPageable() throws Exception {
+
+        final UUID tenantId = UUID.randomUUID();
+        final int entityCount = 30;
+        List<UUID> ids = new ArrayList<>();
+
+        for (int i = 0; i < entityCount; i++) {
+            UUID id = UUID.randomUUID();
+            ids.add(id);
+
+            MetadataEntity entity = metadataRepository
+                .save(MetadataEntity.builder()
+                    .ownerType("pageTest")
+                    .ownerId(id)
+                    .dataType(MetadataDataType.BOOLEAN)
+                    .keyName("pageTest")
+                    .value("true")
+                    .tenantId(tenantId)
+                    .build());
+        }
+
+        Page<MetadataEntity> entityList = metadataRepository.findByTenantId(tenantId, new PageRequest(0, 1));
+        assertFalse(entityList.getContent().isEmpty());
+
+        assertEquals(1, entityList.getContent().size());
+        assertEquals("true", entityList.getContent().get(0).getValue());
+        assertEquals(entityCount, entityList.getTotalElements());
+    }
+
 }

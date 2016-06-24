@@ -5,6 +5,7 @@ import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.MetadataPersistenceUtil;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataResponse;
@@ -14,6 +15,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -250,10 +253,29 @@ public class MetadataPersistenceService implements MetadataDao {
 
     @Override
     public Page<MetadataSingleResponse> findAll(String tenantUrn, Integer page, Integer size) {
-        // TODO: ...
-        throw new RuntimeException("Not implemented yet");
+
+        Pageable pageable = new PageRequest(page, size);
+
+        return findAllPage(tenantUrn, pageable);
     }
-    
+
+    private Page<MetadataSingleResponse> findAllPage(String tenantUrn, Pageable pageable) {
+
+        Page<MetadataSingleResponse> result = MetadataPersistenceUtil.emptyPage();
+        try {
+            UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+            org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
+                    .findByTenantId(tenantId, pageable);
+
+            return conversionService.convert(pageEntity, result.getClass());
+        }
+        catch (IllegalArgumentException e) {
+            log.warn("Error processing URN: Tenant URN '{}'", tenantUrn);
+        }
+
+        return result;
+    }
+
     /**
      * Saves an metadata entity in an {@link MetadataRepository}.
      *
