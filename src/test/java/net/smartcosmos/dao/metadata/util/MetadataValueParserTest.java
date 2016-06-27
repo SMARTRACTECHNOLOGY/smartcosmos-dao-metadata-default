@@ -1,8 +1,9 @@
 package net.smartcosmos.dao.metadata.util;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
@@ -88,11 +89,11 @@ public class MetadataValueParserTest {
             .build();
 
         Object o = MetadataValueParser.parseValue(entity);
-        assertTrue(o instanceof JSONObject);
-        JSONObject output = (JSONObject) o;
+        assertTrue(o instanceof ObjectNode);
+        ObjectNode output = (ObjectNode) o;
 
-        assertEquals(1, output.get("x"));
-        assertEquals(2, output.get("y"));
+        assertEquals(1, output.get("x").asInt());
+        assertEquals(2, output.get("y").asInt());
     }
 
     @Test
@@ -105,11 +106,11 @@ public class MetadataValueParserTest {
             .build();
 
         Object o = MetadataValueParser.parseValue(entity);
-        assertTrue(o instanceof JSONArray);
-        JSONArray output = (JSONArray) o;
+        assertTrue(o instanceof ArrayNode);
+        ArrayNode output = (ArrayNode) o;
 
-        assertEquals(1, ((JSONArray)output).getJSONObject(0).get("x"));
-        assertEquals(2, ((JSONArray)output).getJSONObject(1).get("x"));
+        assertEquals(1, output.get(0).get("x").asInt());
+        assertEquals(2, output.get(1).get("x").asInt());
     }
 
 }

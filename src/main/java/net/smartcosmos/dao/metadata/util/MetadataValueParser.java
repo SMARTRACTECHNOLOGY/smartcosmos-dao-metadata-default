@@ -1,10 +1,16 @@
 package net.smartcosmos.dao.metadata.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 @Slf4j
 public class MetadataValueParser {
@@ -38,9 +44,14 @@ public class MetadataValueParser {
                 case SHORT:
                     return Short.valueOf(value);
                 case JSON_ARRAY:
-                    return new JSONArray(value);
                 case JSON_OBJECT:
-                    return new JSONObject(value);
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.enableDefaultTyping();
+                    try {
+                        return mapper.readTree(entity.getValue());
+                    } catch (IOException e) {
+                        log.warn("MetadataValueParser.parseValue: Error parsing JSON, returning String instead.");
+                    }
                 case JSON_LITERAL_NULL:
                     return JSONObject.NULL;
 
@@ -60,7 +71,19 @@ public class MetadataValueParser {
      * @return the object's string representation
      */
     public static String getValue(Object object) {
-        if (object != null){
+        if (object != null) {
+
+            if ((MetadataDataType.JSON_OBJECT == getDataType(object)) ||
+                (MetadataDataType.JSON_ARRAY == getDataType(object))) {
+
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.enableDefaultTyping();
+                try {
+                    return mapper.writeValueAsString(object);
+                } catch (JsonProcessingException e) {
+                    log.warn("MetadataValueParser.getValue: Error creating JSON, storing String instead.");
+                }
+            }
             return object.toString();
         }
 
@@ -103,8 +126,16 @@ public class MetadataValueParser {
             return MetadataDataType.SHORT;
         }
 
+        if (object instanceof LinkedHashMap) {
+            return MetadataDataType.JSON_OBJECT;
+        }
+
         if (object instanceof JSONObject) {
             return MetadataDataType.JSON_OBJECT;
+        }
+
+        if (object instanceof ArrayList) {
+            return MetadataDataType.JSON_ARRAY;
         }
 
         if (object instanceof JSONArray) {
