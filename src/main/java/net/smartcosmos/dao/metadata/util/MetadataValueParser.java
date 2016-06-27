@@ -50,7 +50,7 @@ public class MetadataValueParser {
                     try {
                         return mapper.readTree(entity.getValue());
                     } catch (IOException e) {
-                        log.warn("Error creating JSON");
+                        log.warn("MetadataValueParser.parseValue: Error parsing JSON, returning String instead.");
                     }
                 case JSON_LITERAL_NULL:
                     return JSONObject.NULL;
@@ -81,7 +81,7 @@ public class MetadataValueParser {
                 try {
                     return mapper.writeValueAsString(object);
                 } catch (JsonProcessingException e) {
-                    log.warn("Error creating JSON");
+                    log.warn("MetadataValueParser.getValue: Error creating JSON, storing String instead.");
                 }
             }
             return object.toString();
