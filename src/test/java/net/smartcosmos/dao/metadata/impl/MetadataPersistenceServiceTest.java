@@ -1,5 +1,6 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
@@ -198,16 +199,14 @@ public class MetadataPersistenceServiceTest {
         assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("upsertBool").toString()));
         assertEquals("Text", response.get().getMetadata().get("upsertString").toString());
 
-        JSONObject output = (JSONObject) response.get().getMetadata().get("upsertJson");
-        assertEquals(1, output.getInt("x"));
-        assertEquals(2, output.getInt("y"));
+        ObjectNode output = (ObjectNode)response.get().getMetadata().get("upsertJson");
+        assertEquals(1, output.get("x").asInt());
+        assertEquals(2, output.get("y").asInt());
 
         List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
             tenantId,
             ownerType,
             UuidUtil.getUuidFromUrn(ownerUrn));
-
-        assertFalse(entityList.isEmpty());
 
         assertFalse(entityList.isEmpty());
         assertEquals(5, entityList.size());
