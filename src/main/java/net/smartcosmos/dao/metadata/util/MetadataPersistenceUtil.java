@@ -92,7 +92,7 @@ public class MetadataPersistenceUtil {
     public static String getSortByFieldName(String sortBy) {
         sortBy = normalizeFieldName(sortBy);
         if (StringUtils.isBlank(sortBy) || !isThingEntityField(sortBy)) {
-            sortBy = "id";
+            sortBy = "created";
         }
         return sortBy;
     }
@@ -105,10 +105,17 @@ public class MetadataPersistenceUtil {
      */
     public static Sort.Direction getSortDirection(SortOrder sortOrder) {
         Sort.Direction direction = Sort.DEFAULT_DIRECTION;
-        switch (sortOrder) {
-            case ASC: direction = Sort.Direction.ASC; break;
-            case DESC: direction = Sort.Direction.DESC; break;
+        if (sortOrder != null) {
+            switch (sortOrder) {
+                case ASC:
+                    direction = Sort.Direction.ASC;
+                    break;
+                case DESC:
+                    direction = Sort.Direction.DESC;
+                    break;
+            }
         }
+
         return direction;
     }
 }
