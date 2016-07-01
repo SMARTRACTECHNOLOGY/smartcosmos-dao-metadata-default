@@ -7,10 +7,12 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -37,22 +39,45 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     @Override
     public Page<MetadataOwner> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
-        CriteriaQuery<MetadataOwner> query = builder.createQuery(MetadataOwner.class);
+        CriteriaQuery<MetadataOwner> resultQuery = builder.createQuery(MetadataOwner.class);
 
-        Root<MetadataEntity> root = query.from(MetadataEntity.class);
+        Root<MetadataEntity> root = resultQuery.from(MetadataEntity.class);
 
-        query.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"));
-        query.distinct(true);
-        List<Predicate> predicates = getPredicateList(root, query, tenantId, keyValuePairs);
-        query.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
+        resultQuery.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"));
+        resultQuery.distinct(true);
+        List<Predicate> predicates = getPredicateList(root, resultQuery, tenantId, keyValuePairs);
+        resultQuery.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
 
-        List<MetadataOwner> result = entityManager.createQuery(query).getResultList();
+        TypedQuery<MetadataOwner> q = entityManager.createQuery(resultQuery);
+        q.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
+        q.setMaxResults(pageable.getPageSize());
 
-        return new PageImpl<>(result, pageable, 2);
+        List<MetadataOwner> result = q.getResultList();
+
+        if (result.size() < pageable.getPageSize()) {
+            pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
+        }
+
+        // TODO: Add Sorting
+
+
+        // This is not really nice, because it gets all results just to count them
+
+        // TODO: Improve Counting
+
+        CriteriaQuery<MetadataOwner> countQuery = builder.createQuery(MetadataOwner.class);
+        Root<MetadataEntity> root2 = countQuery.from(MetadataEntity.class);
+        countQuery.multiselect(root2.get("ownerType"), root2.get("ownerId"), root2.get("tenantId"));
+        countQuery.distinct(true);
+        countQuery.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
+        long totalElements = (long) entityManager.createQuery(countQuery).getResultList().size();
+
+        return new PageImpl<>(result, pageable, totalElements);
     }
 
-    @SuppressWarnings("Duplicates")
     private List<Predicate> getPredicateList(Root<MetadataEntity> root, CriteriaQuery<?> ownerQuery, UUID tenantId, Map<String, Object> keyValuePairs) {
+
+        // TODO: Refactor
 
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(root.get("tenantId"), tenantId));
