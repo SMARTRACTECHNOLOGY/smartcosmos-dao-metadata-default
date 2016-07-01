@@ -293,7 +293,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
 
-        return null;
+        return conversionService.convert(ownerPage, Page.class);
     }
 
     private Specifications<MetadataEntity> getSpecificationForKeyValuePair(UUID tenantId, String key, Object value) {
