@@ -14,3 +14,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+logging:
+  level:
+    ROOT: INFO
+    net.smartcosmos: TRACE
+    org.springframework.security: TRACE
+    com.netflix.eureka.registry: WARN
+    org.hibernate: DEBUG
