@@ -1,6 +1,7 @@
 package net.smartcosmos.dao.metadata.repository;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity> {
+public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity>, MetadataRepositoryCustom {
 
     Long countByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCaseIn(
         UUID tenantId,
@@ -21,6 +22,8 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
         Collection<String> keyNames);
 
     Page<MetadataEntity> findByTenantId(UUID tenantId, Pageable pageable);
+
+    Page<MetadataOwnerProjection> findPagedProjectedBy(Pageable pageable);
 
     List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
