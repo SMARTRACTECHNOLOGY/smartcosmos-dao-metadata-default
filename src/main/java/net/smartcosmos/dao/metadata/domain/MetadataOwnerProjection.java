@@ -4,9 +4,9 @@ import java.util.UUID;
 
 public interface MetadataOwnerProjection {
 
-    UUID getOwnerId();
-
     String getOwnerType();
+
+    UUID getOwnerId();
 
     UUID getTenantId();
 }
