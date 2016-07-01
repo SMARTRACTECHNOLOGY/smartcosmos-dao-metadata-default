@@ -6,7 +6,9 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
+import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
@@ -29,9 +31,19 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -516,6 +528,35 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
+    // region Find By Key-Value Pairs
+
+    @Test
+    public void testFindByKeyValuePairs() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:094bd91d-a093-4e40-b461-3b7ba7dc08bb",
+            "urn:thing:uuid:06684869-f52d-4b59-a5fd-6424160fb48c",
+            "urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913"};
+
+        for (int i = 0; i < ownerUrns.length; i++) {
+            createMetadataEntity("ownerType", ownerUrns[i], "fbK", 12);
+
+            if (i > 0) {
+                createMetadataEntity("ownerType", ownerUrns[i], "fbK2", "Test");
+            }
+        }
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("fbK", 12);
+        keyValuePairMap.put("fbK2", "Test");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
+    }
+
+    // endregion
+
     // region populateData
     private void populateData() throws Exception {
 
@@ -533,6 +574,20 @@ public class MetadataPersistenceServiceTest {
 
             metadataRepository.save(entity);
         }
+    }
+
+    private void createMetadataEntity(String ownerType, String ownerUrn, String key, Object value) throws Exception {
+
+        MetadataEntity entity = MetadataEntity.builder()
+            .tenantId(tenantId)
+            .ownerType(ownerType)
+            .ownerId(UuidUtil.getUuidFromUrn(ownerUrn))
+            .keyName(key)
+            .dataType(MetadataValueParser.getDataType(value))
+            .value(MetadataValueParser.getValue(value))
+            .build();
+
+        metadataRepository.save(entity);
     }
 
     // endregion */
