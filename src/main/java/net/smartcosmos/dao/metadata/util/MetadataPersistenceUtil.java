@@ -1,24 +1,21 @@
 package net.smartcosmos.dao.metadata.util;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.data.domain.Sort;
-
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dto.metadata.MetadataResponse;
-import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.data.domain.Sort;
 
 public class MetadataPersistenceUtil {
 
     /**
-     * Creates an empty {@link Page<MetadataResponse>} instance.
+     * Creates an empty {@link Page<T>} instance.
      *
      * @return the empty page
      */
-    public static Page<MetadataSingleResponse> emptyPage() {
+    public static <T> Page<T> emptyPage() {
 
-        return Page.<MetadataSingleResponse>builder().build();
+        return Page.<T>builder().build();
     }
 
     /**
