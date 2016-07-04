@@ -8,6 +8,7 @@ import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
+import net.smartcosmos.dto.metadata.PageInformation;
 
 public class MetadataPersistenceUtil {
 
@@ -18,7 +19,11 @@ public class MetadataPersistenceUtil {
      */
     public static Page<MetadataSingleResponse> emptyPage() {
 
-        return Page.<MetadataSingleResponse>builder().build();
+        PageInformation pageInformation = PageInformation.builder().build();
+
+        return Page.<MetadataSingleResponse>builder()
+            .page(pageInformation)
+            .build();
     }
 
     /**
