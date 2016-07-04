@@ -47,7 +47,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         resultQuery.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"));
         resultQuery.distinct(true);
-        resultQuery.orderBy(new OrderImpl(root.get("tenantId"), true));
+        resultQuery.orderBy(new OrderImpl(root.get("tenantId"), true), new OrderImpl(root.get("ownerId"), true));
         List<Predicate> predicates = getPredicateList(root, resultQuery, tenantId, keyValuePairs);
         resultQuery.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
 
