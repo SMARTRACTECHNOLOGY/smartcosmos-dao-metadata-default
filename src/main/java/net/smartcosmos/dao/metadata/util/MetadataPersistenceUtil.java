@@ -1,10 +1,12 @@
 package net.smartcosmos.dao.metadata.util;
 
+import org.apache.commons.lang.StringUtils;
+import org.springframework.data.domain.Sort;
+
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dto.metadata.Page;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.data.domain.Sort;
+import net.smartcosmos.dto.metadata.PageInformation;
 
 public class MetadataPersistenceUtil {
 
@@ -15,7 +17,11 @@ public class MetadataPersistenceUtil {
      */
     public static <T> Page<T> emptyPage() {
 
-        return Page.<T>builder().build();
+        PageInformation pageInformation = PageInformation.builder().build();
+
+        return Page.<T>builder()
+            .page(pageInformation)
+            .build();
     }
 
     /**
