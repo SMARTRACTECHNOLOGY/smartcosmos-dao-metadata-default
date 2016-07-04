@@ -1,16 +1,9 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwner;
-import net.smartcosmos.dao.metadata.util.MetadataValueParser;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -18,10 +11,19 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.jpa.criteria.OrderImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwner;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 
 @Component
 public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
@@ -45,6 +47,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         resultQuery.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"));
         resultQuery.distinct(true);
+        resultQuery.orderBy(new OrderImpl(root.get("tenantId"), true));
         List<Predicate> predicates = getPredicateList(root, resultQuery, tenantId, keyValuePairs);
         resultQuery.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
 
