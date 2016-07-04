@@ -9,14 +9,14 @@ import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.stereotype.Component;
 
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dao.metadata.domain.MetadataOwner;
+import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.Page;
 import net.smartcosmos.dto.metadata.PageInformation;
 
 @Component
-public class SpringDataPageToMetadataSingleResponsePageConverter
-    extends AbstractPageConverter<org.springframework.data.domain.Page<MetadataEntity>, Page<MetadataSingleResponse>> implements FormatterRegistrar {
+public class SpringDataPageToMetadataOwnerResponsePageConverter
+    extends AbstractPageConverter<org.springframework.data.domain.Page<MetadataOwner>, Page<MetadataOwnerResponse>> implements FormatterRegistrar {
 
     @Inject
     private ConversionService conversionService;
@@ -26,15 +26,17 @@ public class SpringDataPageToMetadataSingleResponsePageConverter
     }
 
     @Override
-    public Page<MetadataSingleResponse> convert(org.springframework.data.domain.Page<MetadataEntity> page) {
+    public Page<MetadataOwnerResponse> convert(org.springframework.data.domain.Page<MetadataOwner> page) {
+
+        System.out.println("HELLO CONVERTER");
 
         PageInformation pageInformation = super.getPageInformation(page);
 
-        List<MetadataSingleResponse> data = page.getContent().stream()
-            .map(entity -> conversionService.convert(entity, MetadataSingleResponse.class))
+        List<MetadataOwnerResponse> data = page.getContent().stream()
+            .map(entity -> conversionService.convert(entity, MetadataOwnerResponse.class))
             .collect(Collectors.toList());
 
-        return Page.<MetadataSingleResponse>builder()
+        return Page.<MetadataOwnerResponse>builder()
             .data(data)
             .page(pageInformation)
             .build();

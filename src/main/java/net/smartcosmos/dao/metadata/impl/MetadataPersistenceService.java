@@ -1,6 +1,29 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolationException;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
+
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
@@ -15,30 +38,6 @@ import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionException;
-
-import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.springframework.data.jpa.domain.Specifications.where;
 
 @Slf4j
 @Service
@@ -283,41 +282,24 @@ public class MetadataPersistenceService implements MetadataDao {
         return findAllPage(tenantUrn, getPageable(page, size, sortBy, direction));
     }
 
+    @SuppressWarnings("unchecked") // cast to Page<MetadataOwnerResponse>
     @Override
     public Page<MetadataOwnerResponse> findOwnersByKeyValuePairs(String tenantUrn, Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+
+        Page<MetadataOwnerResponse> result = MetadataPersistenceUtil.emptyPage();
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy);
 
+        TypeDescriptor sourceType = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(MetadataOwner.class));
+        TypeDescriptor targetType = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(MetadataOwnerResponse.class));
+
         org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
+        List<MetadataOwnerResponse> data = conversionService.convert(ownerPage.getContent(), List.class);
 
-        return conversionService.convert(ownerPage, Page.class);
-    }
-
-    private Specifications<MetadataEntity> getSpecificationForKeyValuePair(UUID tenantId, String key, Object value) {
-
-        Specification<MetadataEntity> tenantSpecification = searchSpecifications.matchUuid(tenantId, "tenantId");
-        Specifications<MetadataEntity> specifications = where(tenantSpecification);
-
-        Specification<MetadataEntity> keySpecification = getSearchSpecification("keyName", key);
-        specifications = specifications.and(keySpecification);
-
-        Specification<MetadataEntity> valueSpecification = getSearchSpecification("value", MetadataValueParser.getValue(value));
-        specifications = specifications.and(valueSpecification);
-
-        return specifications;
-    }
-
-    private Specification<MetadataEntity> getSearchSpecification(String fieldName, String query) {
-        Specification<MetadataEntity> specification = null;
-
-        if (StringUtils.isNotBlank(fieldName) && StringUtils.isNotBlank(query)) {
-            specification = searchSpecifications.stringMatchesExactly(query, fieldName);
-        }
-
-        return specification;
+        return result;
     }
 
     private Page<MetadataSingleResponse> findAllPage(String tenantUrn, Pageable pageable) {
@@ -328,7 +310,10 @@ public class MetadataPersistenceService implements MetadataDao {
             org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
                     .findByTenantId(tenantId, pageable);
 
-            return conversionService.convert(pageEntity, result.getClass());
+            TypeDescriptor sourceType = TypeDescriptor.collection(org.springframework.data.domain.Page.class, TypeDescriptor.valueOf(MetadataEntity.class));
+            TypeDescriptor targetType = TypeDescriptor.collection(Page.class, TypeDescriptor.valueOf(MetadataSingleResponse.class));
+
+            return (Page<MetadataSingleResponse>) conversionService.convert(pageEntity, sourceType, targetType);
         }
         catch (IllegalArgumentException e) {
             log.warn("Error processing URN: Tenant URN '{}'", tenantUrn);
