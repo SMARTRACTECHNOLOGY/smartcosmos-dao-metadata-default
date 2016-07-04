@@ -562,6 +562,36 @@ public class MetadataPersistenceServiceTest {
         assertEquals(1, responsePage.getPage().getTotalPages());
     }
 
+    @Test
+    public void testFindBySingleKeyValuePair() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:4bb91563-ff39-486d-b542-5a91f6a3b884",
+            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554"};
+
+        for (int i = 0; i < ownerUrns.length; i++) {
+            createMetadataEntity("ownerType", ownerUrns[i], "single", "ABC");
+
+        }
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("single", "ABC");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
+
+        assertEquals("urn:thing:uuid:4bb91563-ff39-486d-b542-5a91f6a3b884", responsePage.getData().get(0).getOwnerUrn());
+        assertEquals("urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554", responsePage.getData().get(1).getOwnerUrn());
+
+        assertEquals(2, responsePage.getData().size());
+        assertEquals(2, responsePage.getPage().getSize());
+        assertEquals(2, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+    }
+
     // endregion
 
     // region populateData

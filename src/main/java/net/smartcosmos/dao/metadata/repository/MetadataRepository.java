@@ -1,17 +1,19 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerProjection;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerProjection;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity>, MetadataRepositoryCustom {
 
@@ -23,7 +25,8 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
 
     Page<MetadataEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
-    Page<MetadataOwnerProjection> findPagedProjectedBy(Pageable pageable);
+    Page<MetadataOwnerProjection> findPagedProjectedByTenantIdAndKeyNameIgnoreCaseAndDataTypeAndValue(UUID tenantId, String keyName, MetadataDataType value,
+                                                                                                      String dataType, Pageable pageable);
 
     List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
