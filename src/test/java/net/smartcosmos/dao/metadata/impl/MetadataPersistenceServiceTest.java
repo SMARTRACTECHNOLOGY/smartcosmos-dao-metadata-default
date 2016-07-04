@@ -501,9 +501,7 @@ public class MetadataPersistenceServiceTest {
 
     @Test
     public void testFindByTypePaging() throws Exception {
-
-        // TODO: Resolve converter conflict!
-
+        
         populateData();
 
         int expectedPageSize = 3;
