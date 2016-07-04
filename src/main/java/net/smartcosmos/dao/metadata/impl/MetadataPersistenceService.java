@@ -1,6 +1,31 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolationException;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
+
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
@@ -15,28 +40,7 @@ import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionException;
-
-import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import net.smartcosmos.dto.metadata.PageInformation;
 
 import static org.springframework.data.jpa.domain.Specifications.where;
 
@@ -184,7 +188,7 @@ public class MetadataPersistenceService implements MetadataDao {
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
         }
 
-        return convert(deleteList);
+        return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
     }
 
     @Override
@@ -204,7 +208,7 @@ public class MetadataPersistenceService implements MetadataDao {
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
         }
 
-        return convert(deleteList);
+        return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
     }
 
     @Override
@@ -293,7 +297,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
 
-        return conversionService.convert(ownerPage, Page.class);
+        return convertPage(ownerPage, MetadataOwner.class, MetadataOwnerResponse.class);
     }
 
     private Specifications<MetadataEntity> getSpecificationForKeyValuePair(UUID tenantId, String key, Object value) {
@@ -328,7 +332,7 @@ public class MetadataPersistenceService implements MetadataDao {
             org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
                     .findByTenantId(tenantId, pageable);
 
-            return conversionService.convert(pageEntity, result.getClass());
+            return convertPage(pageEntity, MetadataEntity.class, MetadataSingleResponse.class);
         }
         catch (IllegalArgumentException e) {
             log.warn("Error processing URN: Tenant URN '{}'", tenantUrn);
@@ -382,10 +386,42 @@ public class MetadataPersistenceService implements MetadataDao {
         }
     }
 
-    private List<MetadataResponse> convert(List<MetadataEntity> entityList) {
-        return entityList.stream()
-            .map(o -> conversionService.convert(o, MetadataResponse.class))
-            .collect(Collectors.toList());
+    /**
+     * Uses the conversion service to convert a typed list into another typed list.
+     *
+     * @param list the list
+     * @param sourceClass the class of the source type
+     * @param targetClass the class of the target type
+     * @param <S> the generic source type
+     * @param <T> the generic target type
+     * @return the converted typed list
+     */
+    @SuppressWarnings("unchecked")
+    private <S, T> List<T> convertList(List<S> list, Class sourceClass, Class targetClass) {
+
+        TypeDescriptor sourceDescriptor = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(sourceClass));
+        TypeDescriptor targetDescriptor = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(targetClass));
+
+        return (List<T>) conversionService.convert(list, sourceDescriptor, targetDescriptor);
+    }
+
+    /**
+     * Uses the conversion service to covert a typed {@link org.springframework.data.domain.Page} into a typed {@link Page}, i.e. converts the page
+     * information and the content list.
+     *
+     * @param page the page
+     * @param sourceClass the class of the source type
+     * @param targetClass the class of the target type
+     * @param <S> the generic source type
+     * @param <T> the generic target type
+     * @return the converted typed page
+     */
+    private <S, T> Page<T> convertPage(org.springframework.data.domain.Page<S> page, Class sourceClass, Class targetClass) {
+
+        return Page.<T>builder()
+            .page(conversionService.convert(page, PageInformation.class))
+            .data(convertList(page.getContent(), sourceClass, targetClass))
+            .build();
     }
 
     /**
