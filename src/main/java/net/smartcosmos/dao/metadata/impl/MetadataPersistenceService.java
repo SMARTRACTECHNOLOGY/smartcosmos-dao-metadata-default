@@ -21,6 +21,8 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -38,6 +40,9 @@ import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
+import net.smartcosmos.dto.metadata.PageInformation;
+
+import static org.springframework.data.jpa.domain.Specifications.where;
 
 @Slf4j
 @Service
@@ -183,7 +188,7 @@ public class MetadataPersistenceService implements MetadataDao {
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
         }
 
-        return convert(deleteList);
+        return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
     }
 
     @Override
@@ -203,7 +208,7 @@ public class MetadataPersistenceService implements MetadataDao {
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
         }
 
-        return convert(deleteList);
+        return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
     }
 
     @Override
@@ -282,24 +287,17 @@ public class MetadataPersistenceService implements MetadataDao {
         return findAllPage(tenantUrn, getPageable(page, size, sortBy, direction));
     }
 
-    @SuppressWarnings("unchecked") // cast to Page<MetadataOwnerResponse>
     @Override
     public Page<MetadataOwnerResponse> findOwnersByKeyValuePairs(String tenantUrn, Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
-
-        Page<MetadataOwnerResponse> result = MetadataPersistenceUtil.emptyPage();
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy);
 
-        TypeDescriptor sourceType = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(MetadataOwner.class));
-        TypeDescriptor targetType = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(MetadataOwnerResponse.class));
-
         org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
-        List<MetadataOwnerResponse> data = conversionService.convert(ownerPage.getContent(), List.class);
 
-        return result;
+        return convertPage(ownerPage, MetadataOwner.class, MetadataOwnerResponse.class);
     }
 
     private Page<MetadataSingleResponse> findAllPage(String tenantUrn, Pageable pageable) {
@@ -310,10 +308,7 @@ public class MetadataPersistenceService implements MetadataDao {
             org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
                     .findByTenantId(tenantId, pageable);
 
-            TypeDescriptor sourceType = TypeDescriptor.collection(org.springframework.data.domain.Page.class, TypeDescriptor.valueOf(MetadataEntity.class));
-            TypeDescriptor targetType = TypeDescriptor.collection(Page.class, TypeDescriptor.valueOf(MetadataSingleResponse.class));
-
-            return (Page<MetadataSingleResponse>) conversionService.convert(pageEntity, sourceType, targetType);
+            return convertPage(pageEntity, MetadataEntity.class, MetadataSingleResponse.class);
         }
         catch (IllegalArgumentException e) {
             log.warn("Error processing URN: Tenant URN '{}'", tenantUrn);
@@ -367,10 +362,42 @@ public class MetadataPersistenceService implements MetadataDao {
         }
     }
 
-    private List<MetadataResponse> convert(List<MetadataEntity> entityList) {
-        return entityList.stream()
-            .map(o -> conversionService.convert(o, MetadataResponse.class))
-            .collect(Collectors.toList());
+    /**
+     * Uses the conversion service to convert a typed list into another typed list.
+     *
+     * @param list the list
+     * @param sourceClass the class of the source type
+     * @param targetClass the class of the target type
+     * @param <S> the generic source type
+     * @param <T> the generic target type
+     * @return the converted typed list
+     */
+    @SuppressWarnings("unchecked")
+    private <S, T> List<T> convertList(List<S> list, Class sourceClass, Class targetClass) {
+
+        TypeDescriptor sourceDescriptor = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(sourceClass));
+        TypeDescriptor targetDescriptor = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(targetClass));
+
+        return (List<T>) conversionService.convert(list, sourceDescriptor, targetDescriptor);
+    }
+
+    /**
+     * Uses the conversion service to covert a typed {@link org.springframework.data.domain.Page} into a typed {@link Page}, i.e. converts the page
+     * information and the content list.
+     *
+     * @param page the page
+     * @param sourceClass the class of the source type
+     * @param targetClass the class of the target type
+     * @param <S> the generic source type
+     * @param <T> the generic target type
+     * @return the converted typed page
+     */
+    private <S, T> Page<T> convertPage(org.springframework.data.domain.Page<S> page, Class sourceClass, Class targetClass) {
+
+        return Page.<T>builder()
+            .page(conversionService.convert(page, PageInformation.class))
+            .data(convertList(page.getContent(), sourceClass, targetClass))
+            .build();
     }
 
     /**
