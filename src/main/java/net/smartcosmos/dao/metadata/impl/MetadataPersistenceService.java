@@ -293,14 +293,14 @@ public class MetadataPersistenceService implements MetadataDao {
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy);
 
         if (keyValuePairs.size() == 1) {
-            return findOwnerForSingleKeyValuePair(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
+            return findOwnerBySingleKeyValuePair(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
         } else {
             org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
             return convertPage(ownerPage, MetadataOwner.class, MetadataOwnerResponse.class);
         }
     }
 
-    private Page<MetadataOwnerResponse> findOwnerForSingleKeyValuePair(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+    private Page<MetadataOwnerResponse> findOwnerBySingleKeyValuePair(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
         String keyName = keyValuePairs.keySet().iterator().next();
         String value = MetadataValueParser.getValue(keyValuePairs.get(keyName));
