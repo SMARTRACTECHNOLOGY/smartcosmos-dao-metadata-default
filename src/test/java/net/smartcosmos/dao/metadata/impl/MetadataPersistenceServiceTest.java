@@ -501,7 +501,7 @@ public class MetadataPersistenceServiceTest {
 
     @Test
     public void testFindByTypePaging() throws Exception {
-        
+
         populateData();
 
         int expectedPageSize = 3;

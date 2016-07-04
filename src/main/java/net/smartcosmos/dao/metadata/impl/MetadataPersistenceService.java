@@ -297,7 +297,6 @@ public class MetadataPersistenceService implements MetadataDao {
 
         org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
 
-
         return convertPage(ownerPage, MetadataOwner.class, MetadataOwnerResponse.class);
     }
 
@@ -387,6 +386,16 @@ public class MetadataPersistenceService implements MetadataDao {
         }
     }
 
+    /**
+     * Uses the conversion service to convert a typed list into another typed list.
+     *
+     * @param list the list
+     * @param sourceClass the class of the source type
+     * @param targetClass the class of the target type
+     * @param <S> the generic source type
+     * @param <T> the generic target type
+     * @return the converted typed list
+     */
     @SuppressWarnings("unchecked")
     private <S, T> List<T> convertList(List<S> list, Class sourceClass, Class targetClass) {
 
@@ -396,6 +405,17 @@ public class MetadataPersistenceService implements MetadataDao {
         return (List<T>) conversionService.convert(list, sourceDescriptor, targetDescriptor);
     }
 
+    /**
+     * Uses the conversion service to covert a typed {@link org.springframework.data.domain.Page} into a typed {@link Page}, i.e. converts the page
+     * information and the content list.
+     *
+     * @param page the page
+     * @param sourceClass the class of the source type
+     * @param targetClass the class of the target type
+     * @param <S> the generic source type
+     * @param <T> the generic target type
+     * @return the converted typed page
+     */
     private <S, T> Page<T> convertPage(org.springframework.data.domain.Page<S> page, Class sourceClass, Class targetClass) {
 
         return Page.<T>builder()
