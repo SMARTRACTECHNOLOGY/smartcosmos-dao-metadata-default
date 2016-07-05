@@ -90,12 +90,25 @@ public class MetadataPersistenceUtil {
      * The input field name is case-corrected and replaced by {@code id} if it does not exist in the entity class.
      *
      * @param sortBy the input field name
-     * @return the case-corrected field name if it exists, {@code id} otherwise
+     * @return the case-corrected field name if it exists, {@code created} otherwise
      */
     public static String getSortByFieldName(String sortBy) {
+
+        return getSortByFieldName(sortBy, "created");
+    }
+
+    /**
+     * Gets a valid field name for a {@code sortBy} query in the {@link MetadataEntity} data base.
+     * The input field name is case-corrected and replaced by {@code id} if it does not exist in the entity class.
+     *
+     * @param sortBy the input field name
+     * @param defaultFieldName the input field name to use if {@code sortBy} is blank
+     * @return the case-corrected field name if it exists, {@code id} otherwise
+     */
+    public static String getSortByFieldName(String sortBy, String defaultFieldName) {
         sortBy = normalizeFieldName(sortBy);
         if (StringUtils.isBlank(sortBy) || !isThingEntityField(sortBy)) {
-            sortBy = "created";
+            sortBy = defaultFieldName;
         }
         return sortBy;
     }
