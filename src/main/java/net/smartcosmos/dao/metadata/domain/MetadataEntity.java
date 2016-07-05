@@ -2,13 +2,14 @@ package net.smartcosmos.dao.metadata.domain;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -21,7 +22,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -39,6 +39,8 @@ import net.smartcosmos.dao.metadata.converter.attribute.MetadataDataTypeConverte
 @Table(name = "metadata")
 public class MetadataEntity implements Serializable {
 
+    public static final String OWNER_FIELD_NAME = "owner";
+
     public static final String OWNER_TYPE_FIELD_NAME = "ownerType";
     public static final String OWNER_ID_FIELD_NAME = "ownerId";
     public static final String DATA_TYPE_FIELD_NAME = "dataType";
@@ -55,16 +57,10 @@ public class MetadataEntity implements Serializable {
     private static final int VALUE_LENGTH = 767;
 
     @Id
-    @NotEmpty
-    @Size(max = OWNER_TYPE_LENGTH)
-    @Column(name = OWNER_TYPE_FIELD_NAME, length = OWNER_TYPE_LENGTH, nullable = false, updatable = false)
-    private String ownerType;
-
-    @Id
     @NotNull
-    @Type(type = "uuid-binary")
-    @Column(name = OWNER_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
-    private UUID ownerId;
+    @ManyToOne
+    @JoinColumn(name = OWNER_FIELD_NAME, nullable = false, updatable = false)
+    private MetadataOwnerEntity owner;
 
     @NotNull
     @Convert(converter = MetadataDataTypeConverter.class)
@@ -80,12 +76,6 @@ public class MetadataEntity implements Serializable {
     @Size(max = VALUE_LENGTH)
     @Column(name = VALUE_FIELD_NAME, length = VALUE_LENGTH, nullable = true, updatable = true)
     private String value;
-
-    @Id
-    @NotNull
-    @Type(type = "uuid-binary")
-    @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
-    private UUID tenantId;
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

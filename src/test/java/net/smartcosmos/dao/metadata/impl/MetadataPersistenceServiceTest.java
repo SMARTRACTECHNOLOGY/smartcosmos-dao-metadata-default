@@ -32,6 +32,7 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
@@ -737,10 +738,14 @@ public class MetadataPersistenceServiceTest {
         int i = 0;
         for (String urn : urns) {
 
-            MetadataEntity entity = MetadataEntity.builder()
+            MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
                 .tenantId(tenantId)
-                .ownerType("someOwner")
-                .ownerId(UuidUtil.getUuidFromUrn(urn))
+                .type("someOwner")
+                .id(UuidUtil.getUuidFromUrn(urn))
+                .build();
+
+            MetadataEntity entity = MetadataEntity.builder()
+                .owner(owner)
                 .keyName("someName")
                 .dataType(MetadataDataType.INTEGER)
                 .value(String.format("%d", i++))
@@ -752,10 +757,14 @@ public class MetadataPersistenceServiceTest {
 
     private void createMetadataEntity(String ownerType, String ownerUrn, String key, Object value) throws Exception {
 
-        MetadataEntity entity = MetadataEntity.builder()
+        MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
             .tenantId(tenantId)
-            .ownerType(ownerType)
-            .ownerId(UuidUtil.getUuidFromUrn(ownerUrn))
+            .type(ownerType)
+            .id(UuidUtil.getUuidFromUrn(ownerUrn))
+            .build();
+
+        MetadataEntity entity = MetadataEntity.builder()
+            .owner(owner)
             .keyName(key)
             .dataType(MetadataValueParser.getDataType(value))
             .value(MetadataValueParser.getValue(value))

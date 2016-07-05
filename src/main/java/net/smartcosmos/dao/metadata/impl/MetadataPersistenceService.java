@@ -28,7 +28,7 @@ import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwner;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerProjection;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataPersistenceUtil;
@@ -109,13 +109,17 @@ public class MetadataPersistenceService implements MetadataDao {
                     String value = MetadataValueParser.getValue(object);
                     MetadataDataType dataType = MetadataValueParser.getDataType(object);
 
+                    MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
+                        .type(ownerType)
+                        .id(ownerId)
+                        .tenantId(tenantId)
+                        .build();
+
                     return MetadataEntity.builder()
-                        .ownerType(ownerType)
-                        .ownerId(ownerId)
+                        .owner(owner)
                         .keyName(key)
                         .value(value)
                         .dataType(dataType)
-                        .tenantId(tenantId)
                         .build();
                 })
                 .collect(Collectors.toList());
@@ -295,8 +299,8 @@ public class MetadataPersistenceService implements MetadataDao {
         if (keyValuePairs.size() == 1) {
             return findOwnerBySingleKeyValuePair(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
         } else {
-            org.springframework.data.domain.Page<MetadataOwner> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
-            return convertPage(ownerPage, MetadataOwner.class, MetadataOwnerResponse.class);
+            org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
+            return convertPage(ownerPage, MetadataOwnerEntity.class, MetadataOwnerResponse.class);
         }
     }
 

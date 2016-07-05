@@ -25,7 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwner;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 
 import static net.smartcosmos.dao.metadata.domain.MetadataEntity.*;
@@ -44,10 +44,10 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     }
 
     @Override
-    public Page<MetadataOwner> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+    public Page<MetadataOwnerEntity> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
-        CriteriaQuery<MetadataOwner> resultQuery = getMetadataOwnerCriteriaQuery(tenantId, keyValuePairs, pageable);
-        List<MetadataOwner> result = getMetadataOwners(pageable, resultQuery);
+        CriteriaQuery<MetadataOwnerEntity> resultQuery = getMetadataOwnerCriteriaQuery(tenantId, keyValuePairs, pageable);
+        List<MetadataOwnerEntity> result = getMetadataOwners(pageable, resultQuery);
 
         if (result.size() > 0 && result.size() < pageable.getPageSize()) {
             pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
@@ -60,9 +60,9 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return new PageImpl<>(result, pageable, totalElements);
     }
 
-    private List<MetadataOwner> getMetadataOwners(Pageable pageable, CriteriaQuery<MetadataOwner> resultQuery) {
+    private List<MetadataOwnerEntity> getMetadataOwners(Pageable pageable, CriteriaQuery<MetadataOwnerEntity> resultQuery) {
 
-        TypedQuery<MetadataOwner> q = entityManager.createQuery(resultQuery);
+        TypedQuery<MetadataOwnerEntity> q = entityManager.createQuery(resultQuery);
 
         q.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
         q.setMaxResults(pageable.getPageSize());
@@ -70,7 +70,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return q.getResultList();
     }
 
-    private CriteriaQuery<MetadataOwner> getMetadataOwnerCriteriaQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+    private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
         // region SQL Statement
         /*
@@ -111,7 +111,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
          */
         // endregion
 
-        CriteriaQuery<MetadataOwner> resultQuery = builder.createQuery(MetadataOwner.class);
+        CriteriaQuery<MetadataOwnerEntity> resultQuery = builder.createQuery(MetadataOwnerEntity.class);
         Root<MetadataEntity> root = resultQuery.from(MetadataEntity.class);
 
         resultQuery.multiselect(root.get(OWNER_TYPE_FIELD_NAME), root.get(OWNER_ID_FIELD_NAME), root.get(TENANT_ID_FIELD_NAME))

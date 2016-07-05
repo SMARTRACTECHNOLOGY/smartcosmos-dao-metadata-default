@@ -1,13 +1,13 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
-import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.util.UuidUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.*;
+import org.junit.runner.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -17,15 +17,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
+import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.util.UuidUtil;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -56,10 +55,14 @@ public class MetadataRepositoryTest {
         ownerId = UuidUtil.getNewUuid();
         tenantId = UUID.randomUUID();
 
-        MetadataEntity entity = MetadataEntity.builder()
+        MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
             .tenantId(tenantId)
-            .ownerId(ownerId)
-            .ownerType(ownerType)
+            .type(ownerType)
+            .id(ownerId)
+            .build();
+
+        MetadataEntity entity = MetadataEntity.builder()
+            .owner(owner)
             .keyName(keyName)
             .value("true")
             .dataType(MetadataDataType.BOOLEAN)
@@ -127,14 +130,18 @@ public class MetadataRepositoryTest {
             UUID id = UUID.randomUUID();
             ids.add(id);
 
+            MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
+                .tenantId(tenantId)
+                .type("pageTest")
+                .id(id)
+                .build();
+
             MetadataEntity entity = metadataRepository
                 .save(MetadataEntity.builder()
-                    .ownerType("pageTest")
-                    .ownerId(id)
+                    .owner(owner)
                     .dataType(MetadataDataType.BOOLEAN)
                     .keyName("pageTest")
                     .value("true")
-                    .tenantId(tenantId)
                     .build());
         }
 

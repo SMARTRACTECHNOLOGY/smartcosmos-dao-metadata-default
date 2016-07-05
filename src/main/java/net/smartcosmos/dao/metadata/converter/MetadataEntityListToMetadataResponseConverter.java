@@ -1,17 +1,18 @@
 package net.smartcosmos.dao.metadata.converter;
 
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.util.MetadataValueParser;
-import net.smartcosmos.dao.metadata.util.UuidUtil;
-import net.smartcosmos.dto.metadata.MetadataResponse;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
+import net.smartcosmos.dto.metadata.MetadataResponse;
 
 @Component
 public class MetadataEntityListToMetadataResponseConverter
@@ -25,10 +26,10 @@ public class MetadataEntityListToMetadataResponseConverter
         if (!metadata.isEmpty()) {
 
             return MetadataResponse.builder()
-                .ownerType(entities.get(0).getOwnerType())
-                .ownerUrn(UuidUtil.getThingUrnFromUuid(entities.get(0).getOwnerId()))
+                .ownerType(entities.get(0).getOwner().getType())
+                .ownerUrn(UuidUtil.getThingUrnFromUuid(entities.get(0).getOwner().getId()))
                 .metadata(metadata)
-                .tenantUrn(UuidUtil.getTenantUrnFromUuid(entities.get(0).getTenantId()))
+                .tenantUrn(UuidUtil.getTenantUrnFromUuid(entities.get(0).getOwner().getTenantId()))
                 .build();
         }
 
