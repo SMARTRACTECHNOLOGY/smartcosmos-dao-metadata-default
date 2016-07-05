@@ -41,6 +41,43 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     @Override
     public Page<MetadataOwner> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
+        /*
+            The generated SQL:
+
+            select distinct metadataen0_.owner_type as col_0_0_, metadataen0_.owner_id as col_1_0_, metadataen0_.tenant_id as col_2_0_
+            from metadata metadataen0_
+            where metadataen0_.tenant_id=?
+                and (metadataen0_.owner_id in (
+                    select distinct metadataen1_.owner_id
+                    from metadata metadataen1_ cross join metadata metadataen2_
+                    where (upper(metadataen1_.key_name) like ?)
+                        and metadataen1_.data_type=?
+                        and (upper(metadataen1_.value) like ?)
+                        and (metadataen0_.owner_type in (
+                            select distinct metadataen0_.owner_type
+                            from metadata metadataen3_
+                            where (upper(metadataen1_.key_name) like ?)
+                                and metadataen1_.data_type=?
+                                and (upper(metadataen1_.value) like ?)))
+                            )
+                        )
+                        and (metadataen0_.owner_id in (
+                            select distinct metadataen4_.owner_id
+                            from metadata metadataen4_ cross join metadata metadataen5_
+                            where (upper(metadataen4_.key_name) like ?)
+                                and metadataen4_.data_type=?
+                                and (upper(metadataen4_.value) like ?)
+                                and (metadataen0_.owner_type in (
+                                    select distinct metadataen0_.owner_type
+                                    from metadata metadataen6_
+                                    where (upper(metadataen4_.key_name) like ?)
+                                        and metadataen4_.data_type=?
+                                        and (upper(metadataen4_.value) like ?))
+                                )
+                        )
+                )
+         */
+
         CriteriaQuery<MetadataOwner> resultQuery = builder.createQuery(MetadataOwner.class);
 
         Root<MetadataEntity> root = resultQuery.from(MetadataEntity.class);
