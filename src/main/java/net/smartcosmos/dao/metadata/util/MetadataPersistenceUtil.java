@@ -8,6 +8,8 @@ import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dto.metadata.Page;
 import net.smartcosmos.dto.metadata.PageInformation;
 
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.*;
+
 public class MetadataPersistenceUtil {
 
     /**
@@ -33,36 +35,36 @@ public class MetadataPersistenceUtil {
      */
     public static String normalizeFieldName(String fieldName) {
 
-        if (StringUtils.equalsIgnoreCase("keyName", fieldName)) {
-            return "keyName";
+        if (StringUtils.equalsIgnoreCase(KEY_NAME_FIELD_NAME, fieldName)) {
+            return KEY_NAME_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("value", fieldName)) {
-            return "value";
+        if (StringUtils.equalsIgnoreCase(VALUE_FIELD_NAME, fieldName)) {
+            return VALUE_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("dataType", fieldName)) {
-            return "dataType";
+        if (StringUtils.equalsIgnoreCase(DATA_TYPE_FIELD_NAME, fieldName)) {
+            return DATA_TYPE_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("tenantUrn", fieldName) || StringUtils.equalsIgnoreCase("tenantId", fieldName)) {
-            return "tenantId";
+        if (StringUtils.equalsIgnoreCase("tenantUrn", fieldName) || StringUtils.equalsIgnoreCase(TENANT_ID_FIELD_NAME, fieldName)) {
+            return TENANT_ID_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("created", fieldName)) {
-            return "created";
+        if (StringUtils.equalsIgnoreCase(CREATED_FIELD_NAME, fieldName)) {
+            return CREATED_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("lastModified", fieldName)) {
-            return "lastModified";
+        if (StringUtils.equalsIgnoreCase(LAST_MODIFIED_FIELD_NAME, fieldName)) {
+            return LAST_MODIFIED_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("ownerType", fieldName)) {
-            return "ownerType";
+        if (StringUtils.equalsIgnoreCase(OWNER_TYPE_FIELD_NAME, fieldName)) {
+            return OWNER_TYPE_FIELD_NAME;
         }
 
-        if (StringUtils.equalsIgnoreCase("ownerUrn", fieldName) || StringUtils.equalsIgnoreCase("ownerId", fieldName)) {
-            return "ownerId";
+        if (StringUtils.equalsIgnoreCase("ownerUrn", fieldName) || StringUtils.equalsIgnoreCase(OWNER_ID_FIELD_NAME, fieldName)) {
+            return OWNER_ID_FIELD_NAME;
         }
 
         return fieldName;
@@ -94,7 +96,7 @@ public class MetadataPersistenceUtil {
      */
     public static String getSortByFieldName(String sortBy) {
 
-        return getSortByFieldName(sortBy, "created");
+        return getSortByFieldName(sortBy, CREATED_FIELD_NAME);
     }
 
     /**

@@ -28,6 +28,8 @@ import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwner;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.*;
+
 @Component
 public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
@@ -112,7 +114,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         CriteriaQuery<MetadataOwner> resultQuery = builder.createQuery(MetadataOwner.class);
         Root<MetadataEntity> root = resultQuery.from(MetadataEntity.class);
 
-        resultQuery.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"))
+        resultQuery.multiselect(root.get(OWNER_TYPE_FIELD_NAME), root.get(OWNER_ID_FIELD_NAME), root.get(TENANT_ID_FIELD_NAME))
             .distinct(true)
             .where(builder.and(getPredicates(root, resultQuery, tenantId, keyValuePairs)))
             .orderBy(getOrder(root, pageable.getSort()));
@@ -127,8 +129,8 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
             Sort.Order order = sort.iterator().next();
             orderList.add(new OrderImpl(root.get(order.getProperty()), true));
         } else {
-            orderList.add(new OrderImpl(root.get("tenantId"), true));
-            orderList.add(new OrderImpl(root.get("ownerId"), true));
+            orderList.add(new OrderImpl(root.get(TENANT_ID_FIELD_NAME), true));
+            orderList.add(new OrderImpl(root.get(OWNER_ID_FIELD_NAME), true));
         }
 
         return orderList;
@@ -137,7 +139,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     private Predicate[] getPredicates(Root<MetadataEntity> root, CriteriaQuery<?> ownerQuery, UUID tenantId, Map<String, Object> keyValuePairs) {
         List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(builder.equal(root.get("tenantId"), tenantId));
+        predicates.add(builder.equal(root.get(TENANT_ID_FIELD_NAME), tenantId));
 
         for (String key : keyValuePairs.keySet()) {
 
@@ -156,9 +158,9 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
     private Predicate getKeyValuePredicate(String key, Object value, Root<MetadataEntity> root) {
 
-        Predicate keyNamePredicate = builder.equal(root.get("keyName"), key);
-        Predicate valuePredicate = builder.equal(root.get("value"), value);
-        Predicate dataTypePredicate = builder.equal(root.get("dataType"), MetadataValueParser.getDataType(value));
+        Predicate keyNamePredicate = builder.equal(root.get(KEY_NAME_FIELD_NAME), key);
+        Predicate valuePredicate = builder.equal(root.get(VALUE_FIELD_NAME), value);
+        Predicate dataTypePredicate = builder.equal(root.get(DATA_TYPE_FIELD_NAME), MetadataValueParser.getDataType(value));
 
         return builder.and(keyNamePredicate, dataTypePredicate, valuePredicate);
     }
@@ -167,22 +169,22 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         Subquery<MetadataEntity> ownerTypeQuery = query.subquery(MetadataEntity.class);
 
-        ownerTypeQuery.select(root.get("ownerType"))
+        ownerTypeQuery.select(root.get(OWNER_TYPE_FIELD_NAME))
             .distinct(true)
             .where(keyValuePredicate)
             .from(MetadataEntity.class);
 
-        return builder.in(root.get("ownerType")).value(ownerTypeQuery);
+        return builder.in(root.get(OWNER_TYPE_FIELD_NAME)).value(ownerTypeQuery);
     }
 
     private Predicate getOwnerIdQueryPredicate(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Root<MetadataEntity> subRoot,
                                                Predicate predicate) {
 
-        query.select(subRoot.get("ownerId"))
+        query.select(subRoot.get(OWNER_ID_FIELD_NAME))
             .distinct(true)
             .where(predicate)
             .from(MetadataEntity.class);
 
-        return builder.in(root.get("ownerId")).value(query);
+        return builder.in(root.get(OWNER_ID_FIELD_NAME)).value(query);
     }
 }

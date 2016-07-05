@@ -38,6 +38,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "metadata")
 public class MetadataEntity implements Serializable {
 
+    public static final String OWNER_TYPE_FIELD_NAME = "ownerType";
+    public static final String OWNER_ID_FIELD_NAME = "ownerId";
+    public static final String DATA_TYPE_FIELD_NAME = "dataType";
+    public static final String KEY_NAME_FIELD_NAME = "keyName";
+    public static final String VALUE_FIELD_NAME = "value";
+    public static final String TENANT_ID_FIELD_NAME = "tenantId";
+    public static final String CREATED_FIELD_NAME = "created";
+    public static final String LAST_MODIFIED_FIELD_NAME = "lastModified";
+
     private static final int UUID_LENGTH = 16;
     private static final int KEY_NAME_LENGTH = 255;
     private static final int DATA_TYPE_LENGTH = 255;
@@ -47,43 +56,43 @@ public class MetadataEntity implements Serializable {
     @Id
     @NotEmpty
     @Size(max = OWNER_TYPE_LENGTH)
-    @Column(name = "ownerType", length = OWNER_TYPE_LENGTH, nullable = false, updatable = false)
+    @Column(name = OWNER_TYPE_FIELD_NAME, length = OWNER_TYPE_LENGTH, nullable = false, updatable = false)
     private String ownerType;
 
     @Id
     @NotNull
     @Type(type = "uuid-binary")
-    @Column(name = "ownerId", length = UUID_LENGTH, nullable = false, updatable = false)
+    @Column(name = OWNER_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID ownerId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "dataType", length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
+    @Column(name = DATA_TYPE_FIELD_NAME, length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
     private MetadataDataType dataType;
 
     @Id
     @NotEmpty
     @Size(max = KEY_NAME_LENGTH)
-    @Column(name = "keyName", length = KEY_NAME_LENGTH, nullable = false, updatable = false)
+    @Column(name = KEY_NAME_FIELD_NAME, length = KEY_NAME_LENGTH, nullable = false, updatable = false)
     private String keyName;
 
     @Size(max = VALUE_LENGTH)
-    @Column(name = "value", length = VALUE_LENGTH, nullable = true, updatable = true)
+    @Column(name = VALUE_FIELD_NAME, length = VALUE_LENGTH, nullable = true, updatable = true)
     private String value;
 
     @Id
     @NotNull
     @Type(type = "uuid-binary")
-    @Column(name = "tenantId", length = UUID_LENGTH, nullable = false, updatable = false)
+    @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID tenantId;
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created", insertable = true, updatable = false)
+    @Column(name = CREATED_FIELD_NAME, insertable = true, updatable = false)
     private Date created;
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "lastModified", nullable = false, insertable = true, updatable = true)
+    @Column(name = LAST_MODIFIED_FIELD_NAME, nullable = false, insertable = true, updatable = true)
     private Date lastModified;
 }
