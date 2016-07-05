@@ -4,10 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
@@ -27,6 +26,8 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import net.smartcosmos.dao.metadata.converter.attribute.MetadataDataTypeConverter;
 
 @Entity(name = "metadata")
 @IdClass(MetadataId.class)
@@ -66,8 +67,8 @@ public class MetadataEntity implements Serializable {
     private UUID ownerId;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = DATA_TYPE_FIELD_NAME, length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
+    @Convert(converter = MetadataDataTypeConverter.class)
+    @Column(name = DATA_TYPE_FIELD_NAME, nullable = false, updatable = true)
     private MetadataDataType dataType;
 
     @Id
