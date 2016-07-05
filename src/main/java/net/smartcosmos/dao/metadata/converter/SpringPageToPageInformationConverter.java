@@ -15,7 +15,7 @@ public class SpringPageToPageInformationConverter implements Converter<PageImpl<
     public PageInformation convert(PageImpl<?> page) {
 
         return PageInformation.builder()
-            .number(page.getNumber() + 1)
+            .number((page.getTotalElements() > 0 ? page.getNumber() + 1 : 0))
             .totalElements(page.getTotalElements())
             .size(page.getNumberOfElements())
             .totalPages(page.getTotalPages())
