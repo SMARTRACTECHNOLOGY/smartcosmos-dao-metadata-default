@@ -4,21 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.hibernate.jpa.criteria.OrderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
@@ -41,6 +44,33 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     @Override
     public Page<MetadataOwner> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
+        CriteriaQuery<MetadataOwner> resultQuery = getMetadataOwnerCriteriaQuery(tenantId, keyValuePairs, pageable);
+        List<MetadataOwner> result = getMetadataOwners(pageable, resultQuery);
+
+        if (result.size() > 0 && result.size() < pageable.getPageSize()) {
+            pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
+        }
+
+        // TODO: Improve Counting
+        // This is not really nice, because it gets all results just to count them
+        long totalElements = (long) entityManager.createQuery(resultQuery).getResultList().size();
+
+        return new PageImpl<>(result, pageable, totalElements);
+    }
+
+    private List<MetadataOwner> getMetadataOwners(Pageable pageable, CriteriaQuery<MetadataOwner> resultQuery) {
+
+        TypedQuery<MetadataOwner> q = entityManager.createQuery(resultQuery);
+
+        q.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
+        q.setMaxResults(pageable.getPageSize());
+
+        return q.getResultList();
+    }
+
+    private CriteriaQuery<MetadataOwner> getMetadataOwnerCriteriaQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+
+        // region SQL Statement
         /*
             The generated SQL:
 
@@ -77,49 +107,36 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
                         )
                 )
          */
+        // endregion
 
         CriteriaQuery<MetadataOwner> resultQuery = builder.createQuery(MetadataOwner.class);
-
         Root<MetadataEntity> root = resultQuery.from(MetadataEntity.class);
 
-        resultQuery.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"));
-        resultQuery.distinct(true);
-        resultQuery.orderBy(new OrderImpl(root.get("tenantId"), true), new OrderImpl(root.get("ownerId"), true));
-        List<Predicate> predicates = getPredicateList(root, resultQuery, tenantId, keyValuePairs);
-        resultQuery.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
+        resultQuery.multiselect(root.get("ownerType"), root.get("ownerId"), root.get("tenantId"))
+            .distinct(true)
+            .where(builder.and(getPredicates(root, resultQuery, tenantId, keyValuePairs)))
+            .orderBy(getOrder(root, pageable.getSort()));
 
-        TypedQuery<MetadataOwner> q = entityManager.createQuery(resultQuery);
-        q.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
-        q.setMaxResults(pageable.getPageSize());
-
-        List<MetadataOwner> result = q.getResultList();
-
-        if (result.size() < pageable.getPageSize()) {
-            pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
-        }
-
-        // TODO: Add Sorting
-
-
-        // This is not really nice, because it gets all results just to count them
-
-        // TODO: Improve Counting
-
-        CriteriaQuery<MetadataOwner> countQuery = builder.createQuery(MetadataOwner.class);
-        Root<MetadataEntity> root2 = countQuery.from(MetadataEntity.class);
-        countQuery.multiselect(root2.get("ownerType"), root2.get("ownerId"), root2.get("tenantId"));
-        countQuery.distinct(true);
-        countQuery.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
-        long totalElements = (long) entityManager.createQuery(countQuery).getResultList().size();
-
-        return new PageImpl<>(result, pageable, totalElements);
+        return resultQuery;
     }
 
-    private List<Predicate> getPredicateList(Root<MetadataEntity> root, CriteriaQuery<?> ownerQuery, UUID tenantId, Map<String, Object> keyValuePairs) {
+    private List<Order> getOrder(Root<MetadataEntity> root, Sort sort) {
+        List<Order> orderList = new ArrayList<>();
 
-        // TODO: Refactor
+        if (sort != null && !IteratorUtils.isEmpty(sort.iterator())) {
+            Sort.Order order = sort.iterator().next();
+            orderList.add(new OrderImpl(root.get(order.getProperty()), true));
+        } else {
+            orderList.add(new OrderImpl(root.get("tenantId"), true));
+            orderList.add(new OrderImpl(root.get("ownerId"), true));
+        }
 
+        return orderList;
+    }
+
+    private Predicate[] getPredicates(Root<MetadataEntity> root, CriteriaQuery<?> ownerQuery, UUID tenantId, Map<String, Object> keyValuePairs) {
         List<Predicate> predicates = new ArrayList<>();
+
         predicates.add(builder.equal(root.get("tenantId"), tenantId));
 
         for (String key : keyValuePairs.keySet()) {
@@ -127,31 +144,45 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
             Subquery<MetadataEntity> ownerIdQuery = ownerQuery.subquery(MetadataEntity.class);
             Root<MetadataEntity> idRoot = ownerIdQuery.from(MetadataEntity.class);
 
-            Object value = keyValuePairs.get(key);
+            Predicate keyValuePredicate = getKeyValuePredicate(key, keyValuePairs.get(key), idRoot);
+            Predicate typeQueryPredicate = getTypeQueryPredicate(ownerIdQuery, root, keyValuePredicate);
+            Predicate ownerIdPredicate = getOwnerIdQueryPredicate(ownerIdQuery, root, idRoot, builder.and(keyValuePredicate, typeQueryPredicate));
 
-            Predicate subKeyPredicate = builder.like(builder.upper(idRoot.get("keyName")), StringUtils.upperCase(key));
-            Predicate subValuePredicate = builder.like(builder.upper(idRoot.get("value")), StringUtils.upperCase(MetadataValueParser.getValue(value)));
-            Predicate subDataTypePredicate = builder.equal(idRoot.get("dataType"), MetadataValueParser.getDataType(value));
-
-            Subquery<MetadataEntity> ownerTypeQuery = ownerIdQuery.subquery(MetadataEntity.class);
-            ownerTypeQuery.select(root.get("ownerType"));
-            ownerTypeQuery.distinct(true);
-            ownerTypeQuery.from(MetadataEntity.class);
-            ownerTypeQuery.where(builder.and(subKeyPredicate, subDataTypePredicate, subValuePredicate));
-
-            Predicate subQueryPredicate = builder.in(root.get("ownerType")).value(ownerTypeQuery);
-
-
-            Predicate subEntryPredicate = builder.and(subKeyPredicate, subDataTypePredicate, subValuePredicate, subQueryPredicate);
-
-            ownerIdQuery.select(idRoot.get("ownerId"));
-            ownerIdQuery.from(MetadataEntity.class);
-            ownerIdQuery.where(subEntryPredicate);
-            ownerIdQuery.distinct(true);
-
-            predicates.add(builder.in(root.get("ownerId")).value(ownerIdQuery));
+            predicates.add(ownerIdPredicate);
         }
 
-        return predicates;
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
+    private Predicate getKeyValuePredicate(String key, Object value, Root<MetadataEntity> root) {
+
+        Predicate keyNamePredicate = builder.equal(root.get("keyName"), key);
+        Predicate valuePredicate = builder.equal(root.get("value"), value);
+        Predicate dataTypePredicate = builder.equal(root.get("dataType"), MetadataValueParser.getDataType(value));
+
+        return builder.and(keyNamePredicate, dataTypePredicate, valuePredicate);
+    }
+
+    private Predicate getTypeQueryPredicate(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Predicate keyValuePredicate) {
+
+        Subquery<MetadataEntity> ownerTypeQuery = query.subquery(MetadataEntity.class);
+
+        ownerTypeQuery.select(root.get("ownerType"))
+            .distinct(true)
+            .where(keyValuePredicate)
+            .from(MetadataEntity.class);
+
+        return builder.in(root.get("ownerType")).value(ownerTypeQuery);
+    }
+
+    private Predicate getOwnerIdQueryPredicate(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Root<MetadataEntity> subRoot,
+                                               Predicate predicate) {
+
+        query.select(subRoot.get("ownerId"))
+            .distinct(true)
+            .where(predicate)
+            .from(MetadataEntity.class);
+
+        return builder.in(root.get("ownerId")).value(query);
     }
 }
