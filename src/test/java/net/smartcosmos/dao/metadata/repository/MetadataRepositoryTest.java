@@ -71,6 +71,7 @@ public class MetadataRepositoryTest {
             .keyName(keyName)
             .value("true")
             .dataType(MetadataDataType.BOOLEAN)
+            .tenantId(tenantId)
             .build();
 
         entity = metadataRepository.save(entity);
@@ -120,7 +121,6 @@ public class MetadataRepositoryTest {
         List<UUID> ids = new ArrayList<>();
 
         List<MetadataOwnerEntity> owners = new ArrayList<>();
-        owners.add(owner);
 
         for (int i = 0; i < entityCount; i++) {
             UUID id = UUID.randomUUID();
@@ -140,6 +140,7 @@ public class MetadataRepositoryTest {
                     .dataType(MetadataDataType.BOOLEAN)
                     .keyName("pageTest")
                     .value("true")
+                    .tenantId(tenantId)
                     .build());
         }
 

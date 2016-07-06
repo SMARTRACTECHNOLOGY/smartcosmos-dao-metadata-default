@@ -43,6 +43,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -60,6 +61,7 @@ public class MetadataEntityTest {
 //            .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -82,6 +84,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
 //            .keyName(KEY)
             .value(VALUE)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -100,6 +103,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName("")
             .value(VALUE)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -118,6 +122,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME_INVALID)
             .value(VALUE)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -140,6 +145,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
 //            .value(VALUE)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -155,6 +161,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value("")
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -170,6 +177,7 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE_INVALID)
+            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
