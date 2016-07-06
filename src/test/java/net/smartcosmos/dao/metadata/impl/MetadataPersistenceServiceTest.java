@@ -1,32 +1,6 @@
 package net.smartcosmos.dao.metadata.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.junit.*;
-import org.junit.runner.*;
-import org.mockito.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-
 import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
 import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.SortOrder;
@@ -42,6 +16,25 @@ import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 import net.smartcosmos.dto.metadata.Page;
 import net.smartcosmos.security.user.SmartCosmosUser;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -135,8 +128,8 @@ public class MetadataPersistenceServiceTest {
         assertEquals(JSONObject.NULL, response.get().getMetadata().get("someNull"));
         assertEquals(text, response.get().getMetadata().get("someString"));
 
-        MetadataOwnerEntity owner = ownerRepository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
-        List<MetadataEntity> entityList = metadataRepository.findByOwner(owner);
+        Optional<MetadataOwnerEntity> owner = ownerRepository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner(owner.get());
 
         assertFalse(entityList.isEmpty());
 
@@ -216,8 +209,8 @@ public class MetadataPersistenceServiceTest {
         assertEquals(1, output.get("x").asInt());
         assertEquals(2, output.get("y").asInt());
 
-        MetadataOwnerEntity owner = ownerRepository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
-        List<MetadataEntity> entityList = metadataRepository.findByOwner(owner);
+        Optional<MetadataOwnerEntity> owner = ownerRepository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner(owner.get());
 
         assertFalse(entityList.isEmpty());
         assertEquals(5, entityList.size());

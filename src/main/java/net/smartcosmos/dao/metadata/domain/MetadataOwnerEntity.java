@@ -1,39 +1,16 @@
 package net.smartcosmos.dao.metadata.domain;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
+import lombok.*;
 import org.apache.commons.collections4.MapUtils;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.util.*;
 
 @Entity(name = "metadataOwner")
 @Data
@@ -77,7 +54,7 @@ public class MetadataOwnerEntity implements Serializable {
     private UUID tenantId;
 
     @Setter(AccessLevel.NONE)
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
     @OneToMany(mappedBy = MetadataEntity.OWNER_FIELD_NAME,
                cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
                orphanRemoval = true,
@@ -98,47 +75,7 @@ public class MetadataOwnerEntity implements Serializable {
         }
     }
 
-    public void addMetadataEntity(MetadataEntity metadataEntity) {
-        metadataEntity.setOwner(this);
-        metadataEntity.setTenantId(this.getTenantId());
-        getMetadataEntities().putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
-    }
-
-    public Optional<MetadataEntity> getMetadataEntity(String key) {
-        return Optional.ofNullable(getMetadataEntities().get(key));
-    }
-
-    public Optional<MetadataEntity> updateMetadataEntity(MetadataEntity metadataEntity) {
-        return Optional.ofNullable(getMetadataEntities().replace(metadataEntity.getKeyName(), metadataEntity));
-    }
-
-    public Optional<MetadataEntity> deleteMetadataEntity(String key) {
-
-        if (getMetadataEntities().containsKey(key)) {
-            MetadataEntity entity = getMetadataEntities().remove(key);
-            if (entity != null) {
-                entity.setOwner(null);
-            }
-
-            return Optional.ofNullable(entity);
-        }
-
-        return Optional.empty();
-    }
-
-    public Collection<MetadataEntity> getMetadataEntities(Collection<String> keys) {
-        return keys.stream()
-            .map(this::getMetadataEntity)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toList());
-    }
-
-    public boolean hasMetadataKey(Set<String> keys) {
-        return getMetadataEntities().keySet().containsAll(keys);
-    }
-
     public Collection<? extends MetadataEntity> getAllMetadataEntities() {
-        return getMetadataEntities().values();
+        return metadataEntities.values();
     }
 }
