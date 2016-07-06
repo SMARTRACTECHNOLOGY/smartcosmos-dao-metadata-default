@@ -2,6 +2,7 @@ package net.smartcosmos.dao.metadata.domain;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -57,11 +58,11 @@ public class MetadataEntity implements Serializable {
     private static final int OWNER_TYPE_LENGTH = 255;
     private static final int VALUE_LENGTH = 767;
 
+//    @MapsId("internalId" )
     @Id
     @NotNull
     @Type(type = "uuid-binary")
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-//    @JoinColumn(name = OWNER_FIELD_NAME, nullable = false, updatable = false)
     private MetadataOwnerEntity owner;
 
     @NotNull
@@ -81,11 +82,16 @@ public class MetadataEntity implements Serializable {
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = CREATED_FIELD_NAME, insertable = true, updatable = false)
+    @Column(name = CREATED_FIELD_NAME, nullable = false, insertable = true, updatable = false)
     private Date created;
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = LAST_MODIFIED_FIELD_NAME, nullable = false, insertable = true, updatable = true)
     private Date lastModified;
+
+    @NotNull
+    @Type(type = "uuid-binary")
+    @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
+    private UUID tenantId;
 }
