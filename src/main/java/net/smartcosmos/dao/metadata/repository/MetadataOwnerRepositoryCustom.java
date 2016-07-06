@@ -1,8 +1,8 @@
 package net.smartcosmos.dao.metadata.repository;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
