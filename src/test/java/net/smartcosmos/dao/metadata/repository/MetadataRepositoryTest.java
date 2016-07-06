@@ -42,10 +42,15 @@ public class MetadataRepositoryTest {
     @Autowired
     MetadataRepository metadataRepository;
 
+    @Autowired
+    MetadataOwnerRepository ownerRepository;
+
     private UUID tenantId;
     private UUID ownerId;
     private String ownerType = "Person";
     private String keyName = "test";
+
+    private MetadataOwnerEntity owner;
 
     private Map<String, Object> keyValues;
 
@@ -55,7 +60,7 @@ public class MetadataRepositoryTest {
         ownerId = UuidUtil.getNewUuid();
         tenantId = UUID.randomUUID();
 
-        MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
+        owner = MetadataOwnerEntity.builder()
             .tenantId(tenantId)
             .type(ownerType)
             .id(ownerId)
@@ -74,11 +79,7 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
-            tenantId,
-            ownerType,
-            ownerId,
-            keyName);
+        List<MetadataEntity> entityList = metadataRepository.deleteByOwnerAndKeyNameIgnoreCase(owner, keyName);
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
@@ -92,11 +93,7 @@ public class MetadataRepositoryTest {
 
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
-            tenantId,
-            ownerType,
-            ownerId,
-            keyName);
+        Optional<MetadataEntity> entity = metadataRepository.findByOwnerAndKeyNameIgnoreCase(owner, keyName);
 
         assertTrue(entity.isPresent());
 
@@ -107,11 +104,7 @@ public class MetadataRepositoryTest {
 
     @Test
     public void thatTypeAndKeyCaseInsensitive() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
-            tenantId,
-            ownerType.toUpperCase(),
-            ownerId,
-            keyName.toUpperCase());
+        Optional<MetadataEntity> entity = metadataRepository.findByOwnerAndKeyNameIgnoreCase(owner, keyName.toUpperCase());
 
         assertTrue(entity.isPresent());
 
@@ -126,6 +119,9 @@ public class MetadataRepositoryTest {
         final int entityCount = 30;
         List<UUID> ids = new ArrayList<>();
 
+        List<MetadataOwnerEntity> owners = new ArrayList<>();
+        owners.add(owner);
+
         for (int i = 0; i < entityCount; i++) {
             UUID id = UUID.randomUUID();
             ids.add(id);
@@ -136,6 +132,8 @@ public class MetadataRepositoryTest {
                 .id(id)
                 .build();
 
+            owners.add(owner);
+
             MetadataEntity entity = metadataRepository
                 .save(MetadataEntity.builder()
                     .owner(owner)
@@ -145,7 +143,8 @@ public class MetadataRepositoryTest {
                     .build());
         }
 
-        Page<MetadataEntity> entityList = metadataRepository.findByTenantId(tenantId, new PageRequest(0, 1));
+
+        Page<MetadataEntity> entityList = metadataRepository.findByOwnerIn(owners, new PageRequest(0, 1));
         assertFalse(entityList.getContent().isEmpty());
 
         assertEquals(1, entityList.getContent().size());

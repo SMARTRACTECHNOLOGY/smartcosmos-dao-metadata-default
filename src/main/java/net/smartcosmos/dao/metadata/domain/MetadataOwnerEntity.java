@@ -1,11 +1,16 @@
 package net.smartcosmos.dao.metadata.domain;
 
+import java.io.Serializable;
+import java.util.Set;
 import java.util.UUID;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -13,7 +18,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -24,8 +31,13 @@ import org.hibernate.validator.constraints.NotEmpty;
 @Builder
 @AllArgsConstructor
 @Data
-@Table(name = "metadataOwner")
-public class MetadataOwnerEntity {
+@EqualsAndHashCode(exclude = {"metadataEntities"})
+@ToString(exclude = {"metadataEntities"})
+@Table(
+    name = "metadataOwner",
+    uniqueConstraints = {@UniqueConstraint(columnNames = { "type", "id", "tenantId" })}
+    )
+public class MetadataOwnerEntity implements Serializable {
 
     public static final String ID_FIELD_NAME = "internalId";
     public static final String OWNER_TYPE_FIELD_NAME = "type";
@@ -56,4 +68,8 @@ public class MetadataOwnerEntity {
     @Type(type = "uuid-binary")
     @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID tenantId;
+
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy=MetadataEntity.OWNER_FIELD_NAME)
+    private Set<MetadataEntity> metadataEntities;
+
 }

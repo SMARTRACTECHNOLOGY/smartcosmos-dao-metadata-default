@@ -1,6 +1,7 @@
 package net.smartcosmos.dao.metadata.domain;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MetadataId implements Serializable {
 
-    private MetadataOwnerEntity owner;
+    private UUID owner;
 
     private String keyName;
 }

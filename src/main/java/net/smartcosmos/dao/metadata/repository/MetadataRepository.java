@@ -13,44 +13,26 @@ import org.springframework.transaction.annotation.Transactional;
 
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerProjection;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity>, MetadataRepositoryCustom {
 
-    Long countByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCaseIn(
-        UUID tenantId,
-        String ownerType,
-        UUID ownerId,
-        Collection<String> keyNames);
+    Long countByOwnerAndKeyNameIgnoreCaseIn(MetadataOwnerEntity owner, Collection<String> keyNames);
 
-    Page<MetadataEntity> findByTenantId(UUID tenantId, Pageable pageable);
+    Page<MetadataEntity> findByOwnerIn(Collection<MetadataOwnerEntity> owners, Pageable pageable);
 
-    Page<MetadataOwnerProjection> findPagedProjectedByTenantIdAndKeyNameIgnoreCaseAndDataTypeAndValue(UUID tenantId, String keyName, MetadataDataType value,
-                                                                                                      String dataType, Pageable pageable);
+    Page<MetadataOwnerProjection> findPagedProjectedByOwnerInAndKeyNameIgnoreCaseAndDataTypeAndValue(Collection<MetadataOwnerEntity> owners, String keyName,
+                                                                                                     MetadataDataType value,
+                                                                                                     String dataType, Pageable pageable);
 
-    List<MetadataEntity> findByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
+    Optional<MetadataEntity> findByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
 
-    Optional<MetadataEntity> findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
-        UUID tenantId,
-        String ownerType,
-        UUID ownerId,
-        String keyName);
-
-    List<MetadataEntity> findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
-        UUID tenantId,
-        String ownerType,
-        UUID ownerId);
+    List<MetadataEntity> findByOwner(MetadataOwnerEntity owner);
 
     @Transactional
-    List<MetadataEntity> deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerIdAndKeyNameIgnoreCase(
-        UUID tenantId,
-        String ownerType,
-        UUID ownerId,
-        String keyName);
+    List<MetadataEntity> deleteByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
 
     @Transactional
-    List<MetadataEntity> deleteByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
-        UUID tenantId,
-        String ownerType,
-        UUID ownerId);
+    List<MetadataEntity> deleteByOwner(MetadataOwnerEntity owner);
 }
