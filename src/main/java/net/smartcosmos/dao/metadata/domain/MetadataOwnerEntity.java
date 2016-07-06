@@ -1,17 +1,20 @@
 package net.smartcosmos.dao.metadata.domain;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.MapKey;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -22,9 +25,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
+import org.apache.commons.collections4.MapUtils;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -70,22 +76,69 @@ public class MetadataOwnerEntity implements Serializable {
     @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID tenantId;
 
-    @OneToMany(mappedBy = MetadataEntity.OWNER_FIELD_NAME, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @MapKey(name = MetadataEntity.KEY_NAME_FIELD_NAME)
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.PRIVATE)
+    @OneToMany(mappedBy = MetadataEntity.OWNER_FIELD_NAME,
+               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+               orphanRemoval = true,
+               fetch = FetchType.LAZY)
+    @MapKeyColumn(name = MetadataEntity.KEY_NAME_FIELD_NAME)
     private Map<String, MetadataEntity> metadataEntities = new HashMap<>();
 
     @Builder
     @java.beans.ConstructorProperties({ "internalId", "type", "id", "tenantId", "metadataEntities" })
-    public MetadataOwnerEntity(UUID internalId, String type, UUID id, UUID tenantId, Set<MetadataEntity> metadataEntities) {
+    public MetadataOwnerEntity(UUID internalId, String type, UUID id, UUID tenantId, Map<String, MetadataEntity> metadataEntities) {
         this.internalId = internalId;
         this.type = type;
         this.id = id;
         this.tenantId = tenantId;
         this.metadataEntities = new HashMap<>();
+        if (MapUtils.isNotEmpty(metadataEntities)) {
+            this.metadataEntities.putAll(metadataEntities);
+        }
     }
 
     public void addMetadataEntity(MetadataEntity metadataEntity) {
         metadataEntity.setOwner(this);
-        metadataEntities.put(metadataEntity.getKeyName(), metadataEntity);
+        metadataEntity.setTenantId(this.getTenantId());
+        getMetadataEntities().putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
+    }
+
+    public Optional<MetadataEntity> getMetadataEntity(String key) {
+        return Optional.ofNullable(getMetadataEntities().get(key));
+    }
+
+    public Optional<MetadataEntity> updateMetadataEntity(MetadataEntity metadataEntity) {
+        return Optional.ofNullable(getMetadataEntities().replace(metadataEntity.getKeyName(), metadataEntity));
+    }
+
+    public Optional<MetadataEntity> deleteMetadataEntity(String key) {
+
+        if (getMetadataEntities().containsKey(key)) {
+            MetadataEntity entity = getMetadataEntities().remove(key);
+            if (entity != null) {
+                entity.setOwner(null);
+            }
+
+            return Optional.ofNullable(entity);
+        }
+
+        return Optional.empty();
+    }
+
+    public Collection<MetadataEntity> getMetadataEntities(Collection<String> keys) {
+        return keys.stream()
+            .map(this::getMetadataEntity)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+    }
+
+    public boolean hasMetadataKey(Set<String> keys) {
+        return getMetadataEntities().keySet().containsAll(keys);
+    }
+
+    public Collection<? extends MetadataEntity> getAllMetadataEntities() {
+        return getMetadataEntities().values();
     }
 }
