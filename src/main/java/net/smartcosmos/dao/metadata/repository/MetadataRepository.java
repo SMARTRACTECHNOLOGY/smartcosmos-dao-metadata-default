@@ -14,25 +14,22 @@ import org.springframework.transaction.annotation.Transactional;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerProjection;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity>, MetadataRepositoryCustom {
 
     Long countByOwnerAndKeyNameIgnoreCaseIn(MetadataOwnerEntity owner, Collection<String> keyNames);
 
-    Page<MetadataEntity> findByOwnerIn(Collection<MetadataOwnerEntity> owners, Pageable pageable);
+    List<MetadataEntity> findByOwnerAndKeyNameIgnoreCaseIn(MetadataOwnerEntity owner, Collection<String> keyNames);
 
-    Page<MetadataOwnerProjection> findPagedProjectedByOwnerInAndKeyNameIgnoreCaseAndDataTypeAndValue(Collection<MetadataOwnerEntity> owners, String keyName,
-                                                                                                     MetadataDataType value,
-                                                                                                     String dataType, Pageable pageable);
+    Page<MetadataEntity> findByOwnerIn(Collection<MetadataOwnerEntity> owners, Pageable pageable);
 
     Optional<MetadataEntity> findByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
 
     List<MetadataEntity> findByOwner(MetadataOwnerEntity owner);
 
-    @Transactional
-    List<MetadataEntity> deleteByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
+    Page<MetadataEntity> findProjectedByTenantIdAndKeyNameAndDataTypeAndValue(UUID tenantId, String keyName, MetadataDataType dataType,
+                                                                                       String value, Pageable pageable);
 
     @Transactional
-    List<MetadataEntity> deleteByOwner(MetadataOwnerEntity owner);
+    List<MetadataEntity> deleteByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
 }
