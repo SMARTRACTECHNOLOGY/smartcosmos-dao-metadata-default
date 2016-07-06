@@ -2,7 +2,6 @@ package net.smartcosmos.dao.metadata.domain;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -10,7 +9,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -62,8 +60,8 @@ public class MetadataEntity implements Serializable {
     @Id
     @NotNull
     @Type(type = "uuid-binary")
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinColumn(name = OWNER_FIELD_NAME, nullable = false, updatable = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+//    @JoinColumn(name = OWNER_FIELD_NAME, nullable = false, updatable = false)
     private MetadataOwnerEntity owner;
 
     @NotNull

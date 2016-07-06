@@ -1,13 +1,17 @@
 package net.smartcosmos.dao.metadata.domain;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -15,7 +19,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,10 +30,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Entity(name = "metadataOwner")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-@AllArgsConstructor
 @Data
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(exclude = {"metadataEntities"})
 @ToString(exclude = {"metadataEntities"})
 @Table(
@@ -69,7 +70,22 @@ public class MetadataOwnerEntity implements Serializable {
     @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
     private UUID tenantId;
 
-    @OneToMany(cascade = CascadeType.REMOVE, mappedBy=MetadataEntity.OWNER_FIELD_NAME)
-    private Set<MetadataEntity> metadataEntities;
+    @OneToMany(mappedBy = MetadataEntity.OWNER_FIELD_NAME, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @MapKey(name = MetadataEntity.KEY_NAME_FIELD_NAME)
+    private Map<String, MetadataEntity> metadataEntities = new HashMap<>();
 
+    @Builder
+    @java.beans.ConstructorProperties({ "internalId", "type", "id", "tenantId", "metadataEntities" })
+    public MetadataOwnerEntity(UUID internalId, String type, UUID id, UUID tenantId, Set<MetadataEntity> metadataEntities) {
+        this.internalId = internalId;
+        this.type = type;
+        this.id = id;
+        this.tenantId = tenantId;
+        this.metadataEntities = new HashMap<>();
+    }
+
+    public void addMetadataEntity(MetadataEntity metadataEntity) {
+        metadataEntity.setOwner(this);
+        metadataEntities.put(metadataEntity.getKeyName(), metadataEntity);
+    }
 }
