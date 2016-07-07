@@ -1,27 +1,21 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
-import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
-import net.smartcosmos.dao.metadata.SortOrder;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.MetadataValueParser;
-import net.smartcosmos.dao.metadata.util.UuidUtil;
-import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
-import net.smartcosmos.dto.metadata.MetadataResponse;
-import net.smartcosmos.dto.metadata.MetadataSingleResponse;
-import net.smartcosmos.dto.metadata.Page;
-import net.smartcosmos.security.user.SmartCosmosUser;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.junit.*;
+import org.junit.runner.*;
+import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -33,7 +27,19 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.*;
+import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
+import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.SortOrder;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
+import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
+import net.smartcosmos.dto.metadata.MetadataResponse;
+import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dto.metadata.Page;
+import net.smartcosmos.security.user.SmartCosmosUser;
 
 import static org.junit.Assert.*;
 
@@ -750,20 +756,10 @@ public class MetadataPersistenceServiceTest {
 
     private void createMetadataEntity(String ownerType, String ownerUrn, String key, Object value) throws Exception {
 
-        MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
-            .tenantId(tenantId)
-            .type(ownerType)
-            .id(UuidUtil.getUuidFromUrn(ownerUrn))
-            .build();
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(key, value);
 
-        MetadataEntity entity = MetadataEntity.builder()
-            .owner(owner)
-            .keyName(key)
-            .dataType(MetadataValueParser.getDataType(value))
-            .value(MetadataValueParser.getValue(value))
-            .build();
-
-        metadataRepository.save(entity);
+        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata).isPresent());
     }
 
     // endregion */
