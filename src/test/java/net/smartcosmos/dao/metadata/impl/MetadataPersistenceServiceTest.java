@@ -682,7 +682,9 @@ public class MetadataPersistenceServiceTest {
 
         final String ownerUrn = "urn:thing:uuid:a420d9c1-4cca-4af7-955f-7b3382d19144";
 
+        createMetadataEntity("ownerD", ownerUrn, "key", 12);
         createMetadataEntity("ownerA", ownerUrn, "key", 12);
+        createMetadataEntity("ownerC", ownerUrn, "key", 12);
         createMetadataEntity("ownerB", ownerUrn, "key", 12);
 
 
@@ -692,9 +694,9 @@ public class MetadataPersistenceServiceTest {
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, SortOrder.ASC,
             "ownerType");
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(4, responsePage.getData().size());
+        assertEquals(4, responsePage.getPage().getSize());
+        assertEquals(4, responsePage.getPage().getTotalElements());
 
         assertEquals(1, responsePage.getPage().getNumber());
         assertEquals(1, responsePage.getPage().getTotalPages());
@@ -703,6 +705,10 @@ public class MetadataPersistenceServiceTest {
         assertEquals("ownerA", responsePage.getData().get(0).getOwnerType());
         assertEquals(ownerUrn, responsePage.getData().get(1).getOwnerUrn());
         assertEquals("ownerB", responsePage.getData().get(1).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(2).getOwnerUrn());
+        assertEquals("ownerC", responsePage.getData().get(2).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(3).getOwnerUrn());
+        assertEquals("ownerD", responsePage.getData().get(3).getOwnerType());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package net.smartcosmos.dao.metadata.util;
 
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.domain.Sort;
 
@@ -48,7 +49,7 @@ public class MetadataPersistenceUtil {
         }
 
         if (StringUtils.equalsIgnoreCase("tenantUrn", fieldName) || StringUtils.equalsIgnoreCase(TENANT_ID_FIELD_NAME, fieldName)) {
-            return TENANT_ID_FIELD_NAME;
+            return MetadataOwnerEntity.TENANT_ID_FIELD_NAME;
         }
 
         if (StringUtils.equalsIgnoreCase(CREATED_FIELD_NAME, fieldName)) {
@@ -60,26 +61,27 @@ public class MetadataPersistenceUtil {
         }
 
         if (StringUtils.equalsIgnoreCase(OWNER_TYPE_FIELD_NAME, fieldName)) {
-            return OWNER_TYPE_FIELD_NAME;
+            return MetadataOwnerEntity.OWNER_TYPE_FIELD_NAME;
         }
 
         if (StringUtils.equalsIgnoreCase("ownerUrn", fieldName) || StringUtils.equalsIgnoreCase(OWNER_ID_FIELD_NAME, fieldName)) {
-            return OWNER_ID_FIELD_NAME;
+            return MetadataOwnerEntity.OWNER_ID_FIELD_NAME;
         }
 
         return fieldName;
     }
 
     /**
-     * Checks if a given field name exists in {@link MetadataEntity}.
+     * Checks if a given field name exists in a given class.
      *
      * @param fieldName the field name
+     * @param clazz the class
      * @return {@code true} if the field exists
      */
-    public static boolean isThingEntityField(String fieldName) {
+    public static boolean isFieldInClass(String fieldName, Class clazz) {
 
         try {
-            MetadataEntity.class.getDeclaredField(fieldName);
+            clazz.getDeclaredField(fieldName);
         } catch (NoSuchFieldException e) {
             return false;
         }
@@ -109,8 +111,13 @@ public class MetadataPersistenceUtil {
      */
     public static String getSortByFieldName(String sortBy, String defaultFieldName) {
         sortBy = normalizeFieldName(sortBy);
-        if (StringUtils.isBlank(sortBy) || !isThingEntityField(sortBy)) {
+
+        if (StringUtils.isBlank(sortBy) || (!isFieldInClass(sortBy, MetadataEntity.class) && !isFieldInClass(sortBy, MetadataOwnerEntity.class))) {
             sortBy = defaultFieldName;
+        }
+
+        if (isFieldInClass(sortBy, MetadataOwnerEntity.class)) {
+            sortBy = "owner." + sortBy;
         }
         return sortBy;
     }
