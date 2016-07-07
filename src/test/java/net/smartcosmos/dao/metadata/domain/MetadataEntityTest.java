@@ -1,16 +1,14 @@
 package net.smartcosmos.dao.metadata.domain;
 
-import java.util.Set;
-import java.util.UUID;
+import org.apache.commons.lang.RandomStringUtils;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-
-import org.apache.commons.lang.RandomStringUtils;
-import org.junit.*;
-
-import net.smartcosmos.util.UuidUtil;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -19,11 +17,8 @@ public class MetadataEntityTest {
 
     private static Validator validator;
 
-    private static final UUID TENANT_ID = UuidUtil.getNewUuid();
     private static final MetadataDataType DATA_TYPE = MetadataDataType.STRING;
     private static final MetadataOwnerEntity OWNER = MetadataOwnerEntity.builder().build();
-    private static final String OWNER_TYPE_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final UUID OWNER_ID = UuidUtil.getNewUuid();
     private static final String KEY_NAME = RandomStringUtils.randomAlphanumeric(255);
     private static final String KEY_NAME_INVALID = RandomStringUtils.randomAlphanumeric(256);
     private static final String VALUE = RandomStringUtils.randomAlphanumeric(767);
@@ -43,7 +38,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -61,7 +55,6 @@ public class MetadataEntityTest {
 //            .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -84,7 +77,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
 //            .keyName(KEY)
             .value(VALUE)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -103,7 +95,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName("")
             .value(VALUE)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -122,7 +113,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME_INVALID)
             .value(VALUE)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -145,7 +135,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
 //            .value(VALUE)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -161,7 +150,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value("")
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -177,7 +165,6 @@ public class MetadataEntityTest {
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE_INVALID)
-            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);

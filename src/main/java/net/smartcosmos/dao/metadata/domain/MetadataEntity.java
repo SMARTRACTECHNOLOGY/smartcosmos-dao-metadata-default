@@ -1,35 +1,18 @@
 package net.smartcosmos.dao.metadata.domain;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
+import net.smartcosmos.dao.metadata.converter.attribute.MetadataDataTypeConverter;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import net.smartcosmos.dao.metadata.converter.attribute.MetadataDataTypeConverter;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.util.Date;
 
 @Entity(name = "metadata")
 @IdClass(MetadataId.class)
@@ -58,7 +41,6 @@ public class MetadataEntity implements Serializable {
     private static final int OWNER_TYPE_LENGTH = 255;
     private static final int VALUE_LENGTH = 767;
 
-//    @MapsId("internalId" )
     @Id
     @NotNull
     @Type(type = "uuid-binary")
@@ -89,9 +71,4 @@ public class MetadataEntity implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = LAST_MODIFIED_FIELD_NAME, nullable = false, insertable = true, updatable = true)
     private Date lastModified;
-
-    @NotNull
-    @Type(type = "uuid-binary")
-    @Column(name = TENANT_ID_FIELD_NAME, length = UUID_LENGTH, nullable = false, updatable = false)
-    private UUID tenantId;
 }

@@ -748,7 +748,6 @@ public class MetadataPersistenceServiceTest {
                 .keyName("someName")
                 .dataType(MetadataDataType.INTEGER)
                 .value(String.format("%d", i++))
-                .tenantId(tenantId)
                 .build();
 
             metadataRepository.save(entity);
@@ -768,7 +767,6 @@ public class MetadataPersistenceServiceTest {
             .keyName(key)
             .dataType(MetadataValueParser.getDataType(value))
             .value(MetadataValueParser.getValue(value))
-            .tenantId(tenantId)
             .build();
 
         metadataRepository.save(entity);

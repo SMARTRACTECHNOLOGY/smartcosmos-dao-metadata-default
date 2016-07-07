@@ -36,7 +36,6 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
 
         for (MetadataEntity metadataEntity : metadataEntities) {
             metadataEntity.setOwner(owner);
-            metadataEntity.setTenantId(owner.getTenantId());
 
             owner.getMetadataEntities().putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
 
@@ -60,7 +59,6 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
 
         if (owner.getMetadataEntities().containsKey(metadataEntity.getKeyName())) {
 
-            metadataEntity.setTenantId(owner.getTenantId());
             metadataEntity.setOwner(owner);
 
             owner.getMetadataEntities().replace(metadataEntity.getKeyName(), metadataEntity);
