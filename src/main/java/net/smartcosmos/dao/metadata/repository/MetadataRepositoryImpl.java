@@ -4,17 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.hibernate.jpa.criteria.OrderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,7 +33,12 @@ import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 
-import static net.smartcosmos.dao.metadata.domain.MetadataEntity.*;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.DATA_TYPE_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.KEY_NAME_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.OWNER_ID_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.OWNER_TYPE_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.TENANT_ID_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.VALUE_FIELD_NAME;
 
 @Component
 public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
@@ -46,8 +56,14 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     @Override
     public Page<MetadataOwnerEntity> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
-        CriteriaQuery<MetadataOwnerEntity> resultQuery = getMetadataOwnerCriteriaQuery(tenantId, keyValuePairs, pageable);
-        List<MetadataOwnerEntity> result = getMetadataOwners(pageable, resultQuery);
+//        CriteriaQuery<MetadataOwnerEntity> resultQuery = getMetadataOwnerCriteriaQueryJoin(tenantId, keyValuePairs, pageable);
+        Query resultQuery = getSqlQuery(tenantId, keyValuePairs, pageable);
+//        List<MetadataOwnerEntity> result = getMetadataOwners(pageable, resultQuery);
+
+
+        List<MetadataOwnerEntity> result = resultQuery.getResultList();
+
+
 
         if (result.size() > 0 && result.size() < pageable.getPageSize()) {
             pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
@@ -55,9 +71,58 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         // TODO: Improve Counting
         // This is not really nice, because it gets all results just to count them
-        long totalElements = (long) entityManager.createQuery(resultQuery).getResultList().size();
+//        long totalElements = (long) entityManager.createQuery(resultQuery).getResultList().size();
 
-        return new PageImpl<>(result, pageable, totalElements);
+        return new PageImpl<>(result, pageable, 5);
+//        return new PageImpl<>(result, pageable, totalElements);
+    }
+
+    private Query getSqlQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+
+        String key = keyValuePairs.keySet().iterator().next();
+        Object value = keyValuePairs.remove(key);
+
+        String selectClause = "SELECT o.tenantId, o.type, o.internalId FROM metadata m0 INNER JOIN metadataOwner o ON m0.owner_internalId = o" +
+                              ".internalId";
+        String whereClause = String.format("WHERE m0.keyName = '%s' AND m0.value = '%s' AND m0.dataType = %d",
+            key,
+            MetadataValueParser.getValue(value),
+            MetadataValueParser.getDataType(value).getId());
+
+        String qlString = new StringBuilder(selectClause).append("\n")
+            .append(getInnerJoin(0, keyValuePairs))
+            .append(whereClause)
+            .toString();
+
+        System.out.println(qlString);
+
+        return entityManager.createNativeQuery(qlString);
+    }
+
+    private String getInnerJoin(Integer root, Map<String, Object> keyValuePairs) {
+
+        if (MapUtils.isNotEmpty(keyValuePairs)) {
+            Integer newRoot = root + 1;
+
+            String key = keyValuePairs.keySet().iterator().next();
+            Object value = keyValuePairs.remove(key);
+
+            String joinClause = String.format("INNER JOIN metadata m%d ON m%d.owner_internalId = m" + newRoot + ".owner_internalId",
+                newRoot, root );
+            String andClause = String.format("AND m" + newRoot + ".keyName = '%s' AND m" + newRoot + ".value = '%s' AND m" + newRoot + ".dataType = %d",
+                key,
+                MetadataValueParser.getValue(value),
+                MetadataValueParser.getDataType(value).getId());
+
+            return new StringBuilder(joinClause)
+                .append("\n")
+                .append(andClause)
+                .append("\n")
+                .append(getInnerJoin(newRoot, keyValuePairs))
+                .toString();
+        } else {
+            return "";
+        }
     }
 
     private List<MetadataOwnerEntity> getMetadataOwners(Pageable pageable, CriteriaQuery<MetadataOwnerEntity> resultQuery) {
@@ -68,6 +133,82 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         q.setMaxResults(pageable.getPageSize());
 
         return q.getResultList();
+    }
+
+    private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQueryJoin(UUID tenantId, Map<String, Object> keyValuePairs, Pageable
+        pageable) {
+
+        // region SQL Statement
+        /*
+            select generatedAlias0
+            from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias1
+            inner join generatedAlias1.owner as generatedAlias0 with ( generatedAlias1.owner=generatedAlias1.keyName ) and ( ( generatedAlias1.keyName=:param0 ) and ( generatedAlias1.dataType=:param1 ) and ( generatedAlias1.value=12 ) ) where ( generatedAlias1.keyName=:param2 ) and ( generatedAlias1.dataType=:param3 ) and ( generatedAlias1.value=:param4 ) order by generatedAlias1.created asc]; nested exception is java.lang.IllegalArgumentException: org.hibernate.hql.internal.ast.InvalidWithClauseException: with clause can only reference columns in the driving table [select generatedAlias0 from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias1 inner join generatedAlias1.owner as generatedAlias0 with ( generatedAlias1.owner=generatedAlias1.keyName ) and ( ( generatedAlias1.keyName=:param0 ) and ( generatedAlias1.dataType=:param1 ) and ( generatedAlias1.value=12 ) ) where ( generatedAlias1.keyName=:param2 ) and ( generatedAlias1.dataType=:param3 ) and ( generatedAlias1.value=:param4 ) order by generatedAlias1.created asc
+        */
+        // endregion
+
+        CriteriaQuery<MetadataOwnerEntity> query = builder.createQuery(MetadataOwnerEntity.class);
+        Root<MetadataEntity> metadata0 = query.from(MetadataEntity.class);
+
+
+        Join<MetadataEntity, MetadataEntity> join = metadata0.join("owner", JoinType.INNER);
+
+        Join<MetadataEntity, MetadataOwnerEntity> ownerJoin = join.join("internalId", JoinType.INNER);
+
+        String firstKey;
+        Object firstValue;
+        if (MapUtils.isNotEmpty(keyValuePairs)) {
+            firstKey = keyValuePairs.keySet().iterator().next();
+            firstValue = keyValuePairs.remove(firstKey);
+
+//            Predicate tenantPredicate = builder.equal(root.get(TENANT_ID_FIELD_NAME), tenantId);
+            Predicate keyValuePredicate = getKeyValuePredicate(firstKey, firstValue, metadata0);
+
+            ownerJoin = ownerJoin.on(getJoinPredicates(join, metadata0.get("keyName"), keyValuePairs));
+
+            query.select(ownerJoin)
+                .where(builder.and(keyValuePredicate))
+                .orderBy(getOrder(metadata0, pageable.getSort()));
+
+            return query;
+        }
+
+//        query.select(root.get(OWNER_FIELD_NAME))
+//            .distinct(true)
+//            .where(builder.and(getPredicatesJoin(root, query, tenantId, keyValuePairs)))
+//            .orderBy(getOrder(root, pageable.getSort()));
+
+        return query;
+    }
+
+    private Predicate getJoinPredicates(From<MetadataEntity, MetadataEntity> join, Path<Object> owner, Map<String, Object> keyValuePairs) {
+
+        Predicate ownerPredicate = builder.equal(join.get("owner"), owner);
+
+        String key = keyValuePairs.keySet().iterator().next();
+        Object value = keyValuePairs.remove(key);
+
+        Predicate keyValuePredicate = getKeyValuePredicate(key, value, join);
+
+        if (MapUtils.isNotEmpty(keyValuePairs)) {
+            Join<MetadataEntity, MetadataEntity> subJoin = join.join("owner", JoinType.INNER);
+            return builder.and(ownerPredicate, keyValuePredicate, getJoinPredicates(subJoin, join.get("owner"), keyValuePairs));
+        }
+
+        return builder.and(ownerPredicate, keyValuePredicate);
+    }
+
+    private Predicate[] getPredicatesJoin(
+        Root<MetadataEntity> root,
+        CriteriaQuery<MetadataOwnerEntity> resultQuery,
+        UUID tenantId,
+        Map<String, Object> keyValuePairs) {
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(builder.equal(root.get(TENANT_ID_FIELD_NAME), tenantId));
+
+
+        return predicates.toArray(new Predicate[predicates.size()]);
     }
 
     private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
@@ -156,7 +297,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
-    private Predicate getKeyValuePredicate(String key, Object value, Root<MetadataEntity> root) {
+    private Predicate getKeyValuePredicate(String key, Object value, From root) {
 
         Predicate keyNamePredicate = builder.equal(root.get(KEY_NAME_FIELD_NAME), key);
         Predicate valuePredicate = builder.equal(root.get(VALUE_FIELD_NAME), value);
