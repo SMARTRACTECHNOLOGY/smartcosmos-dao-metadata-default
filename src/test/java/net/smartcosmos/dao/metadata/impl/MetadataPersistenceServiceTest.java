@@ -7,7 +7,6 @@ import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import net.smartcosmos.dao.metadata.repository.MetadataOwnerRepository;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
@@ -69,9 +68,6 @@ public class MetadataPersistenceServiceTest {
     @Autowired
     MetadataRepository metadataRepository;
 
-    @Autowired
-    MetadataOwnerRepository ownerRepository;
-
     @Before
     public void setUp() throws Exception {
 
@@ -128,8 +124,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(JSONObject.NULL, response.get().getMetadata().get("someNull"));
         assertEquals(text, response.get().getMetadata().get("someString"));
 
-        Optional<MetadataOwnerEntity> owner = ownerRepository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
-        List<MetadataEntity> entityList = metadataRepository.findByOwner(owner.get());
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
 
@@ -209,8 +204,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(1, output.get("x").asInt());
         assertEquals(2, output.get("y").asInt());
 
-        Optional<MetadataOwnerEntity> owner = ownerRepository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
-        List<MetadataEntity> entityList = metadataRepository.findByOwner(owner.get());
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
         assertEquals(5, entityList.size());

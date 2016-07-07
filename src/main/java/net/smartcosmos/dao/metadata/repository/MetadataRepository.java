@@ -2,7 +2,6 @@ package net.smartcosmos.dao.metadata.repository;
 
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,18 +15,19 @@ import java.util.UUID;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity>, MetadataRepositoryCustom {
 
-    Long countByOwnerAndKeyNameIgnoreCaseIn(MetadataOwnerEntity owner, Collection<String> keyNames);
+    Long countByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCaseIn(UUID tenantId, String ownerType, UUID ownerId, Collection<String> keyNames);
 
-    List<MetadataEntity> findByOwnerAndKeyNameIgnoreCaseIn(MetadataOwnerEntity owner, Collection<String> keyNames);
+    List<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCaseIn(UUID tenantId, String ownerType, UUID ownerId, Collection<String> keyNames);
 
-    Page<MetadataEntity> findByOwnerIn(Collection<MetadataOwnerEntity> owners, Pageable pageable);
+    Optional<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(UUID tenantId, String ownerType, UUID ownerId, String keyName);
 
-    Optional<MetadataEntity> findByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
+    Page<MetadataEntity> findByOwner_TenantId(UUID ownerId, Pageable pageable);
 
-    List<MetadataEntity> findByOwner(MetadataOwnerEntity owner);
+    List<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_Id(UUID tenantId, String ownerType, UUID ownerId);
 
-    Page<MetadataEntity> findProjectedByTenantIdAndKeyNameAndDataTypeAndValue(UUID tenantId, String keyName, MetadataDataType dataType,
-                                                                                       String value, Pageable pageable);
+    Page<MetadataEntity> findByOwner_TenantIdAndKeyNameAndDataTypeAndValue(UUID tenantId, String keyName, MetadataDataType dataType,
+                                                                           String value, Pageable pageable);
+
     @Transactional
-    List<MetadataEntity> deleteByOwnerAndKeyNameIgnoreCase(MetadataOwnerEntity owner, String keyName);
+    List<MetadataEntity> deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(UUID tenantId, String ownerType, UUID ownerId, String keyName);
 }

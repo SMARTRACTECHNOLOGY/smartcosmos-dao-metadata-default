@@ -1,13 +1,14 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.*;
-import org.junit.runner.*;
+import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
+import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.util.UuidUtil;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -17,12 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
-import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import net.smartcosmos.util.UuidUtil;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -41,9 +37,6 @@ public class MetadataRepositoryTest {
 
     @Autowired
     MetadataRepository metadataRepository;
-
-    @Autowired
-    MetadataOwnerRepository ownerRepository;
 
     private UUID tenantId;
     private UUID ownerId;
@@ -71,7 +64,6 @@ public class MetadataRepositoryTest {
             .keyName(keyName)
             .value("true")
             .dataType(MetadataDataType.BOOLEAN)
-            .tenantId(tenantId)
             .build();
 
         entity = metadataRepository.save(entity);
@@ -80,7 +72,7 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByOwnerAndKeyNameIgnoreCase(owner, keyName);
+        List<MetadataEntity> entityList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, keyName);
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
@@ -94,7 +86,7 @@ public class MetadataRepositoryTest {
 
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByOwnerAndKeyNameIgnoreCase(owner, keyName);
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, keyName);
 
         assertTrue(entity.isPresent());
 
@@ -105,7 +97,7 @@ public class MetadataRepositoryTest {
 
     @Test
     public void thatTypeAndKeyCaseInsensitive() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByOwnerAndKeyNameIgnoreCase(owner, keyName.toUpperCase());
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, keyName.toUpperCase());
 
         assertTrue(entity.isPresent());
 
@@ -140,12 +132,11 @@ public class MetadataRepositoryTest {
                     .dataType(MetadataDataType.BOOLEAN)
                     .keyName("pageTest")
                     .value("true")
-                    .tenantId(tenantId)
                     .build());
         }
 
 
-        Page<MetadataEntity> entityList = metadataRepository.findByOwnerIn(owners, new PageRequest(0, 1));
+        Page<MetadataEntity> entityList = metadataRepository.findByOwner_TenantId(tenantId, new PageRequest(0, 1));
         assertFalse(entityList.getContent().isEmpty());
 
         assertEquals(1, entityList.getContent().size());
