@@ -1,18 +1,17 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolationException;
+
 import lombok.extern.slf4j.Slf4j;
-import net.smartcosmos.dao.metadata.MetadataDao;
-import net.smartcosmos.dao.metadata.SortOrder;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import net.smartcosmos.dao.metadata.repository.MetadataOwnerRepository;
-import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.MetadataPersistenceUtil;
-import net.smartcosmos.dao.metadata.util.MetadataValueParser;
-import net.smartcosmos.dao.metadata.util.SearchSpecifications;
-import net.smartcosmos.dao.metadata.util.UuidUtil;
-import net.smartcosmos.dto.metadata.*;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -25,9 +24,22 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
-import javax.validation.ConstraintViolationException;
-import java.util.*;
-import java.util.stream.Collectors;
+import net.smartcosmos.dao.metadata.MetadataDao;
+import net.smartcosmos.dao.metadata.SortOrder;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.dao.metadata.repository.MetadataOwnerRepository;
+import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.MetadataPersistenceUtil;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
+import net.smartcosmos.dao.metadata.util.SearchSpecifications;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
+import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
+import net.smartcosmos.dto.metadata.MetadataResponse;
+import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dto.metadata.Page;
+import net.smartcosmos.dto.metadata.PageInformation;
 
 @Slf4j
 @Service
@@ -271,7 +283,7 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
-        sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataEntity.OWNER_ID_FIELD_NAME);
+        sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy);
 
         if (keyValuePairs.size() == 1) {
             return findOwnerBySingleKeyValuePair(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
