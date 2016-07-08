@@ -81,4 +81,32 @@ public class MetadataOwnerRepositoryTest {
         Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
         assertTrue(entity.isPresent());
     }
+
+    @Test
+    public void orphanDeleteEmptyMapDeletes() throws Exception {
+
+        UUID ownerId = UuidUtil.getNewUuid();
+        UUID tenantId = UUID.randomUUID();
+
+        MetadataOwnerEntity entity = MetadataOwnerEntity.builder()
+            .id(ownerId)
+            .tenantId(tenantId)
+            .type(ownerType)
+            .build();
+        repository.save(entity);
+
+        repository.orphanDelete(tenantId, ownerType, ownerId);
+
+        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
+        assertFalse(owner.isPresent());
+    }
+
+    @Test
+    public void orphanDeleteNonEmptyMapDeletesNot() throws Exception {
+
+        repository.orphanDelete(tenantId, ownerType, ownerId);
+
+        Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
+        assertTrue(entity.isPresent());
+    }
 }

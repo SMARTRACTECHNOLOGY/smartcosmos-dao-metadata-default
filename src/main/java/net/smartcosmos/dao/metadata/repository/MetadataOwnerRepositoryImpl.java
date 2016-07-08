@@ -71,12 +71,12 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
     }
 
     @Override
-    public void orphanDelete(UUID tenantId, UUID id) {
+    public void orphanDelete(UUID tenantId, String type, UUID id) {
 
         Assert.notNull(tenantId, "tenantId must not be null");
         Assert.notNull(id, "id must not be null");
 
-        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndId(tenantId, id);
+        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, type, id);
 
         if (owner.isPresent() && owner.get().getMetadataEntities().isEmpty()) {
             repository.delete(owner.get());
