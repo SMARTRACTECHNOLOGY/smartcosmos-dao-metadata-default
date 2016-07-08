@@ -1,9 +1,9 @@
 package net.smartcosmos.dao.metadata.repository;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import javax.persistence.EntityManager;
 
 import org.hibernate.Hibernate;
@@ -83,6 +83,23 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         }
     }
 
+    @Override
+    public Map<String, MetadataEntity> getAssociatedMetadataEntities(UUID internalId) {
+
+        MetadataOwnerEntity owner = repository.findOne(internalId);
+        if (owner != null) {
+
+            Map<String, MetadataEntity> metadataEntities = owner.getMetadataEntities();
+            if (!Hibernate.isInitialized(metadataEntities)) {
+                Hibernate.initialize(metadataEntities);
+            }
+
+            return metadataEntities;
+        }
+
+        throw new IllegalArgumentException(String.format("No MetadataOwnerEntity with internal ID '%s'", internalId));
+    }
+
     public MetadataOwnerEntity initEntity(UUID internalId) {
         MetadataOwnerEntity owner = entityManager.find(MetadataOwnerEntity.class, internalId);
         owner = entityManager.merge(owner);
@@ -90,6 +107,7 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         if (!Hibernate.isInitialized(owner.getMetadataEntities())) {
             Hibernate.initialize(owner.getMetadataEntities());
         }
+
         return owner;
     }
 }

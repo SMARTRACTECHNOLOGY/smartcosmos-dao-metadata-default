@@ -1,6 +1,8 @@
 package net.smartcosmos.dao.metadata.repository;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +38,7 @@ public class MetadataOwnerRepositoryTest {
     private UUID tenantId;
     private UUID ownerId;
     private String ownerType = "Person";
+    private UUID internalId;
 
     private Map<String, MetadataEntity> keyValues;
 
@@ -46,7 +49,7 @@ public class MetadataOwnerRepositoryTest {
         tenantId = UUID.randomUUID();
 
         keyValues = new HashMap<>();
-        for (int i= 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) {
 
             String key = "key" + String.valueOf(i);
 
@@ -66,8 +69,9 @@ public class MetadataOwnerRepositoryTest {
             .build();
 
         entity = repository.save(entity);
+        internalId = entity.getInternalId();
 
-        repository.addMetadataEntitiesToOwner(entity.getInternalId(), keyValues.values());
+        repository.addMetadataEntitiesToOwner(internalId, keyValues.values());
     }
 
     @After
@@ -108,5 +112,38 @@ public class MetadataOwnerRepositoryTest {
 
         Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
         assertTrue(entity.isPresent());
+    }
+
+    @Test
+    public void addMetadataEntitiesToOwner() throws Exception {
+
+        String newKey = "newKey";
+
+        MetadataEntity metadata = MetadataEntity.builder()
+            .keyName(newKey)
+            .value("value")
+            .dataType(MetadataDataType.STRING)
+            .build();
+
+        Collection<MetadataEntity> metadataEntities = new HashSet<>();
+        metadataEntities.add(metadata);
+
+        repository.addMetadataEntitiesToOwner(internalId, metadataEntities);
+
+        Map<String, MetadataEntity> associatedMetadata = repository.getAssociatedMetadataEntities(internalId);
+        assertTrue(associatedMetadata.containsKey(newKey));
+    }
+
+    @Test
+    public void getAssociatedMetadataEntities() throws Exception {
+
+        Map<String, MetadataEntity> metadataEntities = repository.getAssociatedMetadataEntities(internalId);
+
+        assertEquals(5, metadataEntities.size());
+        assertTrue(metadataEntities.containsKey("key0"));
+        assertTrue(metadataEntities.containsKey("key1"));
+        assertTrue(metadataEntities.containsKey("key2"));
+        assertTrue(metadataEntities.containsKey("key3"));
+        assertTrue(metadataEntities.containsKey("key4"));
     }
 }

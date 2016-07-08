@@ -1,6 +1,7 @@
 package net.smartcosmos.dao.metadata.repository;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,4 +39,13 @@ public interface MetadataOwnerRepositoryCustom {
      */
     @Transactional
     void orphanDelete(UUID tenantID, String ownerType, UUID ownerId);
+
+    /**
+     * Gets all metadata entities associated to a given owner.
+     *
+     * @param internalId the owner's internal ID
+     * @return the map of metadata entities associated to the owner entity
+     */
+    @Transactional
+    Map<String, MetadataEntity> getAssociatedMetadataEntities(UUID internalId);
 }
