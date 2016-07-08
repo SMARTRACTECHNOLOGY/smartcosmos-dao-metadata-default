@@ -1,38 +1,41 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
-import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+
+import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+
 @Component
 public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCustom {
 
+    @Lazy
+    private final MetadataOwnerRepository repository;
+
     private final EntityManager entityManager;
 
+    @Lazy
     @Autowired
-    public MetadataOwnerRepositoryImpl(EntityManager entityManager) {
+    public MetadataOwnerRepositoryImpl(MetadataOwnerRepository repository, EntityManager entityManager) {
+        this.repository = repository;
         this.entityManager = entityManager;
     }
 
     @Override
     public void addMetadataEntitiesToOwner(UUID internalId, Collection<MetadataEntity> metadataEntities) {
 
-        Assert.notNull(internalId, "internalId must not be null");
+        Assert.notNull(internalId, "ownerId must not be null");
 
-        MetadataOwnerEntity owner = entityManager.find(MetadataOwnerEntity.class, internalId);
-        owner = entityManager.merge(owner);
-
-        if (!Hibernate.isInitialized(owner.getMetadataEntities())) {
-            Hibernate.initialize(owner.getMetadataEntities());
-        }
+        MetadataOwnerEntity owner = initEntity(internalId);
 
         for (MetadataEntity metadataEntity : metadataEntities) {
             metadataEntity.setOwner(owner);
@@ -48,14 +51,9 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
     @Override
     public Optional<MetadataEntity> updateMetadataEntity(UUID internalId, MetadataEntity metadataEntity) {
 
-        Assert.notNull(internalId, "internalId must not be null");
+        Assert.notNull(internalId, "ownerId must not be null");
 
-        MetadataOwnerEntity owner = entityManager.find(MetadataOwnerEntity.class, internalId);
-        owner = entityManager.merge(owner);
-
-        if (!Hibernate.isInitialized(owner.getMetadataEntities())) {
-            Hibernate.initialize(owner.getMetadataEntities());
-        }
+        MetadataOwnerEntity owner = initEntity(internalId);
 
         if (owner.getMetadataEntities().containsKey(metadataEntity.getKeyName())) {
 
@@ -70,5 +68,28 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public void orphanDelete(UUID tenantId, UUID id) {
+
+        Assert.notNull(tenantId, "tenantId must not be null");
+        Assert.notNull(id, "id must not be null");
+
+        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndId(tenantId, id);
+
+        if (owner.isPresent() && owner.get().getMetadataEntities().isEmpty()) {
+            repository.delete(owner.get());
+        }
+    }
+
+    public MetadataOwnerEntity initEntity(UUID internalId) {
+        MetadataOwnerEntity owner = entityManager.find(MetadataOwnerEntity.class, internalId);
+        owner = entityManager.merge(owner);
+
+        if (!Hibernate.isInitialized(owner.getMetadataEntities())) {
+            Hibernate.initialize(owner.getMetadataEntities());
+        }
+        return owner;
     }
 }

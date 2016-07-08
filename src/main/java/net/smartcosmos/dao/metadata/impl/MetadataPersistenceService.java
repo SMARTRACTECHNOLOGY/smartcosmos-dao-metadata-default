@@ -191,6 +191,7 @@ public class MetadataPersistenceService implements MetadataDao {
         try {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
             deleteList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, key);
+            ownerRepository.orphanDelete(tenantId, ownerId);
         } catch (IllegalArgumentException e) {
             // empty list will be returned anyway
             log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
