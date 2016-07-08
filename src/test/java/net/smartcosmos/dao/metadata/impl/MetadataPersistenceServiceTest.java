@@ -534,24 +534,30 @@ public class MetadataPersistenceServiceTest {
 
         for (int i = 0; i < ownerUrns.length; i++) {
             createMetadataEntity("ownerType", ownerUrns[i], "fbK", 12);
+            createMetadataEntity("ownerType", ownerUrns[i], "fbK4", 12);
 
             if (i > 0) {
                 createMetadataEntity("ownerType", ownerUrns[i], "fbK2", "Test");
+            }
+
+            if (i > 1) {
+                createMetadataEntity("ownerType", ownerUrns[i], "fbK3", 12);
             }
         }
 
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("fbK", 12);
+        keyValuePairMap.put("fbK3", 12);
+        keyValuePairMap.put("fbK4", 12);
         keyValuePairMap.put("fbK2", "Test");
 
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
 
-        assertEquals("urn:thing:uuid:06684869-f52d-4b59-a5fd-6424160fb48c", responsePage.getData().get(0).getOwnerUrn());
-        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913", responsePage.getData().get(1).getOwnerUrn());
+        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913", responsePage.getData().get(0).getOwnerUrn());
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(1, responsePage.getData().size());
+        assertEquals(1, responsePage.getPage().getSize());
+        assertEquals(1, responsePage.getPage().getTotalElements());
 
         assertEquals(1, responsePage.getPage().getNumber());
         assertEquals(1, responsePage.getPage().getTotalPages());
