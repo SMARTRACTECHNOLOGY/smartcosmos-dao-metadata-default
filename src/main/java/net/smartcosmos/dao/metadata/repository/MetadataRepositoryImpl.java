@@ -81,38 +81,46 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         // region SQL Statement
         /*
-            The generated SQL:
+            The generated SQL (actually HQL):
 
             select distinct generatedAlias0.owner
             from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias0
-            where (( generatedAlias0.owner.tenantId=:param0 )
-            and ( generatedAlias0.keyName in (:param1, :param2, :param3, :param4) ) )
-            and ( generatedAlias0.owner in (
+            where generatedAlias0.owner in (
                 select distinct generatedAlias1.owner
                 from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias1
-                where (( generatedAlias1.keyName=:param5 )
-                and ( generatedAlias1.dataType=:param6 )
-                and ( generatedAlias1.value=:param7 ) )
+                where ( ( generatedAlias1.keyName=:param0 )
+                and ( generatedAlias1.dataType=:param1 )
+                and ( generatedAlias1.value=:param2 ) )
                 and ( generatedAlias0.owner in (
                     select distinct generatedAlias2.owner
                     from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias2
-                    where (( generatedAlias2.keyName=:param8 )
-                    and ( generatedAlias2.dataType=:param9 )
-                    and ( generatedAlias2.value=:param10 ) )
+                    where ( ( generatedAlias2.keyName=:param3 )
+                    and ( generatedAlias2.dataType=:param4 )
+                    and ( generatedAlias2.value=:param5 ) )
                     and ( generatedAlias1.owner in (
                         select distinct generatedAlias3.owner
                         from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias3
-                        where (( generatedAlias3.keyName=:param11 )
-                        and ( generatedAlias3.dataType=:param12 )
-                        and ( generatedAlias3.value=:param13 ) )
+                        where ( ( generatedAlias3.keyName=:param6 )
+                        and ( generatedAlias3.dataType=:param7 )
+                        and ( generatedAlias3.value=:param8 ) )
                         and ( generatedAlias2.owner in (
                             select distinct generatedAlias4.owner
                             from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias4
-                            where ( generatedAlias4.keyName=:param14 )
-                            and ( generatedAlias4.dataType=:param15 )
-                            and ( generatedAlias4.value=:param16 )
-                        ) )) )
-                ) )) ) order by generatedAlias0.owner.id asc
+                            where ( ( generatedAlias4.keyName=:param9 )
+                            and ( generatedAlias4.dataType=:param10 )
+                            and ( generatedAlias4.value=:param11 ) )
+                            and ( generatedAlias3.owner in (
+                                select distinct generatedAlias5.owner
+                                from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias5
+                                where ( generatedAlias0.owner.tenantId=:param12 )
+                                and ( generatedAlias0.keyName in (:param13, :param14, :param15, :param16)
+                            ))
+                        ))
+                    ))
+                ))
+            ))
+            order by generatedAlias0.owner.id asc
+
          */
         // endregion
 
@@ -126,32 +134,35 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         Predicate rootPredicate = builder.and(tenantPredicate, keyPredicate);
 
-        Subquery<MetadataEntity> keyValueQuery = getSubQuery(criteriaQuery.subquery(MetadataEntity.class), root, keyValuePairs);
+        Subquery<MetadataEntity> keyValueQuery = getSubQuery(criteriaQuery.subquery(MetadataEntity.class), root, keyValuePairs, rootPredicate);
         Predicate keyValueSubQueryPredicate = builder.in(root.get(OWNER_FIELD_NAME)).value(keyValueQuery);
 
         criteriaQuery.select(root.get(OWNER_FIELD_NAME))
             .distinct(true)
-            .where(builder.and(rootPredicate, keyValueSubQueryPredicate))
+            .where(keyValueSubQueryPredicate)
             .orderBy(getOrder(root, pageable.getSort()));
 
         return criteriaQuery;
     }
 
-    private Subquery<MetadataEntity> getSubQuery(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Map<String, Object> keyValuePairs) {
+    private Subquery<MetadataEntity> getSubQuery(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Map<String, Object> keyValuePairs,
+                                                 Predicate rootPredicate) {
 
         Root<MetadataEntity> subRoot = query.from(MetadataEntity.class);
 
-        String key = keyValuePairs.keySet().iterator().next();
-        Object value = keyValuePairs.remove(key);
-
-        Predicate keyValuePredicate = getKeyValuePredicate(key, value, subRoot);
-
         Predicate predicate;
         if (MapUtils.isNotEmpty(keyValuePairs)) {
-            Predicate subQueryPredicate = builder.in(root.get(OWNER_FIELD_NAME)).value(getSubQuery(query.subquery(MetadataEntity.class), subRoot, keyValuePairs));
+
+            String key = keyValuePairs.keySet().iterator().next();
+            Object value = keyValuePairs.remove(key);
+
+            Predicate keyValuePredicate = getKeyValuePredicate(key, value, subRoot);
+            Predicate subQueryPredicate = builder.in(root.get(OWNER_FIELD_NAME)).value(getSubQuery(query.subquery(MetadataEntity.class), subRoot,
+                keyValuePairs, rootPredicate));
+
             predicate = builder.and(keyValuePredicate, subQueryPredicate);
         } else {
-            predicate = keyValuePredicate;
+            predicate = rootPredicate;
         }
 
         return query.select(subRoot.get(OWNER_FIELD_NAME))
