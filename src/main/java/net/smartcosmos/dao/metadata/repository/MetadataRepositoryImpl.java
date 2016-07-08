@@ -131,8 +131,8 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         criteriaQuery.select(root.get(OWNER_FIELD_NAME))
             .distinct(true)
-            .where(subQueryPredicate);
-//            .orderBy(getOrder(root, pageable.getSort()));
+            .where(subQueryPredicate)
+            .orderBy(getOrder(root, pageable.getSort()));
 
         return criteriaQuery;
     }
@@ -170,7 +170,13 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         if (sort != null && !IteratorUtils.isEmpty(sort.iterator())) {
             Sort.Order order = sort.iterator().next();
-            orderList.add(new OrderImpl(root.get(order.getProperty()), true));
+
+            String[] sortFields = order.getProperty().split("\\.");
+            Path<MetadataEntity> orderPath = root;
+            for (String sortField : sortFields) {
+                orderPath = orderPath.get(sortField);
+            }
+            orderList.add(new OrderImpl(orderPath, order.isAscending()));
         } else {
             orderList.add(new OrderImpl(root.get(TENANT_ID_FIELD_NAME), true));
             orderList.add(new OrderImpl(root.get(OWNER_ID_FIELD_NAME), true));

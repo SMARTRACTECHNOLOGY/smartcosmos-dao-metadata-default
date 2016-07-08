@@ -284,7 +284,7 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
-        sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, "ownerId");
+        sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
 
         if (keyValuePairs.size() == 1) {
             return findOwnerBySingleKeyValuePair(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));

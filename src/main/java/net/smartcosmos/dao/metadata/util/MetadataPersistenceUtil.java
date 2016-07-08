@@ -1,15 +1,22 @@
 package net.smartcosmos.dao.metadata.util;
 
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.domain.Sort;
 
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dto.metadata.Page;
 import net.smartcosmos.dto.metadata.PageInformation;
 
-import static net.smartcosmos.dao.metadata.domain.MetadataEntity.*;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.CREATED_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.DATA_TYPE_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.KEY_NAME_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.LAST_MODIFIED_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.OWNER_ID_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.OWNER_TYPE_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.TENANT_ID_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.VALUE_FIELD_NAME;
 
 public class MetadataPersistenceUtil {
 
@@ -117,7 +124,7 @@ public class MetadataPersistenceUtil {
         }
 
         if (isFieldInClass(sortBy, MetadataOwnerEntity.class)) {
-            sortBy = "owner." + sortBy;
+            sortBy = MetadataEntity.OWNER_FIELD_NAME + "." + sortBy;
         }
         return sortBy;
     }
