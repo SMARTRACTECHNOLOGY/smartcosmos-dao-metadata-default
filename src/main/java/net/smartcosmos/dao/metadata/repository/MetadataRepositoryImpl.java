@@ -1,6 +1,7 @@
 package net.smartcosmos.dao.metadata.repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -150,11 +151,14 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         Path<MetadataEntity> tenantIdPath = root.get(OWNER_FIELD_NAME).get(TENANT_ID_FIELD_NAME);
         Path<MetadataEntity> keyNamePath = root.get(KEY_NAME_FIELD_NAME);
 
+        Map<String, Object> metadataMap = new HashMap<>();
+        metadataMap.putAll(keyValuePairs);
+
         Predicate tenantPredicate = builder.equal(tenantIdPath, tenantId);
         Predicate keyPredicate = keyNamePath.in(keyValuePairs.keySet());
         Predicate rootPredicate = builder.and(tenantPredicate, keyPredicate);
 
-        Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, keyValuePairs, rootPredicate);
+        Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, metadataMap, rootPredicate);
 
         return builder.in(root.get(OWNER_FIELD_NAME)).value(keyValueQuery);
     }
