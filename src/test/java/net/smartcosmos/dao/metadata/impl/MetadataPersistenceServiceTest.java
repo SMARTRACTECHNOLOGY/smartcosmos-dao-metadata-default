@@ -32,8 +32,8 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.SortOrder;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
@@ -130,10 +130,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(JSONObject.NULL, response.get().getMetadata().get("someNull"));
         assertEquals(text, response.get().getMetadata().get("someString"));
 
-        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
-            tenantId,
-            ownerType,
-            UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
 
@@ -213,10 +210,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(1, output.get("x").asInt());
         assertEquals(2, output.get("y").asInt());
 
-        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
-            tenantId,
-            ownerType,
-            UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
         assertEquals(5, entityList.size());
@@ -540,24 +534,30 @@ public class MetadataPersistenceServiceTest {
 
         for (int i = 0; i < ownerUrns.length; i++) {
             createMetadataEntity("ownerType", ownerUrns[i], "fbK", 12);
+            createMetadataEntity("ownerType", ownerUrns[i], "fbK4", 12);
 
             if (i > 0) {
                 createMetadataEntity("ownerType", ownerUrns[i], "fbK2", "Test");
+            }
+
+            if (i > 1) {
+                createMetadataEntity("ownerType", ownerUrns[i], "fbK3", 12);
             }
         }
 
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("fbK", 12);
+        keyValuePairMap.put("fbK3", 12);
+        keyValuePairMap.put("fbK4", 12);
         keyValuePairMap.put("fbK2", "Test");
 
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
 
-        assertEquals("urn:thing:uuid:06684869-f52d-4b59-a5fd-6424160fb48c", responsePage.getData().get(0).getOwnerUrn());
-        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913", responsePage.getData().get(1).getOwnerUrn());
+        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913", responsePage.getData().get(0).getOwnerUrn());
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(1, responsePage.getData().size());
+        assertEquals(1, responsePage.getPage().getSize());
+        assertEquals(1, responsePage.getPage().getTotalElements());
 
         assertEquals(1, responsePage.getPage().getNumber());
         assertEquals(1, responsePage.getPage().getTotalPages());
@@ -688,7 +688,9 @@ public class MetadataPersistenceServiceTest {
 
         final String ownerUrn = "urn:thing:uuid:a420d9c1-4cca-4af7-955f-7b3382d19144";
 
+        createMetadataEntity("ownerD", ownerUrn, "key", 12);
         createMetadataEntity("ownerA", ownerUrn, "key", 12);
+        createMetadataEntity("ownerC", ownerUrn, "key", 12);
         createMetadataEntity("ownerB", ownerUrn, "key", 12);
 
 
@@ -698,9 +700,9 @@ public class MetadataPersistenceServiceTest {
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, SortOrder.ASC,
             "ownerType");
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(4, responsePage.getData().size());
+        assertEquals(4, responsePage.getPage().getSize());
+        assertEquals(4, responsePage.getPage().getTotalElements());
 
         assertEquals(1, responsePage.getPage().getNumber());
         assertEquals(1, responsePage.getPage().getTotalPages());
@@ -709,6 +711,10 @@ public class MetadataPersistenceServiceTest {
         assertEquals("ownerA", responsePage.getData().get(0).getOwnerType());
         assertEquals(ownerUrn, responsePage.getData().get(1).getOwnerUrn());
         assertEquals("ownerB", responsePage.getData().get(1).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(2).getOwnerUrn());
+        assertEquals("ownerC", responsePage.getData().get(2).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(3).getOwnerUrn());
+        assertEquals("ownerD", responsePage.getData().get(3).getOwnerType());
     }
 
     @Test
@@ -737,10 +743,14 @@ public class MetadataPersistenceServiceTest {
         int i = 0;
         for (String urn : urns) {
 
-            MetadataEntity entity = MetadataEntity.builder()
+            MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
                 .tenantId(tenantId)
-                .ownerType("someOwner")
-                .ownerId(UuidUtil.getUuidFromUrn(urn))
+                .type("someOwner")
+                .id(UuidUtil.getUuidFromUrn(urn))
+                .build();
+
+            MetadataEntity entity = MetadataEntity.builder()
+                .owner(owner)
                 .keyName("someName")
                 .dataType(MetadataDataType.INTEGER)
                 .value(String.format("%d", i++))
@@ -752,16 +762,10 @@ public class MetadataPersistenceServiceTest {
 
     private void createMetadataEntity(String ownerType, String ownerUrn, String key, Object value) throws Exception {
 
-        MetadataEntity entity = MetadataEntity.builder()
-            .tenantId(tenantId)
-            .ownerType(ownerType)
-            .ownerId(UuidUtil.getUuidFromUrn(ownerUrn))
-            .keyName(key)
-            .dataType(MetadataValueParser.getDataType(value))
-            .value(MetadataValueParser.getValue(value))
-            .build();
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(key, value);
 
-        metadataRepository.save(entity);
+        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata).isPresent());
     }
 
     // endregion */

@@ -5,21 +5,24 @@ import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.stereotype.Component;
 
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 
 @Component
-public class MetadataOwnerToMetadataOwnerResponseConverter
-    implements Converter<MetadataOwnerEntity, MetadataOwnerResponse>, FormatterRegistrar {
+public class MetadataEntityToMetadataOwnerResponseConverter
+    implements Converter<MetadataEntity, MetadataOwnerResponse>, FormatterRegistrar {
 
     @Override
-    public MetadataOwnerResponse convert(MetadataOwnerEntity entity) {
+    public MetadataOwnerResponse convert(MetadataEntity entity) {
+
+        MetadataOwnerEntity owner = entity.getOwner();
 
         return MetadataOwnerResponse.builder()
-            .ownerType(entity.getType())
-            .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getId()))
-            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getTenantId()))
+            .ownerType(owner.getType())
+            .ownerUrn(UuidUtil.getThingUrnFromUuid(owner.getId()))
+            .tenantUrn(UuidUtil.getTenantUrnFromUuid(owner.getTenantId()))
             .build();
     }
 

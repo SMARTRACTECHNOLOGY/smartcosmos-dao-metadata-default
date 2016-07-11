@@ -17,7 +17,7 @@ spring:
 
 logging:
   level:
-    ROOT: INFO
+    ROOT: DEBUG
     net.smartcosmos: TRACE
     org.springframework.security: TRACE
     com.netflix.eureka.registry: WARN

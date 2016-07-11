@@ -4,17 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.hibernate.jpa.criteria.OrderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,10 +27,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwner;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 
-import static net.smartcosmos.dao.metadata.domain.MetadataEntity.*;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.DATA_TYPE_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.KEY_NAME_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.OWNER_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.OWNER_ID_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.TENANT_ID_FIELD_NAME;
+import static net.smartcosmos.dao.metadata.domain.MetadataEntity.VALUE_FIELD_NAME;
 
 @Component
 public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
@@ -44,25 +51,34 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     }
 
     @Override
-    public Page<MetadataOwner> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+    public Page<MetadataOwnerEntity> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
-        CriteriaQuery<MetadataOwner> resultQuery = getMetadataOwnerCriteriaQuery(tenantId, keyValuePairs, pageable);
-        List<MetadataOwner> result = getMetadataOwners(pageable, resultQuery);
+        CriteriaQuery<MetadataOwnerEntity> query = getMetadataOwnerCriteriaQuery(tenantId, keyValuePairs, pageable);
+        List<MetadataOwnerEntity> result = getResults(pageable, query);
 
         if (result.size() > 0 && result.size() < pageable.getPageSize()) {
             pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
         }
 
-        // TODO: Improve Counting
-        // This is not really nice, because it gets all results just to count them
-        long totalElements = (long) entityManager.createQuery(resultQuery).getResultList().size();
+        long totalElements = getResultCount(tenantId, keyValuePairs);
 
         return new PageImpl<>(result, pageable, totalElements);
     }
 
-    private List<MetadataOwner> getMetadataOwners(Pageable pageable, CriteriaQuery<MetadataOwner> resultQuery) {
+    private Long getResultCount(UUID tenantId, Map<String, Object> keyValuePairs) {
 
-        TypedQuery<MetadataOwner> q = entityManager.createQuery(resultQuery);
+        CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
+        Root<MetadataEntity> entityRoot = countQuery.from(MetadataEntity.class);
+
+        countQuery.select(builder.countDistinct(entityRoot.get(OWNER_FIELD_NAME)))
+            .where(getKeyValuePredicates(countQuery, entityRoot, tenantId, keyValuePairs));
+
+        return entityManager.createQuery(countQuery).getSingleResult();
+    }
+
+    private List<MetadataOwnerEntity> getResults(Pageable pageable, CriteriaQuery<MetadataOwnerEntity> resultQuery) {
+
+        TypedQuery<MetadataOwnerEntity> q = entityManager.createQuery(resultQuery);
 
         q.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
         q.setMaxResults(pageable.getPageSize());
@@ -70,56 +86,102 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return q.getResultList();
     }
 
-    private CriteriaQuery<MetadataOwner> getMetadataOwnerCriteriaQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+    private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQuery(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
 
         // region SQL Statement
         /*
-            The generated SQL:
+            The generated SQL (actually HQL):
 
-            select distinct metadataen0_.owner_type as col_0_0_, metadataen0_.owner_id as col_1_0_, metadataen0_.tenant_id as col_2_0_
-            from metadata metadataen0_
-            where metadataen0_.tenant_id=?
-                and (metadataen0_.owner_id in (
-                    select distinct metadataen1_.owner_id
-                    from metadata metadataen1_ cross join metadata metadataen2_
-                    where (upper(metadataen1_.key_name) like ?)
-                        and metadataen1_.data_type=?
-                        and (upper(metadataen1_.value) like ?)
-                        and (metadataen0_.owner_type in (
-                            select distinct metadataen0_.owner_type
-                            from metadata metadataen3_
-                            where (upper(metadataen1_.key_name) like ?)
-                                and metadataen1_.data_type=?
-                                and (upper(metadataen1_.value) like ?)))
-                            )
-                        )
-                        and (metadataen0_.owner_id in (
-                            select distinct metadataen4_.owner_id
-                            from metadata metadataen4_ cross join metadata metadataen5_
-                            where (upper(metadataen4_.key_name) like ?)
-                                and metadataen4_.data_type=?
-                                and (upper(metadataen4_.value) like ?)
-                                and (metadataen0_.owner_type in (
-                                    select distinct metadataen0_.owner_type
-                                    from metadata metadataen6_
-                                    where (upper(metadataen4_.key_name) like ?)
-                                        and metadataen4_.data_type=?
-                                        and (upper(metadataen4_.value) like ?))
-                                )
-                        )
-                )
+            select distinct generatedAlias0.owner
+            from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias0
+            where generatedAlias0.owner in (
+                select distinct generatedAlias1.owner
+                from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias1
+                where ( ( generatedAlias1.keyName=:param0 )
+                and ( generatedAlias1.dataType=:param1 )
+                and ( generatedAlias1.value=:param2 ) )
+                and ( generatedAlias0.owner in (
+                    select distinct generatedAlias2.owner
+                    from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias2
+                    where ( ( generatedAlias2.keyName=:param3 )
+                    and ( generatedAlias2.dataType=:param4 )
+                    and ( generatedAlias2.value=:param5 ) )
+                    and ( generatedAlias1.owner in (
+                        select distinct generatedAlias3.owner
+                        from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias3
+                        where ( ( generatedAlias3.keyName=:param6 )
+                        and ( generatedAlias3.dataType=:param7 )
+                        and ( generatedAlias3.value=:param8 ) )
+                        and ( generatedAlias2.owner in (
+                            select distinct generatedAlias4.owner
+                            from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias4
+                            where ( ( generatedAlias4.keyName=:param9 )
+                            and ( generatedAlias4.dataType=:param10 )
+                            and ( generatedAlias4.value=:param11 ) )
+                            and ( generatedAlias3.owner in (
+                                select distinct generatedAlias5.owner
+                                from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias5
+                                where ( generatedAlias0.owner.tenantId=:param12 )
+                                and ( generatedAlias0.keyName in (:param13, :param14, :param15, :param16)
+                            ))
+                        ))
+                    ))
+                ))
+            ))
+            order by generatedAlias0.owner.id asc
+
          */
         // endregion
 
-        CriteriaQuery<MetadataOwner> resultQuery = builder.createQuery(MetadataOwner.class);
-        Root<MetadataEntity> root = resultQuery.from(MetadataEntity.class);
+        CriteriaQuery<MetadataOwnerEntity> criteriaQuery = builder.createQuery(MetadataOwnerEntity.class);
+        Root<MetadataEntity> root = criteriaQuery.from(MetadataEntity.class);
 
-        resultQuery.multiselect(root.get(OWNER_TYPE_FIELD_NAME), root.get(OWNER_ID_FIELD_NAME), root.get(TENANT_ID_FIELD_NAME))
+        criteriaQuery.select(root.get(OWNER_FIELD_NAME))
             .distinct(true)
-            .where(builder.and(getPredicates(root, resultQuery, tenantId, keyValuePairs)))
+            .where(getKeyValuePredicates(criteriaQuery, root, tenantId, keyValuePairs))
             .orderBy(getOrder(root, pageable.getSort()));
 
-        return resultQuery;
+        return criteriaQuery;
+    }
+
+    private Predicate getKeyValuePredicates(CriteriaQuery<?> criteriaQuery, Root<MetadataEntity> root, UUID tenantId, Map<String,
+        Object> keyValuePairs) {
+
+        Path<MetadataEntity> tenantIdPath = root.get(OWNER_FIELD_NAME).get(TENANT_ID_FIELD_NAME);
+        Path<MetadataEntity> keyNamePath = root.get(KEY_NAME_FIELD_NAME);
+
+        Predicate tenantPredicate = builder.equal(tenantIdPath, tenantId);
+        Predicate keyPredicate = keyNamePath.in(keyValuePairs.keySet());
+        Predicate rootPredicate = builder.and(tenantPredicate, keyPredicate);
+
+        Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, keyValuePairs, rootPredicate);
+
+        return builder.in(root.get(OWNER_FIELD_NAME)).value(keyValueQuery);
+    }
+
+    private Subquery<MetadataEntity> getRecursiveSubQueries(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Map<String, Object> keyValuePairs,
+                                                            Predicate rootPredicate) {
+
+        Root<MetadataEntity> subRoot = query.from(MetadataEntity.class);
+
+        Predicate predicate;
+        if (MapUtils.isNotEmpty(keyValuePairs)) {
+
+            String key = keyValuePairs.keySet().iterator().next();
+            Object value = keyValuePairs.remove(key);
+
+            Predicate keyValuePredicate = getKeyValuePredicate(key, value, subRoot);
+            Predicate subQueryPredicate = builder.in(root.get(OWNER_FIELD_NAME)).value(getRecursiveSubQueries(query.subquery(MetadataEntity.class), subRoot,
+                keyValuePairs, rootPredicate));
+
+            predicate = builder.and(keyValuePredicate, subQueryPredicate);
+        } else {
+            predicate = rootPredicate;
+        }
+
+        return query.select(subRoot.get(OWNER_FIELD_NAME))
+            .where(predicate)
+            .distinct(true);
     }
 
     private List<Order> getOrder(Root<MetadataEntity> root, Sort sort) {
@@ -127,7 +189,13 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         if (sort != null && !IteratorUtils.isEmpty(sort.iterator())) {
             Sort.Order order = sort.iterator().next();
-            orderList.add(new OrderImpl(root.get(order.getProperty()), true));
+
+            String[] sortFields = order.getProperty().split("\\.");
+            Path<MetadataEntity> orderPath = root;
+            for (String sortField : sortFields) {
+                orderPath = orderPath.get(sortField);
+            }
+            orderList.add(new OrderImpl(orderPath, order.isAscending()));
         } else {
             orderList.add(new OrderImpl(root.get(TENANT_ID_FIELD_NAME), true));
             orderList.add(new OrderImpl(root.get(OWNER_ID_FIELD_NAME), true));
@@ -136,55 +204,12 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return orderList;
     }
 
-    private Predicate[] getPredicates(Root<MetadataEntity> root, CriteriaQuery<?> ownerQuery, UUID tenantId, Map<String, Object> keyValuePairs) {
-        List<Predicate> predicates = new ArrayList<>();
-
-        predicates.add(builder.equal(root.get(TENANT_ID_FIELD_NAME), tenantId));
-
-        for (String key : keyValuePairs.keySet()) {
-
-            Subquery<MetadataEntity> ownerIdQuery = ownerQuery.subquery(MetadataEntity.class);
-            Root<MetadataEntity> idRoot = ownerIdQuery.from(MetadataEntity.class);
-
-            Predicate keyValuePredicate = getKeyValuePredicate(key, keyValuePairs.get(key), idRoot);
-            Predicate typeQueryPredicate = getTypeQueryPredicate(ownerIdQuery, root, keyValuePredicate);
-            Predicate ownerIdPredicate = getOwnerIdQueryPredicate(ownerIdQuery, root, idRoot, builder.and(keyValuePredicate, typeQueryPredicate));
-
-            predicates.add(ownerIdPredicate);
-        }
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    private Predicate getKeyValuePredicate(String key, Object value, Root<MetadataEntity> root) {
+    private Predicate getKeyValuePredicate(String key, Object value, From root) {
 
         Predicate keyNamePredicate = builder.equal(root.get(KEY_NAME_FIELD_NAME), key);
-        Predicate valuePredicate = builder.equal(root.get(VALUE_FIELD_NAME), value);
+        Predicate valuePredicate = builder.equal(root.get(VALUE_FIELD_NAME), MetadataValueParser.getValue(value));
         Predicate dataTypePredicate = builder.equal(root.get(DATA_TYPE_FIELD_NAME), MetadataValueParser.getDataType(value));
 
         return builder.and(keyNamePredicate, dataTypePredicate, valuePredicate);
-    }
-
-    private Predicate getTypeQueryPredicate(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Predicate keyValuePredicate) {
-
-        Subquery<MetadataEntity> ownerTypeQuery = query.subquery(MetadataEntity.class);
-
-        ownerTypeQuery.select(root.get(OWNER_TYPE_FIELD_NAME))
-            .distinct(true)
-            .where(keyValuePredicate)
-            .from(MetadataEntity.class);
-
-        return builder.in(root.get(OWNER_TYPE_FIELD_NAME)).value(ownerTypeQuery);
-    }
-
-    private Predicate getOwnerIdQueryPredicate(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Root<MetadataEntity> subRoot,
-                                               Predicate predicate) {
-
-        query.select(subRoot.get(OWNER_ID_FIELD_NAME))
-            .distinct(true)
-            .where(predicate)
-            .from(MetadataEntity.class);
-
-        return builder.in(root.get(OWNER_ID_FIELD_NAME)).value(query);
     }
 }
