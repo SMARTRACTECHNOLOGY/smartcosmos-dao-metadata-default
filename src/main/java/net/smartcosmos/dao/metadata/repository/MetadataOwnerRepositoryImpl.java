@@ -35,17 +35,18 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
 
         Assert.notNull(internalId, "ownerId must not be null");
 
-        MetadataOwnerEntity owner = initEntity(internalId);
+        MetadataOwnerEntity owner = repository.findOne(internalId);
+        if (owner == null) {
+            throw new IllegalArgumentException(String.format("No MetadataOwnerEntity with internal ID '%s'", internalId));
+        }
 
+        Map<String, MetadataEntity> ownerMetadataEntities = initMetadataEntities(owner);
         for (MetadataEntity metadataEntity : metadataEntities) {
             metadataEntity.setOwner(owner);
 
-            owner.getMetadataEntities().putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
+            ownerMetadataEntities.putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
 
         }
-
-        entityManager.merge(owner);
-        entityManager.flush();
     }
 
     @Override
@@ -86,18 +87,26 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
     @Override
     public Map<String, MetadataEntity> getAssociatedMetadataEntities(UUID internalId) {
 
+        Assert.notNull(internalId, "ownerId must not be null");
+
         MetadataOwnerEntity owner = repository.findOne(internalId);
         if (owner != null) {
-
-            Map<String, MetadataEntity> metadataEntities = owner.getMetadataEntities();
-            if (!Hibernate.isInitialized(metadataEntities)) {
-                Hibernate.initialize(metadataEntities);
-            }
+            Map<String, MetadataEntity> metadataEntities = initMetadataEntities(owner);
 
             return metadataEntities;
         }
 
         throw new IllegalArgumentException(String.format("No MetadataOwnerEntity with internal ID '%s'", internalId));
+    }
+
+    private Map<String, MetadataEntity> initMetadataEntities(MetadataOwnerEntity owner) {
+        Map<String, MetadataEntity> metadataEntities = owner.getMetadataEntities();
+
+        if (!Hibernate.isInitialized(metadataEntities)) {
+            Hibernate.initialize(metadataEntities);
+        }
+
+        return metadataEntities;
     }
 
     public MetadataOwnerEntity initEntity(UUID internalId) {
