@@ -1,17 +1,34 @@
 package net.smartcosmos.dao.metadata.domain;
 
-import lombok.*;
+import java.io.Serializable;
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.util.UUID;
+import net.smartcosmos.dao.metadata.converter.attribute.MetadataDataTypeConverter;
 
 @Entity(name = "metadata")
 @IdClass(MetadataId.class)
@@ -20,9 +37,19 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 @EntityListeners({ AuditingEntityListener.class })
-@Table(name = "metadata", uniqueConstraints = @UniqueConstraint(
-    columnNames = { "ownerId", "tenantId", "dataType", "keyName"}) )
+@Table(name = "metadata")
 public class MetadataEntity implements Serializable {
+
+    public static final String OWNER_FIELD_NAME = "owner";
+
+    public static final String OWNER_TYPE_FIELD_NAME = "ownerType";
+    public static final String OWNER_ID_FIELD_NAME = "ownerId";
+    public static final String DATA_TYPE_FIELD_NAME = "dataType";
+    public static final String KEY_NAME_FIELD_NAME = "keyName";
+    public static final String VALUE_FIELD_NAME = "value";
+    public static final String TENANT_ID_FIELD_NAME = "tenantId";
+    public static final String CREATED_FIELD_NAME = "created";
+    public static final String LAST_MODIFIED_FIELD_NAME = "lastModified";
 
     private static final int UUID_LENGTH = 16;
     private static final int KEY_NAME_LENGTH = 255;
@@ -31,43 +58,33 @@ public class MetadataEntity implements Serializable {
     private static final int VALUE_LENGTH = 767;
 
     @Id
-    @NotEmpty
-    @Size(max = OWNER_TYPE_LENGTH)
-    @Column(name = "ownerType", length = OWNER_TYPE_LENGTH, nullable = false, updatable = false)
-    private String ownerType;
-
-    @Id
     @NotNull
     @Type(type = "uuid-binary")
-    @Column(name = "ownerId", length = UUID_LENGTH, nullable = false, updatable = false)
-    private UUID ownerId;
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    private MetadataOwnerEntity owner;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "dataType", length = DATA_TYPE_LENGTH, nullable = false, updatable = true)
+    @Convert(converter = MetadataDataTypeConverter.class)
+    @Column(name = DATA_TYPE_FIELD_NAME, nullable = false, updatable = true)
     private MetadataDataType dataType;
 
     @Id
     @NotEmpty
     @Size(max = KEY_NAME_LENGTH)
-    @Column(name = "keyName", length = KEY_NAME_LENGTH, nullable = false, updatable = false)
+    @Column(name = KEY_NAME_FIELD_NAME, length = KEY_NAME_LENGTH, nullable = false, updatable = false)
     private String keyName;
 
     @Size(max = VALUE_LENGTH)
-    @Column(name = "value", length = VALUE_LENGTH, nullable = true, updatable = true)
+    @Column(name = VALUE_FIELD_NAME, length = VALUE_LENGTH, nullable = true, updatable = true)
     private String value;
 
-    @Id
-    @NotNull
-    @Type(type = "uuid-binary")
-    @Column(name = "tenantId", length = UUID_LENGTH, nullable = false, updatable = false)
-    private UUID tenantId;
-
     @CreatedDate
-    @Column(name = "created", insertable = true, updatable = false)
-    private Long created;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = CREATED_FIELD_NAME, nullable = false, insertable = true, updatable = false)
+    private Date created;
 
     @LastModifiedDate
-    @Column(name = "lastModified", nullable = false, insertable = true, updatable = true)
-    private Long lastModified;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = LAST_MODIFIED_FIELD_NAME, nullable = false, insertable = true, updatable = true)
+    private Date lastModified;
 }

@@ -1,23 +1,21 @@
 package net.smartcosmos.dao.metadata.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
-import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.repository.MetadataRepository;
-import net.smartcosmos.dao.metadata.util.UuidUtil;
-import net.smartcosmos.dto.metadata.MetadataResponse;
-import net.smartcosmos.dto.metadata.MetadataSingleResponse;
-import net.smartcosmos.dto.metadata.Page;
-import net.smartcosmos.security.user.SmartCosmosUser;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.junit.*;
+import org.junit.runner.*;
+import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -29,7 +27,19 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.*;
+import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
+import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.SortOrder;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.dao.metadata.repository.MetadataRepository;
+import net.smartcosmos.dao.metadata.util.UuidUtil;
+import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
+import net.smartcosmos.dto.metadata.MetadataResponse;
+import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dto.metadata.Page;
+import net.smartcosmos.security.user.SmartCosmosUser;
 
 import static org.junit.Assert.*;
 
@@ -120,10 +130,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(JSONObject.NULL, response.get().getMetadata().get("someNull"));
         assertEquals(text, response.get().getMetadata().get("someString"));
 
-        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
-            tenantId,
-            ownerType,
-            UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
 
@@ -203,10 +210,7 @@ public class MetadataPersistenceServiceTest {
         assertEquals(1, output.get("x").asInt());
         assertEquals(2, output.get("y").asInt());
 
-        List<MetadataEntity> entityList = metadataRepository.findByTenantIdAndOwnerTypeIgnoreCaseAndOwnerId(
-            tenantId,
-            ownerType,
-            UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
         assertEquals(5, entityList.size());
@@ -516,16 +520,237 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
+    // region Find By Key-Value Pairs
+
+    @Test
+    public void testFindByKeyValuePairs() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:094bd91d-a093-4e40-b461-3b7ba7dc08bb",
+            "urn:thing:uuid:06684869-f52d-4b59-a5fd-6424160fb48c",
+            "urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913"};
+
+        for (int i = 0; i < ownerUrns.length; i++) {
+            createMetadataEntity("ownerType", ownerUrns[i], "fbK", 12);
+            createMetadataEntity("ownerType", ownerUrns[i], "fbK4", 12);
+
+            if (i > 0) {
+                createMetadataEntity("ownerType", ownerUrns[i], "fbK2", "Test");
+            }
+
+            if (i > 1) {
+                createMetadataEntity("ownerType", ownerUrns[i], "fbK3", 12);
+            }
+        }
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("fbK", 12);
+        keyValuePairMap.put("fbK3", 12);
+        keyValuePairMap.put("fbK4", 12);
+        keyValuePairMap.put("fbK2", "Test");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
+
+        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913", responsePage.getData().get(0).getOwnerUrn());
+
+        assertEquals(1, responsePage.getData().size());
+        assertEquals(1, responsePage.getPage().getSize());
+        assertEquals(1, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindByKeyValuePairsDuplicateId() throws Exception {
+
+        populateData();
+
+        final String ownerUrn = "urn:thing:uuid:b5cb506a-698e-48c2-affa-80f391167990";
+
+        createMetadataEntity("ownerA", ownerUrn, "key1", 12);
+        createMetadataEntity("ownerA", ownerUrn, "key2", 12);
+        createMetadataEntity("ownerB", ownerUrn, "key1", 12);
+        createMetadataEntity("ownerB", ownerUrn, "key2", 12);
+
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("key1", 12);
+        keyValuePairMap.put("key2", 12);
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, SortOrder.ASC,
+            "ownerType");
+
+        assertEquals(2, responsePage.getData().size());
+        assertEquals(2, responsePage.getPage().getSize());
+        assertEquals(2, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+
+        assertEquals(ownerUrn, responsePage.getData().get(0).getOwnerUrn());
+        assertEquals("ownerA", responsePage.getData().get(0).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(1).getOwnerUrn());
+        assertEquals("ownerB", responsePage.getData().get(1).getOwnerType());
+    }
+
+    @Test
+    public void testFindByKeyValuePairsNonExistent() throws Exception {
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("NoSuchKey", "NoSuchValue");
+        keyValuePairMap.put("NoSuchKey2", "NoSuchValue2");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10,
+            SortOrder.ASC, "ownerType");
+
+        assertTrue(responsePage.getData().isEmpty());
+
+        assertEquals(0, responsePage.getData().size());
+        assertEquals(0, responsePage.getPage().getSize());
+        assertEquals(0, responsePage.getPage().getTotalElements());
+
+        assertEquals(0,responsePage.getPage().getNumber());
+        assertEquals(0,responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindByKeyValuePairsSortedByOwnerType() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:c91b8b98-66da-4e0a-afaf-3ee28abc1dcf",
+            "urn:thing:uuid:53fef331-960f-4463-9061-1cf443d64df1",
+            "urn:thing:uuid:fb3c3f72-4fd4-4366-b100-3fa4e0e6e195"};
+
+        createMetadataEntity("ownerA", ownerUrns[0], "obO", 12);
+        createMetadataEntity("ownerA", ownerUrns[0], "obO2", 12);
+        createMetadataEntity("ownerC", ownerUrns[1], "obO", 12);
+        createMetadataEntity("ownerC", ownerUrns[1], "obO2", 12);
+        createMetadataEntity("ownerB", ownerUrns[2], "obO", 12);
+        createMetadataEntity("ownerB", ownerUrns[2], "obO2", 12);
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("obO", 12);
+        keyValuePairMap.put("obO2", 12);
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10,
+            SortOrder.ASC, "ownerType");
+
+        assertEquals(ownerUrns[0], responsePage.getData().get(0).getOwnerUrn());
+        assertEquals(ownerUrns[2], responsePage.getData().get(1).getOwnerUrn());
+        assertEquals(ownerUrns[1], responsePage.getData().get(2).getOwnerUrn());
+
+        assertEquals(3, responsePage.getData().size());
+        assertEquals(3, responsePage.getPage().getSize());
+        assertEquals(3, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindBySingleKeyValuePair() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:4bb91563-ff39-486d-b542-5a91f6a3b884",
+            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554"};
+
+        for (String ownerUrn : ownerUrns) {
+            createMetadataEntity("ownerType", ownerUrn, "single", "ABC");
+        }
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("single", "ABC");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
+
+        assertEquals(ownerUrns[0], responsePage.getData().get(0).getOwnerUrn());
+        assertEquals(ownerUrns[1], responsePage.getData().get(1).getOwnerUrn());
+
+        assertEquals(2, responsePage.getData().size());
+        assertEquals(2, responsePage.getPage().getSize());
+        assertEquals(2, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindBySingleKeyValuePairDuplicateId() throws Exception {
+
+        populateData();
+
+        final String ownerUrn = "urn:thing:uuid:a420d9c1-4cca-4af7-955f-7b3382d19144";
+
+        createMetadataEntity("ownerD", ownerUrn, "key", 12);
+        createMetadataEntity("ownerA", ownerUrn, "key", 12);
+        createMetadataEntity("ownerC", ownerUrn, "key", 12);
+        createMetadataEntity("ownerB", ownerUrn, "key", 12);
+
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("key", 12);
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, SortOrder.ASC,
+            "ownerType");
+
+        assertEquals(4, responsePage.getData().size());
+        assertEquals(4, responsePage.getPage().getSize());
+        assertEquals(4, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+
+        assertEquals(ownerUrn, responsePage.getData().get(0).getOwnerUrn());
+        assertEquals("ownerA", responsePage.getData().get(0).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(1).getOwnerUrn());
+        assertEquals("ownerB", responsePage.getData().get(1).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(2).getOwnerUrn());
+        assertEquals("ownerC", responsePage.getData().get(2).getOwnerType());
+        assertEquals(ownerUrn, responsePage.getData().get(3).getOwnerUrn());
+        assertEquals("ownerD", responsePage.getData().get(3).getOwnerType());
+    }
+
+    @Test
+    public void testFindBySingleKeyValuePairNonexistent() throws Exception {
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("NoSuchKey", "NoSuchValue");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByKeyValuePairs(tenantUrn, keyValuePairMap, 1, 10, null, null);
+
+        assertTrue(responsePage.getData().isEmpty());
+
+        assertEquals(0, responsePage.getData().size());
+        assertEquals(0, responsePage.getPage().getSize());
+        assertEquals(0, responsePage.getPage().getTotalElements());
+
+        assertEquals(0, responsePage.getPage().getNumber());
+        assertEquals(0, responsePage.getPage().getTotalPages());
+    }
+
+    // endregion
+
     // region populateData
     private void populateData() throws Exception {
 
         int i = 0;
         for (String urn : urns) {
 
-            MetadataEntity entity = MetadataEntity.builder()
+            MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
                 .tenantId(tenantId)
-                .ownerType("someOwner")
-                .ownerId(UuidUtil.getUuidFromUrn(urn))
+                .type("someOwner")
+                .id(UuidUtil.getUuidFromUrn(urn))
+                .build();
+
+            MetadataEntity entity = MetadataEntity.builder()
+                .owner(owner)
                 .keyName("someName")
                 .dataType(MetadataDataType.INTEGER)
                 .value(String.format("%d", i++))
@@ -533,6 +758,14 @@ public class MetadataPersistenceServiceTest {
 
             metadataRepository.save(entity);
         }
+    }
+
+    private void createMetadataEntity(String ownerType, String ownerUrn, String key, Object value) throws Exception {
+
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(key, value);
+
+        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata).isPresent());
     }
 
     // endregion */
