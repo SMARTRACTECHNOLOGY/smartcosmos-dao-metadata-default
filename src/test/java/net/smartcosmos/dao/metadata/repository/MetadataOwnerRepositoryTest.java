@@ -21,6 +21,7 @@ import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.dao.metadata.util.MetadataValueParser;
 import net.smartcosmos.util.UuidUtil;
 
 import static org.junit.Assert.*;
@@ -35,10 +36,14 @@ public class MetadataOwnerRepositoryTest {
     @Autowired
     MetadataOwnerRepository repository;
 
+    @Autowired
+    MetadataRepository metadataRepository;
+
     private UUID tenantId;
     private UUID ownerId;
     private String ownerType = "Person";
     private UUID internalId;
+    private MetadataOwnerEntity owner;
 
     private Map<String, MetadataEntity> keyValues;
 
@@ -62,14 +67,14 @@ public class MetadataOwnerRepositoryTest {
             keyValues.put(key, metadata);
         }
 
-        MetadataOwnerEntity entity = MetadataOwnerEntity.builder()
+        owner = MetadataOwnerEntity.builder()
             .id(ownerId)
             .tenantId(tenantId)
             .type(ownerType)
             .build();
 
-        entity = repository.save(entity);
-        internalId = entity.getInternalId();
+        owner = repository.save(owner);
+        internalId = owner.getInternalId();
 
         repository.addMetadataEntitiesToOwner(internalId, keyValues.values());
     }
@@ -145,5 +150,32 @@ public class MetadataOwnerRepositoryTest {
         assertTrue(metadataEntities.containsKey("key2"));
         assertTrue(metadataEntities.containsKey("key3"));
         assertTrue(metadataEntities.containsKey("key4"));
+    }
+
+    @Test
+    public void updateMetadataEntity() throws Exception {
+
+        final String key = "key0";
+        final String newValue = MetadataValueParser.getValue(true);
+        final MetadataDataType newDataType = MetadataDataType.BOOLEAN;
+
+        MetadataEntity updataMetadataEntity = MetadataEntity.builder()
+            .keyName(key)
+            .value(newValue)
+            .dataType(newDataType)
+            .owner(owner)
+            .build();
+
+        Optional<MetadataEntity> update = repository.updateMetadataEntity(internalId, updataMetadataEntity);
+
+        assertTrue(update.isPresent());
+
+        Optional<MetadataEntity> savedMetadataEntity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(owner
+            .getTenantId(),owner.getType(), owner.getId(), key);
+
+        assertTrue(savedMetadataEntity.isPresent());
+        assertEquals(key, savedMetadataEntity.get().getKeyName());
+        assertEquals(newValue, savedMetadataEntity.get().getValue());
+        assertEquals(newDataType, savedMetadataEntity.get().getDataType());
     }
 }
