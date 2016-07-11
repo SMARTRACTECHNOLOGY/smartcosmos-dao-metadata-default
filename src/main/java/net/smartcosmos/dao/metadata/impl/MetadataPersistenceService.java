@@ -33,7 +33,6 @@ import net.smartcosmos.dao.metadata.repository.MetadataOwnerRepository;
 import net.smartcosmos.dao.metadata.repository.MetadataRepository;
 import net.smartcosmos.dao.metadata.util.MetadataPersistenceUtil;
 import net.smartcosmos.dao.metadata.util.MetadataValueParser;
-import net.smartcosmos.dao.metadata.util.SearchSpecifications;
 import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
@@ -48,7 +47,6 @@ public class MetadataPersistenceService implements MetadataDao {
     private final MetadataRepository metadataRepository;
     private final MetadataOwnerRepository ownerRepository;
     private final ConversionService conversionService;
-    private final SearchSpecifications<MetadataEntity> searchSpecifications = new SearchSpecifications<>();
 
     @Autowired
     public MetadataPersistenceService(MetadataRepository metadataRepository,
