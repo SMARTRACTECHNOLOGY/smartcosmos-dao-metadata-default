@@ -13,8 +13,6 @@ public interface MetadataOwnerRepository extends JpaRepository<MetadataOwnerEnti
 
     Optional<MetadataOwnerEntity> findByTenantIdAndTypeIgnoreCaseAndId(UUID tenantId, String type, UUID id);
 
-    List<MetadataOwnerEntity> findByTenantId(UUID tenantId);
-
     @Transactional
     List<MetadataOwnerEntity> deleteByTenantIdAndTypeIgnoreCaseAndId(UUID tenantId, String type, UUID id);
 }

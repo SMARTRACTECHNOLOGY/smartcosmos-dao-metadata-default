@@ -320,7 +320,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         return result;
     }
- 
+
     private MetadataOwnerEntity persist(MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
         try {
             return ownerRepository.save(entity);
