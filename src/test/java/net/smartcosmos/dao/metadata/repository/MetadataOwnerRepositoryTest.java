@@ -12,6 +12,7 @@ import org.junit.runner.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -177,5 +178,33 @@ public class MetadataOwnerRepositoryTest {
         assertEquals(key, savedMetadataEntity.get().getKeyName());
         assertEquals(newValue, savedMetadataEntity.get().getValue());
         assertEquals(newDataType, savedMetadataEntity.get().getDataType());
+    }
+
+    @Test
+    public void updateMetadataEntityNonExistentKey() throws Exception {
+
+        MetadataEntity updataMetadataEntity = MetadataEntity.builder()
+            .keyName("Does not exist")
+            .value("value1")
+            .dataType(MetadataDataType.STRING)
+            .owner(owner)
+            .build();
+
+        Optional<MetadataEntity> update = repository.updateMetadataEntity(internalId, updataMetadataEntity);
+
+        assertFalse(update.isPresent());
+    }
+
+    @Test(expected = InvalidDataAccessApiUsageException.class)
+    public void updateMetadataEntityNonExistentOwner() throws Exception {
+
+        MetadataEntity updataMetadataEntity = MetadataEntity.builder()
+            .keyName("Does not exist")
+            .value("value1")
+            .dataType(MetadataDataType.STRING)
+            .owner(owner)
+            .build();
+
+        Optional<MetadataEntity> update = repository.updateMetadataEntity(UUID.randomUUID(), updataMetadataEntity);
     }
 }
