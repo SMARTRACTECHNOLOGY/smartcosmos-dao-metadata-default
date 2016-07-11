@@ -320,52 +320,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         return result;
     }
-
-    /**
-     * Saves a metadata entity in an {@link MetadataRepository}.
-     *
-     * @param entity the metadata entity to persist
-     * @return the persisted metadata entity
-     * @throws ConstraintViolationException if the transaction fails due to violated constraints
-     * @throws TransactionException if the transaction fails because of something else
-     */
-    private MetadataEntity persist(MetadataEntity entity) throws ConstraintViolationException, TransactionException {
-        try {
-            return metadataRepository.save(entity);
-        } catch (TransactionException e) {
-            // we expect constraint violations to be the root cause for exceptions here,
-            // so we throw this particular exception back to the caller
-            if (ExceptionUtils.getRootCause(e) instanceof ConstraintViolationException) {
-                throw (ConstraintViolationException) ExceptionUtils.getRootCause(e);
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    /**
-     * Saves a collection of metadata entities in an {@link MetadataRepository}.
-     *
-     * @param entities the metadata entity to persist
-     * @throws ConstraintViolationException if the transaction fails due to violated constraints
-     * @throws TransactionException if the transaction fails because of something else
-     */
-    private void persist(Collection<MetadataEntity> entities)
-        throws ConstraintViolationException, TransactionException {
-
-        try {
-            metadataRepository.save(entities);
-        } catch (TransactionException e) {
-            // we expect constraint violations to be the root cause for exceptions here,
-            // so we throw this particular exception back to the caller
-            if (ExceptionUtils.getRootCause(e) instanceof ConstraintViolationException) {
-                throw (ConstraintViolationException) ExceptionUtils.getRootCause(e);
-            } else {
-                throw e;
-            }
-        }
-    }
-
+ 
     private MetadataOwnerEntity persist(MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
         try {
             return ownerRepository.save(entity);
