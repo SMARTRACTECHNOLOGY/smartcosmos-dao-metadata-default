@@ -318,7 +318,7 @@ public class MetadataPersistenceService implements MetadataDao {
 
         return result;
     }
-    
+
     /**
      * Uses the conversion service to convert a typed list into another typed list.
      *
@@ -367,7 +367,7 @@ public class MetadataPersistenceService implements MetadataDao {
      * @param direction the sort order direction
      * @return the pageable object
      */
-    protected Pageable getPageable(Integer page, Integer size, String sortBy, Sort.Direction direction) {
+    private Pageable getPageable(Integer page, Integer size, String sortBy, Sort.Direction direction) {
 
         if (page < 1) {
             throw new IllegalArgumentException("Page index must not be less than one!");
