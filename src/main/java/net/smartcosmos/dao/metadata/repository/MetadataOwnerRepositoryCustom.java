@@ -5,9 +5,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.validation.ConstraintViolationException;
+
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 
 public interface MetadataOwnerRepositoryCustom {
 
@@ -48,4 +52,14 @@ public interface MetadataOwnerRepositoryCustom {
      */
     @Transactional
     Map<String, MetadataEntity> getAssociatedMetadataEntities(UUID internalId);
+
+    /**
+     * Saves a metadata owner entity in an {@link MetadataOwnerRepository}.
+     *
+     * @param entity the metadata owner entity to persist
+     * @return the persisted metadata owner entity
+     * @throws ConstraintViolationException if the transaction fails due to violated constraints
+     * @throws TransactionException if the transaction fails because of something else
+     */
+    MetadataOwnerEntity persist (MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException;
 }

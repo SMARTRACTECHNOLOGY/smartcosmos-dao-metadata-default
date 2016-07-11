@@ -108,7 +108,7 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         return metadataEntities;
     }
 
-    private MetadataOwnerEntity persist (MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
+    public MetadataOwnerEntity persist (MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
         try {
             return repository.save(entity);
         } catch (TransactionException e) {
