@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.EntityManager;
+import javax.validation.ConstraintViolationException;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionException;
 import org.springframework.util.Assert;
 
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
@@ -21,13 +23,10 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
     @Lazy
     private final MetadataOwnerRepository repository;
 
-    private final EntityManager entityManager;
-
     @Lazy
     @Autowired
-    public MetadataOwnerRepositoryImpl(MetadataOwnerRepository repository, EntityManager entityManager) {
+    public MetadataOwnerRepositoryImpl(MetadataOwnerRepository repository) {
         this.repository = repository;
-        this.entityManager = entityManager;
     }
 
     @Override
@@ -45,7 +44,6 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
             metadataEntity.setOwner(owner);
 
             ownerMetadataEntities.putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
-
         }
     }
 
@@ -54,16 +52,17 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
 
         Assert.notNull(internalId, "ownerId must not be null");
 
-        MetadataOwnerEntity owner = initEntity(internalId);
+        MetadataOwnerEntity owner = repository.findOne(internalId);
+        if (owner == null) {
+            throw new IllegalArgumentException(String.format("No MetadataOwnerEntity with internal ID '%s'", internalId));
+        }
 
-        if (owner.getMetadataEntities().containsKey(metadataEntity.getKeyName())) {
+        Map<String, MetadataEntity> map = initMetadataEntities(owner);
 
+        if (map.containsKey(metadataEntity.getKeyName())) {
             metadataEntity.setOwner(owner);
-
-            owner.getMetadataEntities().replace(metadataEntity.getKeyName(), metadataEntity);
-
-            entityManager.merge(owner);
-            entityManager.flush();
+            map.replace(metadataEntity.getKeyName(), metadataEntity);
+            persist(owner);
 
             return Optional.ofNullable(metadataEntity);
         }
@@ -109,14 +108,17 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         return metadataEntities;
     }
 
-    public MetadataOwnerEntity initEntity(UUID internalId) {
-        MetadataOwnerEntity owner = entityManager.find(MetadataOwnerEntity.class, internalId);
-        owner = entityManager.merge(owner);
-
-        if (!Hibernate.isInitialized(owner.getMetadataEntities())) {
-            Hibernate.initialize(owner.getMetadataEntities());
+    private MetadataOwnerEntity persist (MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
+        try {
+            return repository.save(entity);
+        } catch (TransactionException e) {
+            // we expect constraint violations to be the root cause for exceptions here,
+            // so we throw this particular exception back to the caller
+            if (ExceptionUtils.getRootCause(e) instanceof ConstraintViolationException) {
+                throw (ConstraintViolationException) ExceptionUtils.getRootCause(e);
+            } else {
+                throw e;
+            }
         }
-
-        return owner;
     }
 }
