@@ -1,10 +1,10 @@
 package net.smartcosmos.dao.metadata.util;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import org.json.JSONObject;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -20,7 +20,7 @@ public class MetadataValueParserTest {
 
         Object o = MetadataValueParser.parseValue(entity);
 
-        assertEquals(JSONObject.NULL, o);
+        assertEquals(NullNode.getInstance(), o);
     }
 
     @Test
