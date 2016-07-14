@@ -2,6 +2,7 @@ package net.smartcosmos.dao.metadata.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
@@ -53,7 +54,7 @@ public class MetadataValueParser {
                         log.warn("MetadataValueParser.parseValue: Error parsing JSON, returning String instead.");
                     }
                 case JSON_LITERAL_NULL:
-                    return JSONObject.NULL;
+                    return NullNode.getInstance();
 
                 case STRING:
                 default:
@@ -61,7 +62,7 @@ public class MetadataValueParser {
             }
         }
 
-        return JSONObject.NULL;
+        return NullNode.getInstance();
     }
 
     /**
