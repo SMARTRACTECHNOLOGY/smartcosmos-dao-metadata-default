@@ -369,6 +369,11 @@ public class MetadataPersistenceService implements MetadataDao {
      */
     private Pageable getPageable(Integer page, Integer size, String sortBy, Sort.Direction direction) {
 
+        if (page == null) { page = DEFAULT_PAGE; }
+        if (size == null) { size = DEFAULT_SIZE; }
+        if (sortBy == null) { sortBy = DEFAULT_SORT_BY; }
+        if (direction == null) { direction = Sort.Direction.fromString(DEFAULT_SORT_ORDER.toString()); }
+
         if (page < 1) {
             throw new IllegalArgumentException("Page index must not be less than one!");
         }
