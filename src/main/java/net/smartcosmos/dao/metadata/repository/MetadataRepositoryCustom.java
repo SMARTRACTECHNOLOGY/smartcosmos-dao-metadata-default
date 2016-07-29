@@ -9,5 +9,9 @@ import java.util.UUID;
 
 public interface MetadataRepositoryCustom {
 
-    Page<MetadataOwnerEntity> findProjectedByTenantIdAndKeyValuePairs(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable);
+    Page<MetadataOwnerEntity> findProjectedByTenantIdAndOwnerTypeAndKeyValuePairs(
+        UUID tenantId,
+        String ownerType,
+        Map<String, Object> keyValuePairs,
+        Pageable pageable);
 }
