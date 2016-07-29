@@ -35,6 +35,7 @@ import net.smartcosmos.dao.metadata.util.UuidUtil;
 import net.smartcosmos.dto.metadata.MetadataOwnerResponse;
 import net.smartcosmos.dto.metadata.MetadataResponse;
 import net.smartcosmos.dto.metadata.MetadataSingleResponse;
+import net.smartcosmos.dto.metadata.MetadataValueResponse;
 import net.smartcosmos.dto.metadata.Page;
 import net.smartcosmos.dto.metadata.PageInformation;
 
@@ -217,7 +218,7 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Optional<Object> findByKey(String tenantUrn, String ownerType, String ownerUrn, String key) {
+    public Optional<MetadataValueResponse> findByKey(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
         try {
             UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
@@ -227,8 +228,10 @@ public class MetadataPersistenceService implements MetadataDao {
 
             if (entity.isPresent()) {
                 Object value = MetadataValueParser.parseValue(entity.get());
+                String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get().getOwner().getTenantId());
+                MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
 
-                return Optional.ofNullable(value);
+                return Optional.ofNullable(response);
             }
         } catch (IllegalArgumentException e) {
             // empty Optional will be returned anyway
@@ -260,22 +263,24 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Page<MetadataSingleResponse> findAll(String tenantUrn, Integer page, Integer size) {
+    public Page<MetadataSingleResponse> findByOwnerType(String tenantUrn, String ownerType, Integer page, Integer size) {
 
-        return findAllPage(tenantUrn, getPageable(page, size, null, null));
+        return findByOwnerTypePage(tenantUrn, ownerType, getPageable(page, size, null, null));
     }
 
     @Override
-    public Page<MetadataSingleResponse> findAll(String tenantUrn, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+    public Page<MetadataSingleResponse> findByOwnerType(String tenantUrn, String ownerType, Integer page, Integer size, SortOrder sortOrder, String
+        sortBy) {
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy);
 
-        return findAllPage(tenantUrn, getPageable(page, size, sortBy, direction));
+        return findByOwnerTypePage(tenantUrn, ownerType, getPageable(page, size, sortBy, direction));
     }
 
     @Override
-    public Page<MetadataOwnerResponse> findOwnersByKeyValuePairs(String tenantUrn, Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+    public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairs(String tenantUrn, String ownerType, Map<String, Object> keyValuePairs,
+                                                                        Integer page, Integer size, SortOrder sortOrder, String sortBy) {
 
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
 
@@ -283,32 +288,37 @@ public class MetadataPersistenceService implements MetadataDao {
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
 
         if (keyValuePairs.size() == 1) {
-            return findOwnerBySingleKeyValuePair(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
+            return findOwnerBySingleKeyValuePair(tenantId, ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
         } else {
-            org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage = metadataRepository.findProjectedByTenantIdAndKeyValuePairs(tenantId, keyValuePairs, getPageable(page, size, sortBy, direction));
+            org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage = metadataRepository.findProjectedByTenantIdAndOwnerTypeAndKeyValuePairs
+                (tenantId, ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
             return convertPage(ownerPage, MetadataOwnerEntity.class, MetadataOwnerResponse.class);
         }
     }
 
-    private Page<MetadataOwnerResponse> findOwnerBySingleKeyValuePair(UUID tenantId, Map<String, Object> keyValuePairs, Pageable pageable) {
+    private Page<MetadataOwnerResponse> findOwnerBySingleKeyValuePair(
+        UUID tenantId,
+        String ownerType,
+        Map<String, Object> keyValuePairs,
+        Pageable pageable) {
 
         String keyName = keyValuePairs.keySet().iterator().next();
         String value = MetadataValueParser.getValue(keyValuePairs.get(keyName));
         MetadataDataType dataType = MetadataValueParser.getDataType(keyValuePairs.get(keyName));
 
         org.springframework.data.domain.Page<MetadataEntity> ownerPage = metadataRepository
-            .findByOwner_TenantIdAndKeyNameAndDataTypeAndValue(tenantId, keyName, dataType, value, pageable);
+            .findByOwner_TenantIdAndOwner_TypeAndKeyNameAndDataTypeAndValue(tenantId, ownerType, keyName, dataType, value, pageable);
 
         return convertPage(ownerPage, MetadataEntity.class, MetadataOwnerResponse.class);
     }
 
-    private Page<MetadataSingleResponse> findAllPage(String tenantUrn, Pageable pageable) {
+    private Page<MetadataSingleResponse> findByOwnerTypePage(String tenantUrn, String ownerType, Pageable pageable) {
 
         Page<MetadataSingleResponse> result = MetadataPersistenceUtil.emptyPage();
         try {
             UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
             org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
-                    .findByOwner_TenantId(tenantId, pageable);
+                    .findByOwner_TenantIdAndOwner_Type(tenantId, ownerType, pageable);
 
             return convertPage(pageEntity, MetadataEntity.class, MetadataSingleResponse.class);
         }

@@ -1,14 +1,13 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
-import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
-import net.smartcosmos.util.UuidUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.*;
+import org.junit.runner.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -18,7 +17,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.util.*;
+import net.smartcosmos.dao.metadata.MetadataPersistenceConfig;
+import net.smartcosmos.dao.metadata.MetadataPersistenceTestApplication;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import net.smartcosmos.util.UuidUtil;
 
 import static org.junit.Assert.*;
 
@@ -136,7 +140,7 @@ public class MetadataRepositoryTest {
         }
 
 
-        Page<MetadataEntity> entityList = metadataRepository.findByOwner_TenantId(tenantId, new PageRequest(0, 1));
+        Page<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_Type(tenantId, "pageTest", new PageRequest(0, 1));
         assertFalse(entityList.getContent().isEmpty());
 
         assertEquals(1, entityList.getContent().size());
