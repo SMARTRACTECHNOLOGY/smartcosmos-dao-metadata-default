@@ -282,7 +282,10 @@ public class MetadataPersistenceService implements MetadataDao {
     public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairs(String tenantUrn, String ownerType, Map<String, Object> keyValuePairs,
                                                                         Integer page, Integer size, SortOrder sortOrder, String sortBy) {
 
-        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID tenantId = null;
+        if (StringUtils.isNotBlank(tenantUrn)) {
+            tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        }
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
@@ -301,16 +304,14 @@ public class MetadataPersistenceService implements MetadataDao {
     public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairsNoTenant(String ownerType,
         Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
 
-        Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
-        sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
-
         if (keyValuePairs.size() == 1) {
+            Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
+            sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
+
             return findOwnerBySingleKeyValuePairNoTenant(ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
-        } else {
-            org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage = metadataRepository.findProjectedByOwnerTypeAndKeyValuePairs
-                (ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
-            return convertPage(ownerPage, MetadataOwnerEntity.class, MetadataOwnerResponse.class);
         }
+
+        return findOwnersByTypeAndKeyValuePairs(null, ownerType, keyValuePairs, page, size, sortOrder, sortBy);
     }
 
 

@@ -15,9 +15,4 @@ public interface MetadataRepositoryCustom {
         String ownerType,
         Map<String, Object> keyValuePairs,
         Pageable pageable);
-
-    Page<MetadataOwnerEntity> findProjectedByOwnerTypeAndKeyValuePairs(
-        String ownerType,
-        Map<String, Object> keyValuePairs,
-        Pageable pageable);
 }
