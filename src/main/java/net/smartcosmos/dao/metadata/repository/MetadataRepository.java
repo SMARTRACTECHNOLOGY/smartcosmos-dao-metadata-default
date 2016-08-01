@@ -30,6 +30,10 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
                                                                                         MetadataDataType dataType,
                                                                                         String value, Pageable pageable);
 
+    Page<MetadataEntity> findByOwnerTypeAndKeyNameAndDataTypeAndValue(String ownerType, String keyName,
+                                                                                        MetadataDataType dataType,
+                                                                                        String value, Pageable pageable);
+
     @Transactional
     List<MetadataEntity> deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(UUID tenantId, String ownerType, UUID ownerId, String keyName);
 }

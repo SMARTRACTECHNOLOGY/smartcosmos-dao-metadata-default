@@ -1,11 +1,12 @@
 package net.smartcosmos.dao.metadata.repository;
 
-import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
+import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Map;
-import java.util.UUID;
+import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 
 public interface MetadataRepositoryCustom {
 

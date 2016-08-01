@@ -282,7 +282,10 @@ public class MetadataPersistenceService implements MetadataDao {
     public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairs(String tenantUrn, String ownerType, Map<String, Object> keyValuePairs,
                                                                         Integer page, Integer size, SortOrder sortOrder, String sortBy) {
 
-        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID tenantId = null;
+        if (StringUtils.isNotBlank(tenantUrn)) {
+            tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        }
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
         sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
@@ -290,11 +293,27 @@ public class MetadataPersistenceService implements MetadataDao {
         if (keyValuePairs.size() == 1) {
             return findOwnerBySingleKeyValuePair(tenantId, ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
         } else {
-            org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage = metadataRepository.findProjectedByTenantIdAndOwnerTypeAndKeyValuePairs
+            org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage =
+                metadataRepository.findProjectedByTenantIdAndOwnerTypeAndKeyValuePairs
                 (tenantId, ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
             return convertPage(ownerPage, MetadataOwnerEntity.class, MetadataOwnerResponse.class);
         }
     }
+
+    @Override
+    public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairsNoTenant(String ownerType,
+        Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+
+        if (keyValuePairs.size() == 1) {
+            Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
+            sortBy = MetadataPersistenceUtil.getSortByFieldName(sortBy, MetadataOwnerEntity.OWNER_ID_FIELD_NAME);
+
+            return findOwnerBySingleKeyValuePairNoTenant(ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
+        }
+
+        return findOwnersByTypeAndKeyValuePairs(null, ownerType, keyValuePairs, page, size, sortOrder, sortBy);
+    }
+
 
     private Page<MetadataOwnerResponse> findOwnerBySingleKeyValuePair(
         UUID tenantId,
@@ -308,6 +327,21 @@ public class MetadataPersistenceService implements MetadataDao {
 
         org.springframework.data.domain.Page<MetadataEntity> ownerPage = metadataRepository
             .findByOwner_TenantIdAndOwner_TypeAndKeyNameAndDataTypeAndValue(tenantId, ownerType, keyName, dataType, value, pageable);
+
+        return convertPage(ownerPage, MetadataEntity.class, MetadataOwnerResponse.class);
+    }
+
+    private Page<MetadataOwnerResponse> findOwnerBySingleKeyValuePairNoTenant(
+        String ownerType,
+        Map<String, Object> keyValuePairs,
+        Pageable pageable) {
+
+        String keyName = keyValuePairs.keySet().iterator().next();
+        String value = MetadataValueParser.getValue(keyValuePairs.get(keyName));
+        MetadataDataType dataType = MetadataValueParser.getDataType(keyValuePairs.get(keyName));
+
+        org.springframework.data.domain.Page<MetadataEntity> ownerPage = metadataRepository
+            .findByOwnerTypeAndKeyNameAndDataTypeAndValue(ownerType, keyName, dataType, value, pageable);
 
         return convertPage(ownerPage, MetadataEntity.class, MetadataOwnerResponse.class);
     }

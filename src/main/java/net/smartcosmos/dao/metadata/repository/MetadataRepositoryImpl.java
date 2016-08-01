@@ -103,37 +103,19 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
             where generatedAlias0.owner in (
                 select distinct generatedAlias1.owner
                 from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias1
-                where ( ( generatedAlias1.keyName=:param0 )
-                and ( generatedAlias1.dataType=:param1 )
-                and ( generatedAlias1.value=:param2 ) )
-                and ( generatedAlias0.owner in (
+                where ( ( generatedAlias1.keyName=:param0 ) and ( generatedAlias1.dataType=:param1 ) and ( generatedAlias1.value=:param2 ) ) and ( generatedAlias0.owner in (
                     select distinct generatedAlias2.owner
                     from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias2
-                    where ( ( generatedAlias2.keyName=:param3 )
-                    and ( generatedAlias2.dataType=:param4 )
-                    and ( generatedAlias2.value=:param5 ) )
-                    and ( generatedAlias1.owner in (
+                    where ( ( generatedAlias2.keyName=:param3 ) and ( generatedAlias2.dataType=:param4 ) and ( generatedAlias2.value=:param5 ) ) and ( generatedAlias1.owner in (
                         select distinct generatedAlias3.owner
                         from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias3
-                        where ( ( generatedAlias3.keyName=:param6 )
-                        and ( generatedAlias3.dataType=:param7 )
-                        and ( generatedAlias3.value=:param8 ) )
-                        and ( generatedAlias2.owner in (
+                        where ( ( generatedAlias3.keyName=:param6 ) and ( generatedAlias3.dataType=:param7 ) and ( generatedAlias3.value=:param8 ) ) and ( generatedAlias2.owner in (
                             select distinct generatedAlias4.owner
                             from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias4
-                            where ( ( generatedAlias4.keyName=:param9 )
-                            and ( generatedAlias4.dataType=:param10 )
-                            and ( generatedAlias4.value=:param11 ) )
-                            and ( generatedAlias3.owner in (
+                            where ( ( generatedAlias4.keyName=:param9 ) and ( generatedAlias4.dataType=:param10 ) and ( generatedAlias4.value=:param11 ) ) and ( generatedAlias3.owner in (
                                 select distinct generatedAlias5.owner
                                 from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias5
-                                where ( generatedAlias0.owner.tenantId=:param12 )
-                                and ( generatedAlias0.keyName in (:param13, :param14, :param15, :param16)
-                            ))
-                        ))
-                    ))
-                ))
-            ))
+                                where ( generatedAlias0.owner.tenantId=:paramX) and ( generatedAlias0.owner.type=:param12 ) and ( generatedAlias0.keyName in (:param13, :param14, :param15, :param16) )) )) )) )) ))
             order by generatedAlias0.owner.id asc
 
          */
@@ -160,9 +142,15 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         Map<String, Object> metadataMap = new HashMap<>();
         metadataMap.putAll(keyValuePairs);
 
-        Predicate tenantPredicate = builder.equal(tenantIdPath, tenantId);
         Predicate typePredicate = builder.equal(ownerTypePath, ownerType);
         Predicate keyPredicate = keyNamePath.in(keyValuePairs.keySet());
+        Predicate tenantPredicate;
+        if (tenantId != null) {
+            tenantPredicate = builder.equal(tenantIdPath, tenantId);
+        } else {
+            tenantPredicate = builder.isNotNull(tenantIdPath);
+        }
+
         Predicate rootPredicate = builder.and(tenantPredicate, typePredicate, keyPredicate);
 
         Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, metadataMap, rootPredicate);

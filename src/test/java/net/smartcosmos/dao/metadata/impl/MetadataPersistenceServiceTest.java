@@ -56,6 +56,9 @@ public class MetadataPersistenceServiceTest {
     private final UUID tenantId = UUID.randomUUID();
     private final String tenantUrn = UuidUtil.getTenantUrnFromUuid(tenantId);
 
+    private final UUID tenantId2 = UUID.randomUUID();
+    private final String tenantUrn2 = UuidUtil.getTenantUrnFromUuid(tenantId);
+
     private static final String[] urns = {
         "urn:thing:uuid:8614fac9-693d-4bee-886f-f9eefd60180a",
         "urn:thing:uuid:73f81ca4-0800-4769-bb6f-db4a61b0fea1",
@@ -688,6 +691,156 @@ public class MetadataPersistenceServiceTest {
 
     // endregion
 
+    // region Find By Key-Value Pairs no tenant
+
+    @Test
+    public void testFindByKeyValuePairsNoTenant() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:39e2fae3-e459-4ab8-b051-9ae80cbdd8ec",
+            "urn:thing:uuid:34eb37d3-6528-4d7f-9629-730705819b35"};
+
+
+        createMetadataEntityExplicitTenant(tenantId, "ownerType", ownerUrns[0], "keyA", 1);
+        createMetadataEntityExplicitTenant(tenantId, "ownerType", ownerUrns[0], "keyB", 2);
+
+        createMetadataEntityExplicitTenant(tenantId2, "ownerType", ownerUrns[1], "keyA", 1);
+        createMetadataEntityExplicitTenant(tenantId2, "ownerType", ownerUrns[1], "keyB", 2);
+
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("keyA", 1);
+        keyValuePairMap.put("keyB", 2);
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType",
+                                                                                                               keyValuePairMap, 1, 10, null, null);
+
+        assertEquals(2, responsePage.getData().size());
+        assertEquals(2, responsePage.getPage().getSize());
+        assertEquals(2, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindByKeyValuePairsDuplicateIdNoTenant() throws Exception {
+
+        populateData();
+
+        final String ownerUrn = "urn:thing:uuid:b5cb506a-698e-48c2-affa-80f391167990";
+
+        createMetadataEntity("ownerA", ownerUrn, "key1", 12);
+        createMetadataEntity("ownerA", ownerUrn, "key2", 12);
+        createMetadataEntity("ownerB", ownerUrn, "key1", 12);
+        createMetadataEntity("ownerB", ownerUrn, "key2", 12);
+
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("key1", 12);
+        keyValuePairMap.put("key2", 12);
+
+        Page<MetadataOwnerResponse> responsePageA = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "ownerA",
+                                                                                                                keyValuePairMap, 1, 10,
+                                                                                                                SortOrder.ASC,
+                                                                                                                "ownerType");
+
+        assertEquals(1, responsePageA.getData().size());
+        assertEquals(1, responsePageA.getPage().getSize());
+        assertEquals(1, responsePageA.getPage().getTotalElements());
+
+        assertEquals(1, responsePageA.getPage().getNumber());
+        assertEquals(1, responsePageA.getPage().getTotalPages());
+
+        assertEquals(ownerUrn, responsePageA.getData().get(0).getOwnerUrn());
+        assertEquals("ownerA", responsePageA.getData().get(0).getOwnerType());
+
+        Page<MetadataOwnerResponse> responsePageB = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "ownerB",
+                                                                                                                keyValuePairMap, 1, 10,
+                                                                                                                SortOrder.ASC,
+                                                                                                                "ownerType");
+
+        assertEquals(1, responsePageB.getData().size());
+        assertEquals(1, responsePageB.getPage().getSize());
+        assertEquals(1, responsePageB.getPage().getTotalElements());
+
+        assertEquals(1, responsePageB.getPage().getNumber());
+        assertEquals(1, responsePageB.getPage().getTotalPages());
+
+        assertEquals(ownerUrn, responsePageB.getData().get(0).getOwnerUrn());
+        assertEquals("ownerB", responsePageB.getData().get(0).getOwnerType());
+    }
+
+    @Test
+    public void testFindByKeyValuePairsNonExistentNoTenant() throws Exception {
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("NoSuchKey", "NoSuchValue");
+        keyValuePairMap.put("NoSuchKey2", "NoSuchValue2");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("someOwner", keyValuePairMap, 1, 10, SortOrder.ASC, "ownerType");
+
+        assertTrue(responsePage.getData().isEmpty());
+
+        assertEquals(0, responsePage.getData().size());
+        assertEquals(0, responsePage.getPage().getSize());
+        assertEquals(0, responsePage.getPage().getTotalElements());
+
+        assertEquals(0,responsePage.getPage().getNumber());
+        assertEquals(0,responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindBySingleKeyValuePairNoTenant() throws Exception {
+
+        populateData();
+
+        final String[] ownerUrns = {
+            "urn:thing:uuid:4bb91563-ff39-486d-b542-5a91f6a3b884",
+            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554"};
+
+        for (String ownerUrn : ownerUrns) {
+            createMetadataEntity("ownerType", ownerUrn, "single", "ABC");
+        }
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("single", "ABC");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType", keyValuePairMap, 1, 10, null, null);
+
+        assertEquals(ownerUrns[0], responsePage.getData().get(0).getOwnerUrn());
+        assertEquals(ownerUrns[1], responsePage.getData().get(1).getOwnerUrn());
+
+        assertEquals(2, responsePage.getData().size());
+        assertEquals(2, responsePage.getPage().getSize());
+        assertEquals(2, responsePage.getPage().getTotalElements());
+
+        assertEquals(1, responsePage.getPage().getNumber());
+        assertEquals(1, responsePage.getPage().getTotalPages());
+    }
+
+    @Test
+    public void testFindBySingleKeyValuePairNonexistentNoTenant() throws Exception {
+
+        Map<String, Object> keyValuePairMap = new HashMap<>();
+        keyValuePairMap.put("NoSuchKey", "NoSuchValue");
+
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType", keyValuePairMap, 1, 10, null, null);
+
+        assertTrue(responsePage.getData().isEmpty());
+
+        assertEquals(0, responsePage.getData().size());
+        assertEquals(0, responsePage.getPage().getSize());
+        assertEquals(0, responsePage.getPage().getTotalElements());
+
+        assertEquals(0, responsePage.getPage().getNumber());
+        assertEquals(0, responsePage.getPage().getTotalPages());
+    }
+
+    // endregion
+
     // region populateData
     private void populateData() throws Exception {
 
@@ -712,6 +865,14 @@ public class MetadataPersistenceServiceTest {
     }
 
     private void createMetadataEntity(String ownerType, String ownerUrn, String key, Object value) throws Exception {
+
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(key, value);
+
+        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata).isPresent());
+    }
+
+    private void createMetadataEntityExplicitTenant(UUID tenantId, String ownerType, String ownerUrn, String key, Object value) throws Exception {
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(key, value);
