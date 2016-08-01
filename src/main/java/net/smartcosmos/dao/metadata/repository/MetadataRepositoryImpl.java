@@ -70,6 +70,24 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return new PageImpl<>(result, pageable, totalElements);
     }
 
+    @Override
+    public Page<MetadataOwnerEntity> findProjectedByOwnerTypeAndKeyValuePairs(
+        String ownerType,
+        Map<String, Object> keyValuePairs,
+        Pageable pageable) {
+
+        CriteriaQuery<MetadataOwnerEntity> query = getMetadataOwnerCriteriaQueryNoTenant(ownerType, keyValuePairs, pageable);
+        List<MetadataOwnerEntity> result = getResults(pageable, query);
+
+        if (result.size() > 0 && result.size() < pageable.getPageSize()) {
+            pageable = new PageRequest(pageable.getPageNumber(), result.size(), pageable.getSort());
+        }
+
+        long totalElements = getResultCountNoTenant(ownerType, keyValuePairs);
+
+        return new PageImpl<>(result, pageable, totalElements);
+    }
+
     private Long getResultCount(UUID tenantId, String ownerType, Map<String, Object> keyValuePairs) {
 
         CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
@@ -77,6 +95,17 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         countQuery.select(builder.countDistinct(entityRoot.get(OWNER_FIELD_NAME)))
             .where(getKeyValuePredicates(countQuery, entityRoot, tenantId, ownerType, keyValuePairs));
+
+        return entityManager.createQuery(countQuery).getSingleResult();
+    }
+
+    private Long getResultCountNoTenant(String ownerType, Map<String, Object> keyValuePairs) {
+
+        CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
+        Root<MetadataEntity> entityRoot = countQuery.from(MetadataEntity.class);
+
+        countQuery.select(builder.countDistinct(entityRoot.get(OWNER_FIELD_NAME)))
+            .where(getKeyValuePredicatesNoTenant(countQuery, entityRoot, ownerType, keyValuePairs));
 
         return entityManager.createQuery(countQuery).getSingleResult();
     }
@@ -150,6 +179,20 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return criteriaQuery;
     }
 
+    private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQueryNoTenant(String ownerType, Map<String, Object> keyValuePairs,
+                                                                                     Pageable pageable) {
+
+        CriteriaQuery<MetadataOwnerEntity> criteriaQuery = builder.createQuery(MetadataOwnerEntity.class);
+        Root<MetadataEntity> root = criteriaQuery.from(MetadataEntity.class);
+
+        criteriaQuery.select(root.get(OWNER_FIELD_NAME))
+            .distinct(true)
+            .where(getKeyValuePredicatesNoTenant(criteriaQuery, root, ownerType, keyValuePairs))
+            .orderBy(getOrder(root, pageable.getSort()));
+
+        return criteriaQuery;
+    }
+
     private Predicate getKeyValuePredicates(CriteriaQuery<?> criteriaQuery, Root<MetadataEntity> root, UUID tenantId, String ownerType, Map<String,
         Object> keyValuePairs) {
 
@@ -164,6 +207,24 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         Predicate typePredicate = builder.equal(ownerTypePath, ownerType);
         Predicate keyPredicate = keyNamePath.in(keyValuePairs.keySet());
         Predicate rootPredicate = builder.and(tenantPredicate, typePredicate, keyPredicate);
+
+        Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, metadataMap, rootPredicate);
+
+        return builder.in(root.get(OWNER_FIELD_NAME)).value(keyValueQuery);
+    }
+
+    private Predicate getKeyValuePredicatesNoTenant(CriteriaQuery<?> criteriaQuery, Root<MetadataEntity> root, String ownerType,
+                                                    Map<String, Object> keyValuePairs) {
+
+        Path<MetadataEntity> ownerTypePath = root.get(OWNER_FIELD_NAME).get(MetadataOwnerEntity.OWNER_TYPE_FIELD_NAME);
+        Path<MetadataEntity> keyNamePath = root.get(KEY_NAME_FIELD_NAME);
+
+        Map<String, Object> metadataMap = new HashMap<>();
+        metadataMap.putAll(keyValuePairs);
+
+        Predicate typePredicate = builder.equal(ownerTypePath, ownerType);
+        Predicate keyPredicate = keyNamePath.in(keyValuePairs.keySet());
+        Predicate rootPredicate = builder.and(typePredicate, keyPredicate);
 
         Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, metadataMap, rootPredicate);
 
