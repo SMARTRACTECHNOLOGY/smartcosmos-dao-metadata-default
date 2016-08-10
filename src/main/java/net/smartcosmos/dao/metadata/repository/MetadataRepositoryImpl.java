@@ -46,6 +46,7 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
     @Autowired
     public MetadataRepositoryImpl(EntityManager entityManager) {
+
         this.entityManager = entityManager;
 
         builder = entityManager.getCriteriaBuilder();
@@ -78,7 +79,8 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         countQuery.select(builder.countDistinct(entityRoot.get(OWNER_FIELD_NAME)))
             .where(getKeyValuePredicates(countQuery, entityRoot, tenantId, ownerType, keyValuePairs));
 
-        return entityManager.createQuery(countQuery).getSingleResult();
+        return entityManager.createQuery(countQuery)
+            .getSingleResult();
     }
 
     private List<MetadataOwnerEntity> getResults(Pageable pageable, CriteriaQuery<MetadataOwnerEntity> resultQuery) {
@@ -91,8 +93,9 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return q.getResultList();
     }
 
-    private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQuery(UUID tenantId, String ownerType, Map<String, Object> keyValuePairs,
-                                                                             Pageable pageable) {
+    private CriteriaQuery<MetadataOwnerEntity> getMetadataOwnerCriteriaQuery(
+        UUID tenantId, String ownerType, Map<String, Object> keyValuePairs,
+        Pageable pageable) {
 
         // region SQL Statement
         /*
@@ -103,19 +106,24 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
             where generatedAlias0.owner in (
                 select distinct generatedAlias1.owner
                 from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias1
-                where ( ( generatedAlias1.keyName=:param0 ) and ( generatedAlias1.dataType=:param1 ) and ( generatedAlias1.value=:param2 ) ) and ( generatedAlias0.owner in (
+                where ( ( generatedAlias1.keyName=:param0 ) and ( generatedAlias1.dataType=:param1 ) and ( generatedAlias1.value=:param2 ) ) and (
+                generatedAlias0.owner in (
                     select distinct generatedAlias2.owner
                     from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias2
-                    where ( ( generatedAlias2.keyName=:param3 ) and ( generatedAlias2.dataType=:param4 ) and ( generatedAlias2.value=:param5 ) ) and ( generatedAlias1.owner in (
+                    where ( ( generatedAlias2.keyName=:param3 ) and ( generatedAlias2.dataType=:param4 ) and ( generatedAlias2.value=:param5 ) )
+                    and ( generatedAlias1.owner in (
                         select distinct generatedAlias3.owner
                         from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias3
-                        where ( ( generatedAlias3.keyName=:param6 ) and ( generatedAlias3.dataType=:param7 ) and ( generatedAlias3.value=:param8 ) ) and ( generatedAlias2.owner in (
+                        where ( ( generatedAlias3.keyName=:param6 ) and ( generatedAlias3.dataType=:param7 ) and ( generatedAlias3.value=:param8 )
+                        ) and ( generatedAlias2.owner in (
                             select distinct generatedAlias4.owner
                             from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias4
-                            where ( ( generatedAlias4.keyName=:param9 ) and ( generatedAlias4.dataType=:param10 ) and ( generatedAlias4.value=:param11 ) ) and ( generatedAlias3.owner in (
+                            where ( ( generatedAlias4.keyName=:param9 ) and ( generatedAlias4.dataType=:param10 ) and (
+                            generatedAlias4.value=:param11 ) ) and ( generatedAlias3.owner in (
                                 select distinct generatedAlias5.owner
                                 from net.smartcosmos.dao.metadata.domain.MetadataEntity as generatedAlias5
-                                where ( generatedAlias0.owner.tenantId=:paramX) and ( generatedAlias0.owner.type=:param12 ) and ( generatedAlias0.keyName in (:param13, :param14, :param15, :param16) )) )) )) )) ))
+                                where ( generatedAlias0.owner.tenantId=:paramX) and ( generatedAlias0.owner.type=:param12 ) and (
+                                generatedAlias0.keyName in (:param13, :param14, :param15, :param16) )) )) )) )) ))
             order by generatedAlias0.owner.id asc
 
          */
@@ -132,11 +140,14 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
         return criteriaQuery;
     }
 
-    private Predicate getKeyValuePredicates(CriteriaQuery<?> criteriaQuery, Root<MetadataEntity> root, UUID tenantId, String ownerType, Map<String,
+    private Predicate getKeyValuePredicates(
+        CriteriaQuery<?> criteriaQuery, Root<MetadataEntity> root, UUID tenantId, String ownerType, Map<String,
         Object> keyValuePairs) {
 
-        Path<MetadataEntity> tenantIdPath = root.get(OWNER_FIELD_NAME).get(TENANT_ID_FIELD_NAME);
-        Path<MetadataEntity> ownerTypePath = root.get(OWNER_FIELD_NAME).get(MetadataOwnerEntity.OWNER_TYPE_FIELD_NAME);
+        Path<MetadataEntity> tenantIdPath = root.get(OWNER_FIELD_NAME)
+            .get(TENANT_ID_FIELD_NAME);
+        Path<MetadataEntity> ownerTypePath = root.get(OWNER_FIELD_NAME)
+            .get(MetadataOwnerEntity.OWNER_TYPE_FIELD_NAME);
         Path<MetadataEntity> keyNamePath = root.get(KEY_NAME_FIELD_NAME);
 
         Map<String, Object> metadataMap = new HashMap<>();
@@ -153,25 +164,33 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
 
         Predicate rootPredicate = builder.and(tenantPredicate, typePredicate, keyPredicate);
 
-        Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class), root, metadataMap, rootPredicate);
+        Subquery<MetadataEntity> keyValueQuery = getRecursiveSubQueries(criteriaQuery.subquery(MetadataEntity.class),
+                                                                        root,
+                                                                        metadataMap,
+                                                                        rootPredicate);
 
-        return builder.in(root.get(OWNER_FIELD_NAME)).value(keyValueQuery);
+        return builder.in(root.get(OWNER_FIELD_NAME))
+            .value(keyValueQuery);
     }
 
-    private Subquery<MetadataEntity> getRecursiveSubQueries(Subquery<MetadataEntity> query, Root<MetadataEntity> root, Map<String, Object> keyValuePairs,
-                                                            Predicate rootPredicate) {
+    private Subquery<MetadataEntity> getRecursiveSubQueries(
+        Subquery<MetadataEntity> query, Root<MetadataEntity> root, Map<String, Object> keyValuePairs,
+        Predicate rootPredicate) {
 
         Root<MetadataEntity> subRoot = query.from(MetadataEntity.class);
 
         Predicate predicate;
         if (MapUtils.isNotEmpty(keyValuePairs)) {
 
-            String key = keyValuePairs.keySet().iterator().next();
+            String key = keyValuePairs.keySet()
+                .iterator()
+                .next();
             Object value = keyValuePairs.remove(key);
 
             Predicate keyValuePredicate = getKeyValuePredicate(key, value, subRoot);
-            Predicate subQueryPredicate = builder.in(root.get(OWNER_FIELD_NAME)).value(getRecursiveSubQueries(query.subquery(MetadataEntity.class), subRoot,
-                keyValuePairs, rootPredicate));
+            Predicate subQueryPredicate = builder.in(root.get(OWNER_FIELD_NAME))
+                .value(getRecursiveSubQueries(query.subquery(MetadataEntity.class), subRoot,
+                                              keyValuePairs, rootPredicate));
 
             predicate = builder.and(keyValuePredicate, subQueryPredicate);
         } else {
@@ -184,12 +203,15 @@ public class MetadataRepositoryImpl implements MetadataRepositoryCustom {
     }
 
     private List<Order> getOrder(Root<MetadataEntity> root, Sort sort) {
+
         List<Order> orderList = new ArrayList<>();
 
         if (sort != null && !IteratorUtils.isEmpty(sort.iterator())) {
-            Sort.Order order = sort.iterator().next();
+            Sort.Order order = sort.iterator()
+                .next();
 
-            String[] sortFields = order.getProperty().split("\\.");
+            String[] sortFields = order.getProperty()
+                .split("\\.");
             Path<MetadataEntity> orderPath = root;
             for (String sortField : sortFields) {
                 orderPath = orderPath.get(sortField);

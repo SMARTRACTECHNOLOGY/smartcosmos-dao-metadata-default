@@ -27,7 +27,8 @@ public class MetadataPersistenceUtil {
      */
     public static <T> Page<T> emptyPage() {
 
-        PageInformation pageInformation = PageInformation.builder().build();
+        PageInformation pageInformation = PageInformation.builder()
+            .build();
 
         return Page.<T>builder()
             .page(pageInformation)
@@ -117,6 +118,7 @@ public class MetadataPersistenceUtil {
      * @return the case-corrected field name if it exists, {@code id} otherwise
      */
     public static String getSortByFieldName(String sortBy, String defaultFieldName) {
+
         sortBy = normalizeFieldName(sortBy);
 
         if (StringUtils.isBlank(sortBy) || (!isFieldInClass(sortBy, MetadataEntity.class) && !isFieldInClass(sortBy, MetadataOwnerEntity.class))) {
@@ -136,6 +138,7 @@ public class MetadataPersistenceUtil {
      * @return the Spring sort direction
      */
     public static Sort.Direction getSortDirection(SortOrder sortOrder) {
+
         Sort.Direction direction = Sort.DEFAULT_DIRECTION;
         if (sortOrder != null) {
             switch (sortOrder) {

@@ -27,6 +27,7 @@ public enum MetadataDataType {
 
     @Override
     public String toString() {
+
         return this.dataType;
     }
 
@@ -38,18 +39,30 @@ public enum MetadataDataType {
      * @throws IllegalArgumentException if the ID is unknown
      */
     public static MetadataDataType fromId(Integer id) throws IllegalArgumentException {
+
         switch (id) {
-            case 1: return STRING;
-            case 2: return BOOLEAN;
-            case 3: return INTEGER;
-            case 4: return LONG;
-            case 5: return FLOAT;
-            case 6: return DOUBLE;
-            case 7: return BYTE;
-            case 8: return SHORT;
-            case 9: return JSON_ARRAY;
-            case 10: return JSON_OBJECT;
-            case 11: return  JSON_LITERAL_NULL;
+            case 1:
+                return STRING;
+            case 2:
+                return BOOLEAN;
+            case 3:
+                return INTEGER;
+            case 4:
+                return LONG;
+            case 5:
+                return FLOAT;
+            case 6:
+                return DOUBLE;
+            case 7:
+                return BYTE;
+            case 8:
+                return SHORT;
+            case 9:
+                return JSON_ARRAY;
+            case 10:
+                return JSON_OBJECT;
+            case 11:
+                return JSON_LITERAL_NULL;
         }
 
         throw new IllegalArgumentException(String.format("There is no MetadataDataType with ID '%d'", id));

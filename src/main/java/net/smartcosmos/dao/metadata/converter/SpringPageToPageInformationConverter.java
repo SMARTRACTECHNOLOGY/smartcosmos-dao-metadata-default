@@ -24,6 +24,7 @@ public class SpringPageToPageInformationConverter implements Converter<PageImpl<
 
     @Override
     public void registerFormatters(FormatterRegistry registry) {
+
         registry.addConverter(this);
     }
 

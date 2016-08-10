@@ -28,6 +28,7 @@ public class MetadataEntityToMetadataOwnerResponseConverter
 
     @Override
     public void registerFormatters(FormatterRegistry registry) {
+
         registry.addConverter(this);
     }
 }

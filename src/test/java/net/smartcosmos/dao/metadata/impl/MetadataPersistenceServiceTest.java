@@ -45,7 +45,6 @@ import net.smartcosmos.security.user.SmartCosmosUser;
 
 import static org.junit.Assert.*;
 
-@SuppressWarnings("Duplicates")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { MetadataPersistenceTestApplication.class, MetadataPersistenceConfig.class })
 @ActiveProfiles("test")
@@ -71,7 +70,7 @@ public class MetadataPersistenceServiceTest {
         "urn:thing:uuid:17f890b8-caa6-4ad2-98d6-641f3999128e",
         "urn:thing:uuid:5926a69f-ff56-4a9c-ab79-e90b829f2ec4",
         "urn:thing:uuid:97005fff-da53-4ad2-8a40-128da31e9cd4",
-        "urn:thing:uuid:4d872a55-ea69-4b9f-935a-9d21303085a5"};
+        "urn:thing:uuid:4d872a55-ea69-4b9f-935a-9d21303085a5" };
 
     @Autowired
     MetadataPersistenceService metadataPersistenceService;
@@ -87,14 +86,16 @@ public class MetadataPersistenceServiceTest {
         Authentication authentication = Mockito.mock(Authentication.class);
         Mockito.when(authentication.getPrincipal())
             .thenReturn(new SmartCosmosUser(tenantUrn, "urn:userUrn", "username",
-                "password", Arrays.asList(new SimpleGrantedAuthority("USER"))));
+                                            "password", Arrays.asList(new SimpleGrantedAuthority("USER"))));
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(securityContext.getAuthentication())
+            .thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
     }
 
     @After
     public void tearDown() throws Exception {
+
         metadataRepository.deleteAll();
     }
 
@@ -123,19 +124,48 @@ public class MetadataPersistenceServiceTest {
         Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         assertTrue(response.isPresent());
-        assertEquals(ownerType, response.get().getOwnerType());
-        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
 
-        assertEquals(6, response.get().getMetadata().size());
+        assertEquals(6,
+                     response.get()
+                         .getMetadata()
+                         .size());
 
-        assertEquals(bool, response.get().getMetadata().get("someBool"));
-        assertEquals(jsonObject.toString(), response.get().getMetadata().get("someJsonObject").toString());
-        assertEquals(jsonArray.toString(), response.get().getMetadata().get("someJsonArray").toString());
-        assertEquals(number, response.get().getMetadata().get("someNumber"));
-        assertEquals(NullNode.getInstance(), response.get().getMetadata().get("someNull"));
-        assertEquals(text, response.get().getMetadata().get("someString"));
+        assertEquals(bool,
+                     response.get()
+                         .getMetadata()
+                         .get("someBool"));
+        assertEquals(jsonObject.toString(),
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObject")
+                         .toString());
+        assertEquals(jsonArray.toString(),
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonArray")
+                         .toString());
+        assertEquals(number,
+                     response.get()
+                         .getMetadata()
+                         .get("someNumber"));
+        assertEquals(NullNode.getInstance(),
+                     response.get()
+                         .getMetadata()
+                         .get("someNull"));
+        assertEquals(text,
+                     response.get()
+                         .getMetadata()
+                         .get("someString"));
 
-        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId,
+                                                                                                          ownerType,
+                                                                                                          UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
 
@@ -205,17 +235,39 @@ public class MetadataPersistenceServiceTest {
         Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
 
         assertTrue(response.isPresent());
-        assertEquals(ownerType, response.get().getOwnerType());
-        assertEquals(ownerUrn, response.get().getOwnerUrn());
-        assertEquals(5, response.get().getMetadata().size());
-        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get("upsertBool").toString()));
-        assertEquals("Text", response.get().getMetadata().get("upsertString").toString());
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+        assertEquals(5,
+                     response.get()
+                         .getMetadata()
+                         .size());
+        assertTrue(Boolean.parseBoolean(response.get()
+                                            .getMetadata()
+                                            .get("upsertBool")
+                                            .toString()));
+        assertEquals("Text",
+                     response.get()
+                         .getMetadata()
+                         .get("upsertString")
+                         .toString());
 
-        ObjectNode output = (ObjectNode)response.get().getMetadata().get("upsertJson");
-        assertEquals(1, output.get("x").asInt());
-        assertEquals(2, output.get("y").asInt());
+        ObjectNode output = (ObjectNode) response.get()
+            .getMetadata()
+            .get("upsertJson");
+        assertEquals(1,
+                     output.get("x")
+                         .asInt());
+        assertEquals(2,
+                     output.get("y")
+                         .asInt());
 
-        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId,
+                                                                                                          ownerType,
+                                                                                                          UuidUtil.getUuidFromUrn(ownerUrn));
 
         assertFalse(entityList.isEmpty());
         assertEquals(5, entityList.size());
@@ -233,14 +285,18 @@ public class MetadataPersistenceServiceTest {
         Optional<MetadataResponse> response1 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response1.isPresent());
 
-        assertTrue((Boolean) response1.get().getMetadata().get("duplicateUpsert"));
+        assertTrue((Boolean) response1.get()
+            .getMetadata()
+            .get("duplicateUpsert"));
 
         keyValues.put("duplicateUpsert", false);
 
         Optional<MetadataResponse> response2 = metadataPersistenceService.upsert(tenantUrn, ownerType, ownerUrn, keyValues);
         assertTrue(response2.isPresent());
 
-        assertFalse((Boolean) response2.get().getMetadata().get("duplicateUpsert"));
+        assertFalse((Boolean) response2.get()
+            .getMetadata()
+            .get("duplicateUpsert"));
     }
 
     @Test
@@ -286,22 +342,40 @@ public class MetadataPersistenceServiceTest {
         Optional<MetadataValueResponse> o = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertTrue(o.isPresent());
-        assertEquals(true, o.get().getValue());
-        assertEquals(tenantUrn, o.get().getTenantUrn());
+        assertEquals(true,
+                     o.get()
+                         .getValue());
+        assertEquals(tenantUrn,
+                     o.get()
+                         .getTenantUrn());
 
         Optional<MetadataResponse> response = metadataPersistenceService.update(tenantUrn, ownerType, ownerUrn, keyName, false);
 
         assertTrue(response.isPresent());
-        assertEquals(ownerType, response.get().getOwnerType());
-        assertEquals(ownerUrn, response.get().getOwnerUrn());
-        assertEquals(1, response.get().getMetadata().size());
-        assertFalse(Boolean.parseBoolean(response.get().getMetadata().get("updateMe").toString()));
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+        assertEquals(1,
+                     response.get()
+                         .getMetadata()
+                         .size());
+        assertFalse(Boolean.parseBoolean(response.get()
+                                             .getMetadata()
+                                             .get("updateMe")
+                                             .toString()));
 
         o = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertTrue(o.isPresent());
-        assertEquals(false, o.get().getValue());
-        assertEquals(tenantUrn, o.get().getTenantUrn());
+        assertEquals(false,
+                     o.get()
+                         .getValue());
+        assertEquals(tenantUrn,
+                     o.get()
+                         .getTenantUrn());
     }
 
     // endregion */
@@ -325,10 +399,20 @@ public class MetadataPersistenceServiceTest {
 
         assertFalse(deleteList.isEmpty());
         assertEquals(1, deleteList.size());
-        assertEquals(ownerType, deleteList.get(0).getOwnerType());
-        assertEquals(ownerUrn, deleteList.get(0).getOwnerUrn());
-        assertEquals(1, deleteList.get(0).getMetadata().size());
-        assertTrue(Boolean.parseBoolean(deleteList.get(0).getMetadata().get(keyName).toString()));
+        assertEquals(ownerType,
+                     deleteList.get(0)
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     deleteList.get(0)
+                         .getOwnerUrn());
+        assertEquals(1,
+                     deleteList.get(0)
+                         .getMetadata()
+                         .size());
+        assertTrue(Boolean.parseBoolean(deleteList.get(0)
+                                            .getMetadata()
+                                            .get(keyName)
+                                            .toString()));
     }
 
     @Test
@@ -366,9 +450,16 @@ public class MetadataPersistenceServiceTest {
 
         assertFalse(deleteList.isEmpty());
         assertEquals(2, deleteList.size());
-        assertEquals(ownerType, deleteList.get(0).getOwnerType());
-        assertEquals(ownerUrn, deleteList.get(0).getOwnerUrn());
-        assertEquals(1, deleteList.get(0).getMetadata().size());
+        assertEquals(ownerType,
+                     deleteList.get(0)
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     deleteList.get(0)
+                         .getOwnerUrn());
+        assertEquals(1,
+                     deleteList.get(0)
+                         .getMetadata()
+                         .size());
     }
 
     @Test
@@ -404,8 +495,12 @@ public class MetadataPersistenceServiceTest {
         Optional<MetadataValueResponse> response = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, keyName);
 
         assertTrue(response.isPresent());
-        assertEquals(true, response.get().getValue());
-        assertEquals(tenantUrn, response.get().getTenantUrn());
+        assertEquals(true,
+                     response.get()
+                         .getValue());
+        assertEquals(tenantUrn,
+                     response.get()
+                         .getTenantUrn());
     }
 
     @Test
@@ -444,15 +539,28 @@ public class MetadataPersistenceServiceTest {
         keySet.add(key2);
 
         Optional<MetadataResponse> response = metadataPersistenceService
-                .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
+            .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
 
         assertTrue(response.isPresent());
 
-        assertEquals(ownerType, response.get().getOwnerType());
-        assertEquals(ownerUrn, response.get().getOwnerUrn());
-        assertEquals(keySet.size(), response.get().getMetadata().size());
-        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key1).toString()));
-        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key2).toString()));
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+        assertEquals(keySet.size(),
+                     response.get()
+                         .getMetadata()
+                         .size());
+        assertTrue(Boolean.parseBoolean(response.get()
+                                            .getMetadata()
+                                            .get(key1)
+                                            .toString()));
+        assertTrue(Boolean.parseBoolean(response.get()
+                                            .getMetadata()
+                                            .get(key2)
+                                            .toString()));
     }
 
     @Test
@@ -477,11 +585,24 @@ public class MetadataPersistenceServiceTest {
 
         assertTrue(response.isPresent());
 
-        assertEquals(ownerType, response.get().getOwnerType());
-        assertEquals(ownerUrn, response.get().getOwnerUrn());
-        assertEquals(2, response.get().getMetadata().size());
-        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key1).toString()));
-        assertTrue(Boolean.parseBoolean(response.get().getMetadata().get(key2).toString()));
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+        assertEquals(2,
+                     response.get()
+                         .getMetadata()
+                         .size());
+        assertTrue(Boolean.parseBoolean(response.get()
+                                            .getMetadata()
+                                            .get(key1)
+                                            .toString()));
+        assertTrue(Boolean.parseBoolean(response.get()
+                                            .getMetadata()
+                                            .get(key2)
+                                            .toString()));
     }
 
     @Test
@@ -493,7 +614,7 @@ public class MetadataPersistenceServiceTest {
         Collection<String> keySet = new ArrayList<>();
 
         Optional<MetadataResponse> response = metadataPersistenceService
-                .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
+            .findByOwner(tenantUrn, ownerType, ownerUrn, keySet);
 
         assertFalse(response.isPresent());
     }
@@ -519,10 +640,12 @@ public class MetadataPersistenceServiceTest {
         assertNotNull(response.getData());
         assertNotNull(response.getPage());
 
-        actualPageSize = response.getData().size();
+        actualPageSize = response.getData()
+            .size();
         assertTrue("Expected " + expectedPageSize + " elements on page, but received " + actualPageSize, actualPageSize == expectedPageSize);
 
-        actualTotalSize = response.getPage().getTotalElements();
+        actualTotalSize = response.getPage()
+            .getTotalElements();
         assertTrue("Expected " + expectedTotalSize + " total elements, but received " + actualTotalSize, actualTotalSize == expectedTotalSize);
     }
 
@@ -538,7 +661,7 @@ public class MetadataPersistenceServiceTest {
         final String[] ownerUrns = {
             "urn:thing:uuid:094bd91d-a093-4e40-b461-3b7ba7dc08bb",
             "urn:thing:uuid:06684869-f52d-4b59-a5fd-6424160fb48c",
-            "urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913"};
+            "urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913" };
 
         for (int i = 0; i < ownerUrns.length; i++) {
             createMetadataEntity("ownerType", ownerUrns[i], "fbK", 12);
@@ -560,16 +683,29 @@ public class MetadataPersistenceServiceTest {
         keyValuePairMap.put("fbK2", "Test");
 
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "ownerType",
-            keyValuePairMap, 1, 10, null, null);
+                                                                                                               keyValuePairMap, 1, 10, null, null);
 
-        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913", responsePage.getData().get(0).getOwnerUrn());
+        assertEquals("urn:thing:uuid:89e0abc8-031f-4d89-8314-c8bf0a2b9913",
+                     responsePage.getData()
+                         .get(0)
+                         .getOwnerUrn());
 
-        assertEquals(1, responsePage.getData().size());
-        assertEquals(1, responsePage.getPage().getSize());
-        assertEquals(1, responsePage.getPage().getTotalElements());
+        assertEquals(1,
+                     responsePage.getData()
+                         .size());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePage.getPage().getNumber());
-        assertEquals(1, responsePage.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     @Test
@@ -584,40 +720,71 @@ public class MetadataPersistenceServiceTest {
         createMetadataEntity("ownerB", ownerUrn, "key1", 12);
         createMetadataEntity("ownerB", ownerUrn, "key2", 12);
 
-
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("key1", 12);
         keyValuePairMap.put("key2", 12);
 
         Page<MetadataOwnerResponse> responsePageA = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "ownerA",
-            keyValuePairMap, 1, 10,
-            SortOrder.ASC,
-            "ownerType");
+                                                                                                                keyValuePairMap, 1, 10,
+                                                                                                                SortOrder.ASC,
+                                                                                                                "ownerType");
 
-        assertEquals(1, responsePageA.getData().size());
-        assertEquals(1, responsePageA.getPage().getSize());
-        assertEquals(1, responsePageA.getPage().getTotalElements());
+        assertEquals(1,
+                     responsePageA.getData()
+                         .size());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getSize());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePageA.getPage().getNumber());
-        assertEquals(1, responsePageA.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getTotalPages());
 
-        assertEquals(ownerUrn, responsePageA.getData().get(0).getOwnerUrn());
-        assertEquals("ownerA", responsePageA.getData().get(0).getOwnerType());
+        assertEquals(ownerUrn,
+                     responsePageA.getData()
+                         .get(0)
+                         .getOwnerUrn());
+        assertEquals("ownerA",
+                     responsePageA.getData()
+                         .get(0)
+                         .getOwnerType());
 
         Page<MetadataOwnerResponse> responsePageB = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "ownerB",
-            keyValuePairMap, 1, 10,
-            SortOrder.ASC,
-            "ownerType");
+                                                                                                                keyValuePairMap, 1, 10,
+                                                                                                                SortOrder.ASC,
+                                                                                                                "ownerType");
 
-        assertEquals(1, responsePageB.getData().size());
-        assertEquals(1, responsePageB.getPage().getSize());
-        assertEquals(1, responsePageB.getPage().getTotalElements());
+        assertEquals(1,
+                     responsePageB.getData()
+                         .size());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getSize());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePageB.getPage().getNumber());
-        assertEquals(1, responsePageB.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getTotalPages());
 
-        assertEquals(ownerUrn, responsePageB.getData().get(0).getOwnerUrn());
-        assertEquals("ownerB", responsePageB.getData().get(0).getOwnerType());
+        assertEquals(ownerUrn,
+                     responsePageB.getData()
+                         .get(0)
+                         .getOwnerUrn());
+        assertEquals("ownerB",
+                     responsePageB.getData()
+                         .get(0)
+                         .getOwnerType());
     }
 
     @Test
@@ -627,17 +794,33 @@ public class MetadataPersistenceServiceTest {
         keyValuePairMap.put("NoSuchKey", "NoSuchValue");
         keyValuePairMap.put("NoSuchKey2", "NoSuchValue2");
 
-        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "someOwner",
-            keyValuePairMap, 1, 10, SortOrder.ASC, "ownerType");
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn,
+                                                                                                               "someOwner",
+                                                                                                               keyValuePairMap,
+                                                                                                               1,
+                                                                                                               10,
+                                                                                                               SortOrder.ASC,
+                                                                                                               "ownerType");
 
-        assertTrue(responsePage.getData().isEmpty());
+        assertTrue(responsePage.getData()
+                       .isEmpty());
 
-        assertEquals(0, responsePage.getData().size());
-        assertEquals(0, responsePage.getPage().getSize());
-        assertEquals(0, responsePage.getPage().getTotalElements());
+        assertEquals(0,
+                     responsePage.getData()
+                         .size());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(0,responsePage.getPage().getNumber());
-        assertEquals(0,responsePage.getPage().getTotalPages());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     @Test
@@ -647,7 +830,7 @@ public class MetadataPersistenceServiceTest {
 
         final String[] ownerUrns = {
             "urn:thing:uuid:4bb91563-ff39-486d-b542-5a91f6a3b884",
-            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554"};
+            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554" };
 
         for (String ownerUrn : ownerUrns) {
             createMetadataEntity("ownerType", ownerUrn, "single", "ABC");
@@ -657,17 +840,38 @@ public class MetadataPersistenceServiceTest {
         keyValuePairMap.put("single", "ABC");
 
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn,
-            "ownerType", keyValuePairMap, 1, 10, null, null);
+                                                                                                               "ownerType",
+                                                                                                               keyValuePairMap,
+                                                                                                               1,
+                                                                                                               10,
+                                                                                                               null,
+                                                                                                               null);
 
-        assertEquals(ownerUrns[0], responsePage.getData().get(0).getOwnerUrn());
-        assertEquals(ownerUrns[1], responsePage.getData().get(1).getOwnerUrn());
+        assertEquals(ownerUrns[0],
+                     responsePage.getData()
+                         .get(0)
+                         .getOwnerUrn());
+        assertEquals(ownerUrns[1],
+                     responsePage.getData()
+                         .get(1)
+                         .getOwnerUrn());
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(2,
+                     responsePage.getData()
+                         .size());
+        assertEquals(2,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(2,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePage.getPage().getNumber());
-        assertEquals(1, responsePage.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     @Test
@@ -677,16 +881,32 @@ public class MetadataPersistenceServiceTest {
         keyValuePairMap.put("NoSuchKey", "NoSuchValue");
 
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn,
-            "someOwner", keyValuePairMap, 1, 10, null, null);
+                                                                                                               "someOwner",
+                                                                                                               keyValuePairMap,
+                                                                                                               1,
+                                                                                                               10,
+                                                                                                               null,
+                                                                                                               null);
 
-        assertTrue(responsePage.getData().isEmpty());
+        assertTrue(responsePage.getData()
+                       .isEmpty());
 
-        assertEquals(0, responsePage.getData().size());
-        assertEquals(0, responsePage.getPage().getSize());
-        assertEquals(0, responsePage.getPage().getTotalElements());
+        assertEquals(0,
+                     responsePage.getData()
+                         .size());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(0, responsePage.getPage().getNumber());
-        assertEquals(0, responsePage.getPage().getTotalPages());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     // endregion
@@ -700,8 +920,7 @@ public class MetadataPersistenceServiceTest {
 
         final String[] ownerUrns = {
             "urn:thing:uuid:39e2fae3-e459-4ab8-b051-9ae80cbdd8ec",
-            "urn:thing:uuid:34eb37d3-6528-4d7f-9629-730705819b35"};
-
+            "urn:thing:uuid:34eb37d3-6528-4d7f-9629-730705819b35" };
 
         createMetadataEntityExplicitTenant(tenantId, "ownerType", ownerUrns[0], "keyA", 1);
         createMetadataEntityExplicitTenant(tenantId, "ownerType", ownerUrns[0], "keyB", 2);
@@ -709,20 +928,33 @@ public class MetadataPersistenceServiceTest {
         createMetadataEntityExplicitTenant(tenantId2, "ownerType", ownerUrns[1], "keyA", 1);
         createMetadataEntityExplicitTenant(tenantId2, "ownerType", ownerUrns[1], "keyB", 2);
 
-
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("keyA", 1);
         keyValuePairMap.put("keyB", 2);
 
         Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType",
-                                                                                                               keyValuePairMap, 1, 10, null, null);
+                                                                                                                       keyValuePairMap,
+                                                                                                                       1,
+                                                                                                                       10,
+                                                                                                                       null,
+                                                                                                                       null);
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(2,
+                     responsePage.getData()
+                         .size());
+        assertEquals(2,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(2,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePage.getPage().getNumber());
-        assertEquals(1, responsePage.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     @Test
@@ -737,7 +969,6 @@ public class MetadataPersistenceServiceTest {
         createMetadataEntity("ownerB", ownerUrn, "key1", 12);
         createMetadataEntity("ownerB", ownerUrn, "key2", 12);
 
-
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("key1", 12);
         keyValuePairMap.put("key2", 12);
@@ -747,30 +978,62 @@ public class MetadataPersistenceServiceTest {
                                                                                                                 SortOrder.ASC,
                                                                                                                 "ownerType");
 
-        assertEquals(1, responsePageA.getData().size());
-        assertEquals(1, responsePageA.getPage().getSize());
-        assertEquals(1, responsePageA.getPage().getTotalElements());
+        assertEquals(1,
+                     responsePageA.getData()
+                         .size());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getSize());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePageA.getPage().getNumber());
-        assertEquals(1, responsePageA.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePageA.getPage()
+                         .getTotalPages());
 
-        assertEquals(ownerUrn, responsePageA.getData().get(0).getOwnerUrn());
-        assertEquals("ownerA", responsePageA.getData().get(0).getOwnerType());
+        assertEquals(ownerUrn,
+                     responsePageA.getData()
+                         .get(0)
+                         .getOwnerUrn());
+        assertEquals("ownerA",
+                     responsePageA.getData()
+                         .get(0)
+                         .getOwnerType());
 
         Page<MetadataOwnerResponse> responsePageB = metadataPersistenceService.findOwnersByTypeAndKeyValuePairs(tenantUrn, "ownerB",
                                                                                                                 keyValuePairMap, 1, 10,
                                                                                                                 SortOrder.ASC,
                                                                                                                 "ownerType");
 
-        assertEquals(1, responsePageB.getData().size());
-        assertEquals(1, responsePageB.getPage().getSize());
-        assertEquals(1, responsePageB.getPage().getTotalElements());
+        assertEquals(1,
+                     responsePageB.getData()
+                         .size());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getSize());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePageB.getPage().getNumber());
-        assertEquals(1, responsePageB.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePageB.getPage()
+                         .getTotalPages());
 
-        assertEquals(ownerUrn, responsePageB.getData().get(0).getOwnerUrn());
-        assertEquals("ownerB", responsePageB.getData().get(0).getOwnerType());
+        assertEquals(ownerUrn,
+                     responsePageB.getData()
+                         .get(0)
+                         .getOwnerUrn());
+        assertEquals("ownerB",
+                     responsePageB.getData()
+                         .get(0)
+                         .getOwnerType());
     }
 
     @Test
@@ -780,16 +1043,32 @@ public class MetadataPersistenceServiceTest {
         keyValuePairMap.put("NoSuchKey", "NoSuchValue");
         keyValuePairMap.put("NoSuchKey2", "NoSuchValue2");
 
-        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("someOwner", keyValuePairMap, 1, 10, SortOrder.ASC, "ownerType");
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("someOwner",
+                                                                                                                       keyValuePairMap,
+                                                                                                                       1,
+                                                                                                                       10,
+                                                                                                                       SortOrder.ASC,
+                                                                                                                       "ownerType");
 
-        assertTrue(responsePage.getData().isEmpty());
+        assertTrue(responsePage.getData()
+                       .isEmpty());
 
-        assertEquals(0, responsePage.getData().size());
-        assertEquals(0, responsePage.getPage().getSize());
-        assertEquals(0, responsePage.getPage().getTotalElements());
+        assertEquals(0,
+                     responsePage.getData()
+                         .size());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(0,responsePage.getPage().getNumber());
-        assertEquals(0,responsePage.getPage().getTotalPages());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     @Test
@@ -799,7 +1078,7 @@ public class MetadataPersistenceServiceTest {
 
         final String[] ownerUrns = {
             "urn:thing:uuid:4bb91563-ff39-486d-b542-5a91f6a3b884",
-            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554"};
+            "urn:thing:uuid:74fc2ae7-48c7-4775-a1e2-b785de9ad554" };
 
         for (String ownerUrn : ownerUrns) {
             createMetadataEntity("ownerType", ownerUrn, "single", "ABC");
@@ -808,17 +1087,38 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("single", "ABC");
 
-        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType", keyValuePairMap, 1, 10, null, null);
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType",
+                                                                                                                       keyValuePairMap,
+                                                                                                                       1,
+                                                                                                                       10,
+                                                                                                                       null,
+                                                                                                                       null);
 
-        assertEquals(ownerUrns[0], responsePage.getData().get(0).getOwnerUrn());
-        assertEquals(ownerUrns[1], responsePage.getData().get(1).getOwnerUrn());
+        assertEquals(ownerUrns[0],
+                     responsePage.getData()
+                         .get(0)
+                         .getOwnerUrn());
+        assertEquals(ownerUrns[1],
+                     responsePage.getData()
+                         .get(1)
+                         .getOwnerUrn());
 
-        assertEquals(2, responsePage.getData().size());
-        assertEquals(2, responsePage.getPage().getSize());
-        assertEquals(2, responsePage.getPage().getTotalElements());
+        assertEquals(2,
+                     responsePage.getData()
+                         .size());
+        assertEquals(2,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(2,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(1, responsePage.getPage().getNumber());
-        assertEquals(1, responsePage.getPage().getTotalPages());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(1,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     @Test
@@ -827,16 +1127,32 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> keyValuePairMap = new HashMap<>();
         keyValuePairMap.put("NoSuchKey", "NoSuchValue");
 
-        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType", keyValuePairMap, 1, 10, null, null);
+        Page<MetadataOwnerResponse> responsePage = metadataPersistenceService.findOwnersByTypeAndKeyValuePairsNoTenant("ownerType",
+                                                                                                                       keyValuePairMap,
+                                                                                                                       1,
+                                                                                                                       10,
+                                                                                                                       null,
+                                                                                                                       null);
 
-        assertTrue(responsePage.getData().isEmpty());
+        assertTrue(responsePage.getData()
+                       .isEmpty());
 
-        assertEquals(0, responsePage.getData().size());
-        assertEquals(0, responsePage.getPage().getSize());
-        assertEquals(0, responsePage.getPage().getTotalElements());
+        assertEquals(0,
+                     responsePage.getData()
+                         .size());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getSize());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalElements());
 
-        assertEquals(0, responsePage.getPage().getNumber());
-        assertEquals(0, responsePage.getPage().getTotalPages());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getNumber());
+        assertEquals(0,
+                     responsePage.getPage()
+                         .getTotalPages());
     }
 
     // endregion
@@ -869,7 +1185,8 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(key, value);
 
-        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata).isPresent());
+        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata)
+                              .isPresent());
     }
 
     private void createMetadataEntityExplicitTenant(UUID tenantId, String ownerType, String ownerUrn, String key, Object value) throws Exception {
@@ -877,7 +1194,8 @@ public class MetadataPersistenceServiceTest {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(key, value);
 
-        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata).isPresent());
+        Assert.assertTrue(metadataPersistenceService.create(UuidUtil.getTenantUrnFromUuid(tenantId), ownerType, ownerUrn, metadata)
+                              .isPresent());
     }
 
     // endregion */

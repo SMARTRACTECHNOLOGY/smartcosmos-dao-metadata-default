@@ -12,8 +12,7 @@ import org.junit.*;
 
 import net.smartcosmos.util.UuidUtil;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class MetadataOwnerEntityTest {
 
@@ -26,6 +25,7 @@ public class MetadataOwnerEntityTest {
 
     @BeforeClass
     public static void setUp() {
+
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
@@ -36,15 +36,22 @@ public class MetadataOwnerEntityTest {
         MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
             .type(OWNER_TYPE)
             .id(OWNER_ID)
-//            .tenantId(TENANT_ID)
+            //            .tenantId(TENANT_ID)
             .build();
 
         Set<ConstraintViolation<MetadataOwnerEntity>> violationSet = validator.validate(owner);
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("tenantId", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{javax.validation.constraints.NotNull.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("tenantId",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     // region Owner Type
@@ -53,7 +60,7 @@ public class MetadataOwnerEntityTest {
     public void thatOwnerTypeIsNotNull() {
 
         MetadataOwnerEntity owner = MetadataOwnerEntity.builder()
-//            .type(OWNER)
+            //            .type(OWNER)
             .id(OWNER_ID)
             .tenantId(TENANT_ID)
             .build();
@@ -62,8 +69,15 @@ public class MetadataOwnerEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("type", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("type",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     @Test
@@ -79,8 +93,15 @@ public class MetadataOwnerEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("type", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("type",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     @Test
@@ -96,8 +117,15 @@ public class MetadataOwnerEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("type", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{javax.validation.constraints.Size.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("type",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     // endregion
@@ -117,8 +145,15 @@ public class MetadataOwnerEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("id", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{javax.validation.constraints.NotNull.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("id",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     // endregion

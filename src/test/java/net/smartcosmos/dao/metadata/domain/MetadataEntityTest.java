@@ -1,24 +1,23 @@
 package net.smartcosmos.dao.metadata.domain;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import java.util.Set;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.util.Set;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.junit.*;
 
 import static org.junit.Assert.*;
 
-@SuppressWarnings("Duplicates")
 public class MetadataEntityTest {
 
     private static Validator validator;
 
     private static final MetadataDataType DATA_TYPE = MetadataDataType.STRING;
-    private static final MetadataOwnerEntity OWNER = MetadataOwnerEntity.builder().build();
+    private static final MetadataOwnerEntity OWNER = MetadataOwnerEntity.builder()
+        .build();
     private static final String KEY_NAME = RandomStringUtils.randomAlphanumeric(255);
     private static final String KEY_NAME_INVALID = RandomStringUtils.randomAlphanumeric(256);
     private static final String VALUE = RandomStringUtils.randomAlphanumeric(767);
@@ -26,6 +25,7 @@ public class MetadataEntityTest {
 
     @BeforeClass
     public static void setUp() {
+
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
@@ -52,7 +52,7 @@ public class MetadataEntityTest {
 
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .owner(OWNER)
-//            .dataType(DATA_TYPE)
+            //            .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
             .value(VALUE)
             .build();
@@ -61,8 +61,15 @@ public class MetadataEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.NotNull.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("dataType", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{javax.validation.constraints.NotNull.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("dataType",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     // endregion
@@ -75,7 +82,7 @@ public class MetadataEntityTest {
         MetadataEntity metadataEntity = MetadataEntity.builder()
             .owner(OWNER)
             .dataType(DATA_TYPE)
-//            .keyName(KEY)
+            //            .keyName(KEY)
             .value(VALUE)
             .build();
 
@@ -83,8 +90,15 @@ public class MetadataEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("keyName",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     @Test
@@ -101,8 +115,15 @@ public class MetadataEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{org.hibernate.validator.constraints.NotEmpty.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("keyName",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     @Test
@@ -119,8 +140,15 @@ public class MetadataEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("keyName", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{javax.validation.constraints.Size.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("keyName",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     // endregion
@@ -134,7 +162,7 @@ public class MetadataEntityTest {
             .owner(OWNER)
             .dataType(DATA_TYPE)
             .keyName(KEY_NAME)
-//            .value(VALUE)
+            //            .value(VALUE)
             .build();
 
         Set<ConstraintViolation<MetadataEntity>> violationSet = validator.validate(metadataEntity);
@@ -171,8 +199,15 @@ public class MetadataEntityTest {
 
         assertFalse(violationSet.isEmpty());
         assertEquals(1, violationSet.size());
-        assertEquals("{javax.validation.constraints.Size.message}", violationSet.iterator().next().getMessageTemplate());
-        assertEquals("value", violationSet.iterator().next().getPropertyPath().toString());
+        assertEquals("{javax.validation.constraints.Size.message}",
+                     violationSet.iterator()
+                         .next()
+                         .getMessageTemplate());
+        assertEquals("value",
+                     violationSet.iterator()
+                         .next()
+                         .getPropertyPath()
+                         .toString());
     }
 
     // endregion

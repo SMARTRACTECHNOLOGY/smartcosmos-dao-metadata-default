@@ -82,6 +82,7 @@ public class MetadataOwnerRepositoryTest {
 
     @After
     public void tearDown() throws Exception {
+
         repository.deleteAll();
     }
 
@@ -172,12 +173,23 @@ public class MetadataOwnerRepositoryTest {
         assertTrue(update.isPresent());
 
         Optional<MetadataEntity> savedMetadataEntity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(owner
-            .getTenantId(),owner.getType(), owner.getId(), key);
+                                                                                                                                               .getTenantId(),
+                                                                                                                                           owner
+                                                                                                                                               .getType(),
+                                                                                                                                           owner
+                                                                                                                                               .getId(),
+                                                                                                                                           key);
 
         assertTrue(savedMetadataEntity.isPresent());
-        assertEquals(key, savedMetadataEntity.get().getKeyName());
-        assertEquals(newValue, savedMetadataEntity.get().getValue());
-        assertEquals(newDataType, savedMetadataEntity.get().getDataType());
+        assertEquals(key,
+                     savedMetadataEntity.get()
+                         .getKeyName());
+        assertEquals(newValue,
+                     savedMetadataEntity.get()
+                         .getValue());
+        assertEquals(newDataType,
+                     savedMetadataEntity.get()
+                         .getDataType());
     }
 
     @Test

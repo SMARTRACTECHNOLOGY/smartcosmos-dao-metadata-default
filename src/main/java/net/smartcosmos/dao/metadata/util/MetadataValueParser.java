@@ -1,17 +1,19 @@
 package net.smartcosmos.dao.metadata.util;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
-import net.smartcosmos.dao.metadata.domain.MetadataDataType;
-import net.smartcosmos.dao.metadata.domain.MetadataEntity;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import net.smartcosmos.dao.metadata.domain.MetadataDataType;
+import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 
 @Slf4j
 public class MetadataValueParser {
@@ -72,6 +74,7 @@ public class MetadataValueParser {
      * @return the object's string representation
      */
     public static String getValue(Object object) {
+
         if (object != null) {
 
             if ((MetadataDataType.JSON_OBJECT == getDataType(object)) ||
@@ -99,7 +102,7 @@ public class MetadataValueParser {
      */
     public static MetadataDataType getDataType(Object object) {
 
-        if (object == JSONObject.NULL || object == null){
+        if (object == JSONObject.NULL || object == null) {
             return MetadataDataType.JSON_LITERAL_NULL;
         }
 

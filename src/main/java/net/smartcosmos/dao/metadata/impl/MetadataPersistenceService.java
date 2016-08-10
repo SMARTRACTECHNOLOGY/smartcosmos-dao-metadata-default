@@ -48,9 +48,11 @@ public class MetadataPersistenceService implements MetadataDao {
     private final ConversionService conversionService;
 
     @Autowired
-    public MetadataPersistenceService(MetadataRepository metadataRepository,
-                                      MetadataOwnerRepository ownerRepository,
-                                      ConversionService conversionService) {
+    public MetadataPersistenceService(
+        MetadataRepository metadataRepository,
+        MetadataOwnerRepository ownerRepository,
+        ConversionService conversionService) {
+
         this.metadataRepository = metadataRepository;
         this.ownerRepository = ownerRepository;
         this.conversionService = conversionService;
@@ -126,20 +128,21 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     private List<MetadataEntity> getMetadataEntities(Map<String, Object> metadataMap, Set<String> keys, MetadataOwnerEntity owner) {
-        return keys.stream()
-                    .map(key -> {
-                        Object object = metadataMap.get(key);
-                        String value = MetadataValueParser.getValue(object);
-                        MetadataDataType dataType = MetadataValueParser.getDataType(object);
 
-                        return MetadataEntity.builder()
-                            .owner(owner)
-                            .keyName(key)
-                            .value(value)
-                            .dataType(dataType)
-                            .build();
-                    })
-                    .collect(Collectors.toList());
+        return keys.stream()
+            .map(key -> {
+                Object object = metadataMap.get(key);
+                String value = MetadataValueParser.getValue(object);
+                MetadataDataType dataType = MetadataValueParser.getDataType(object);
+
+                return MetadataEntity.builder()
+                    .owner(owner)
+                    .keyName(key)
+                    .value(value)
+                    .dataType(dataType)
+                    .build();
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -167,7 +170,8 @@ public class MetadataPersistenceService implements MetadataDao {
                 .value(stringValue)
                 .build();
 
-            Optional<MetadataEntity> entity = ownerRepository.updateMetadataEntity(owner.get().getInternalId(), metadataEntity);
+            Optional<MetadataEntity> entity = ownerRepository.updateMetadataEntity(owner.get()
+                                                                                       .getInternalId(), metadataEntity);
 
             if (entity.isPresent()) {
                 MetadataResponse response = conversionService.convert(entity.get(), MetadataResponse.class);
@@ -207,7 +211,8 @@ public class MetadataPersistenceService implements MetadataDao {
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
             List<MetadataOwnerEntity> ownerList = ownerRepository.deleteByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
             if (!ownerList.isEmpty()) {
-                deleteList.addAll(ownerList.get(0).getAllMetadataEntities());
+                deleteList.addAll(ownerList.get(0)
+                                      .getAllMetadataEntities());
             }
         } catch (IllegalArgumentException e) {
             // empty list will be returned anyway
@@ -224,11 +229,16 @@ public class MetadataPersistenceService implements MetadataDao {
             UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
             UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-            Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, key);
+            Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
+                                                                                                                                  ownerType,
+                                                                                                                                  ownerId,
+                                                                                                                                  key);
 
             if (entity.isPresent()) {
                 Object value = MetadataValueParser.parseValue(entity.get());
-                String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get().getOwner().getTenantId());
+                String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get()
+                                                                             .getOwner()
+                                                                             .getTenantId());
                 MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
 
                 return Optional.ofNullable(response);
@@ -255,7 +265,10 @@ public class MetadataPersistenceService implements MetadataDao {
         if (keys == null || keys.isEmpty()) {
             responseCollection = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, ownerId);
         } else {
-            responseCollection = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCaseIn(tenantId, ownerType, ownerId, keys);
+            responseCollection = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCaseIn(tenantId,
+                                                                                                                       ownerType,
+                                                                                                                       ownerId,
+                                                                                                                       keys);
         }
         MetadataResponse response = conversionService.convert(responseCollection, MetadataResponse.class);
 
@@ -269,7 +282,8 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Page<MetadataSingleResponse> findByOwnerType(String tenantUrn, String ownerType, Integer page, Integer size, SortOrder sortOrder, String
+    public Page<MetadataSingleResponse> findByOwnerType(
+        String tenantUrn, String ownerType, Integer page, Integer size, SortOrder sortOrder, String
         sortBy) {
 
         Sort.Direction direction = MetadataPersistenceUtil.getSortDirection(sortOrder);
@@ -279,8 +293,9 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
-    public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairs(String tenantUrn, String ownerType, Map<String, Object> keyValuePairs,
-                                                                        Integer page, Integer size, SortOrder sortOrder, String sortBy) {
+    public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairs(
+        String tenantUrn, String ownerType, Map<String, Object> keyValuePairs,
+        Integer page, Integer size, SortOrder sortOrder, String sortBy) {
 
         UUID tenantId = null;
         if (StringUtils.isNotBlank(tenantUrn)) {
@@ -295,13 +310,14 @@ public class MetadataPersistenceService implements MetadataDao {
         } else {
             org.springframework.data.domain.Page<MetadataOwnerEntity> ownerPage =
                 metadataRepository.findProjectedByTenantIdAndOwnerTypeAndKeyValuePairs
-                (tenantId, ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
+                    (tenantId, ownerType, keyValuePairs, getPageable(page, size, sortBy, direction));
             return convertPage(ownerPage, MetadataOwnerEntity.class, MetadataOwnerResponse.class);
         }
     }
 
     @Override
-    public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairsNoTenant(String ownerType,
+    public Page<MetadataOwnerResponse> findOwnersByTypeAndKeyValuePairsNoTenant(
+        String ownerType,
         Map<String, Object> keyValuePairs, Integer page, Integer size, SortOrder sortOrder, String sortBy) {
 
         if (keyValuePairs.size() == 1) {
@@ -314,14 +330,15 @@ public class MetadataPersistenceService implements MetadataDao {
         return findOwnersByTypeAndKeyValuePairs(null, ownerType, keyValuePairs, page, size, sortOrder, sortBy);
     }
 
-
     private Page<MetadataOwnerResponse> findOwnerBySingleKeyValuePair(
         UUID tenantId,
         String ownerType,
         Map<String, Object> keyValuePairs,
         Pageable pageable) {
 
-        String keyName = keyValuePairs.keySet().iterator().next();
+        String keyName = keyValuePairs.keySet()
+            .iterator()
+            .next();
         String value = MetadataValueParser.getValue(keyValuePairs.get(keyName));
         MetadataDataType dataType = MetadataValueParser.getDataType(keyValuePairs.get(keyName));
 
@@ -336,7 +353,9 @@ public class MetadataPersistenceService implements MetadataDao {
         Map<String, Object> keyValuePairs,
         Pageable pageable) {
 
-        String keyName = keyValuePairs.keySet().iterator().next();
+        String keyName = keyValuePairs.keySet()
+            .iterator()
+            .next();
         String value = MetadataValueParser.getValue(keyValuePairs.get(keyName));
         MetadataDataType dataType = MetadataValueParser.getDataType(keyValuePairs.get(keyName));
 
@@ -352,11 +371,10 @@ public class MetadataPersistenceService implements MetadataDao {
         try {
             UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
             org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
-                    .findByOwner_TenantIdAndOwner_Type(tenantId, ownerType, pageable);
+                .findByOwner_TenantIdAndOwner_Type(tenantId, ownerType, pageable);
 
             return convertPage(pageEntity, MetadataEntity.class, MetadataSingleResponse.class);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             log.warn("Error processing URN: Tenant URN '{}'", tenantUrn);
         }
 
@@ -373,7 +391,6 @@ public class MetadataPersistenceService implements MetadataDao {
      * @param <T> the generic target type
      * @return the converted typed list
      */
-    @SuppressWarnings("unchecked")
     private <S, T> List<T> convertList(List<S> list, Class sourceClass, Class targetClass) {
 
         TypeDescriptor sourceDescriptor = TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(sourceClass));
@@ -413,10 +430,18 @@ public class MetadataPersistenceService implements MetadataDao {
      */
     private Pageable getPageable(Integer page, Integer size, String sortBy, Sort.Direction direction) {
 
-        if (page == null) { page = DEFAULT_PAGE; }
-        if (size == null) { size = DEFAULT_SIZE; }
-        if (sortBy == null) { sortBy = DEFAULT_SORT_BY; }
-        if (direction == null) { direction = Sort.Direction.fromString(DEFAULT_SORT_ORDER.toString()); }
+        if (page == null) {
+            page = DEFAULT_PAGE;
+        }
+        if (size == null) {
+            size = DEFAULT_SIZE;
+        }
+        if (sortBy == null) {
+            sortBy = DEFAULT_SORT_BY;
+        }
+        if (direction == null) {
+            direction = Sort.Direction.fromString(DEFAULT_SORT_ORDER.toString());
+        }
 
         if (page < 1) {
             throw new IllegalArgumentException("Page index must not be less than one!");
