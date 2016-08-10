@@ -26,7 +26,9 @@ public class MetadataEntityCollectionToMetadataResponseConverter
 
         if (!metadata.isEmpty()) {
 
-            MetadataOwnerEntity owner = entities.iterator().next().getOwner();
+            MetadataOwnerEntity owner = entities.iterator()
+                .next()
+                .getOwner();
 
             return MetadataResponse.builder()
                 .ownerType(owner.getType())
@@ -41,6 +43,7 @@ public class MetadataEntityCollectionToMetadataResponseConverter
 
     @Override
     public void registerFormatters(FormatterRegistry registry) {
+
         registry.addConverter(this);
     }
 }

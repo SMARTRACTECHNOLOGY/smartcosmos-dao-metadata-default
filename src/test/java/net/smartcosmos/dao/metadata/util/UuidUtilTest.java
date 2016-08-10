@@ -1,10 +1,10 @@
 package net.smartcosmos.dao.metadata.util;
 
-import org.junit.Test;
-
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.*;
+
+import static org.junit.Assert.*;
 
 public class UuidUtilTest {
 

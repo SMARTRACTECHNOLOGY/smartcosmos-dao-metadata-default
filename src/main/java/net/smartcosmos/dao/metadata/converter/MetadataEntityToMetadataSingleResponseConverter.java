@@ -12,23 +12,28 @@ import net.smartcosmos.dto.metadata.MetadataSingleResponse;
 
 @Component
 public class MetadataEntityToMetadataSingleResponseConverter
-        implements Converter<MetadataEntity, MetadataSingleResponse>, FormatterRegistrar {
+    implements Converter<MetadataEntity, MetadataSingleResponse>, FormatterRegistrar {
 
     @Override
     public MetadataSingleResponse convert(MetadataEntity entity) {
 
         return MetadataSingleResponse.builder()
-            .ownerType(entity.getOwner().getType())
-            .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getOwner().getId()))
+            .ownerType(entity.getOwner()
+                           .getType())
+            .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getOwner()
+                                                       .getId()))
             .key(entity.getKeyName())
-            .dataType(entity.getDataType().toString())
+            .dataType(entity.getDataType()
+                          .toString())
             .value(MetadataValueParser.parseValue(entity))
-            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getOwner().getTenantId()))
+            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getOwner()
+                                                         .getTenantId()))
             .build();
     }
 
     @Override
     public void registerFormatters(FormatterRegistry registry) {
+
         registry.addConverter(this);
     }
 }

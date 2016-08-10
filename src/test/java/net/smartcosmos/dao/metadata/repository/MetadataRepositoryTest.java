@@ -27,7 +27,6 @@ import net.smartcosmos.util.UuidUtil;
 import static org.junit.Assert.*;
 
 /**
- *
  * Sometimes these runtime created methods have issues that don't come up until they're
  * actually called. It's a minor setback with Spring, one that just requires some diligent
  * testing.
@@ -76,7 +75,10 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, keyName);
+        List<MetadataEntity> entityList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
+                                                                                                                                ownerType,
+                                                                                                                                ownerId,
+                                                                                                                                keyName);
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
@@ -84,31 +86,56 @@ public class MetadataRepositoryTest {
         MetadataEntity entity = entityList.get(0);
 
         assertEquals("true", entity.getValue());
-        assertEquals("Boolean", entity.getDataType().toString());
+        assertEquals("Boolean",
+                     entity.getDataType()
+                         .toString());
         assertEquals(keyName, entity.getKeyName());
     }
 
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, keyName);
+
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
+                                                                                                                              ownerType,
+                                                                                                                              ownerId,
+                                                                                                                              keyName);
 
         assertTrue(entity.isPresent());
 
-        assertEquals("true", entity.get().getValue());
-        assertEquals("Boolean", entity.get().getDataType().toString());
-        assertEquals(keyName, entity.get().getKeyName());
+        assertEquals("true",
+                     entity.get()
+                         .getValue());
+        assertEquals("Boolean",
+                     entity.get()
+                         .getDataType()
+                         .toString());
+        assertEquals(keyName,
+                     entity.get()
+                         .getKeyName());
     }
 
     @Test
     public void thatTypeAndKeyCaseInsensitive() throws Exception {
-        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, keyName.toUpperCase());
+
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
+                                                                                                                              ownerType,
+                                                                                                                              ownerId,
+                                                                                                                              keyName.toUpperCase());
 
         assertTrue(entity.isPresent());
 
-        assertEquals("true", entity.get().getValue());
-        assertEquals("Boolean", entity.get().getDataType().toString());
-        assertEquals(keyName, entity.get().getKeyName());
+        assertEquals("true",
+                     entity.get()
+                         .getValue());
+        assertEquals("Boolean",
+                     entity.get()
+                         .getDataType()
+                         .toString());
+        assertEquals(keyName,
+                     entity.get()
+                         .getKeyName());
     }
+
     @Test
     public void findByTenantIdPageable() throws Exception {
 
@@ -132,19 +159,24 @@ public class MetadataRepositoryTest {
 
             MetadataEntity entity = metadataRepository
                 .save(MetadataEntity.builder()
-                    .owner(owner)
-                    .dataType(MetadataDataType.BOOLEAN)
-                    .keyName("pageTest")
-                    .value("true")
-                    .build());
+                          .owner(owner)
+                          .dataType(MetadataDataType.BOOLEAN)
+                          .keyName("pageTest")
+                          .value("true")
+                          .build());
         }
 
-
         Page<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_Type(tenantId, "pageTest", new PageRequest(0, 1));
-        assertFalse(entityList.getContent().isEmpty());
+        assertFalse(entityList.getContent()
+                        .isEmpty());
 
-        assertEquals(1, entityList.getContent().size());
-        assertEquals("true", entityList.getContent().get(0).getValue());
+        assertEquals(1,
+                     entityList.getContent()
+                         .size());
+        assertEquals("true",
+                     entityList.getContent()
+                         .get(0)
+                         .getValue());
         assertEquals(entityCount, entityList.getTotalElements());
     }
 

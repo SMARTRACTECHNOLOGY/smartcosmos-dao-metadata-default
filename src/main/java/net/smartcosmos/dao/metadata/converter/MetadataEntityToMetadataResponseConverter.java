@@ -25,15 +25,19 @@ public class MetadataEntityToMetadataResponseConverter
         metadata.put(entity.getKeyName(), value);
 
         return MetadataResponse.builder()
-            .ownerType(entity.getOwner().getType())
-            .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getOwner().getId()))
+            .ownerType(entity.getOwner()
+                           .getType())
+            .ownerUrn(UuidUtil.getThingUrnFromUuid(entity.getOwner()
+                                                       .getId()))
             .metadata(metadata)
-            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getOwner().getTenantId()))
+            .tenantUrn(UuidUtil.getTenantUrnFromUuid(entity.getOwner()
+                                                         .getTenantId()))
             .build();
     }
 
     @Override
     public void registerFormatters(FormatterRegistry registry) {
+
         registry.addConverter(this);
     }
 }

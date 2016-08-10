@@ -3,17 +3,19 @@ package net.smartcosmos.dao.metadata.util;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.junit.*;
+
 import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 import net.smartcosmos.dao.metadata.domain.MetadataEntity;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class MetadataValueParserTest {
 
     @Test
     public void thatNullCanBeParsed() {
+
         MetadataEntity entity = MetadataEntity.builder()
             .dataType(MetadataDataType.JSON_LITERAL_NULL)
             .build();
@@ -92,8 +94,12 @@ public class MetadataValueParserTest {
         assertTrue(o instanceof ObjectNode);
         ObjectNode output = (ObjectNode) o;
 
-        assertEquals(1, output.get("x").asInt());
-        assertEquals(2, output.get("y").asInt());
+        assertEquals(1,
+                     output.get("x")
+                         .asInt());
+        assertEquals(2,
+                     output.get("y")
+                         .asInt());
     }
 
     @Test
@@ -109,8 +115,14 @@ public class MetadataValueParserTest {
         assertTrue(o instanceof ArrayNode);
         ArrayNode output = (ArrayNode) o;
 
-        assertEquals(1, output.get(0).get("x").asInt());
-        assertEquals(2, output.get(1).get("x").asInt());
+        assertEquals(1,
+                     output.get(0)
+                         .get("x")
+                         .asInt());
+        assertEquals(2,
+                     output.get(1)
+                         .get("x")
+                         .asInt());
     }
 
 }

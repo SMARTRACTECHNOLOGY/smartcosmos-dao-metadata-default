@@ -1,26 +1,46 @@
 package net.smartcosmos.dao.metadata.domain;
 
-import lombok.*;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.apache.commons.collections4.MapUtils;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.util.*;
-
 @Entity(name = "metadataOwner")
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(exclude = {"metadataEntities"})
-@ToString(exclude = {"metadataEntities"})
+@EqualsAndHashCode(exclude = { "metadataEntities" })
+@ToString(exclude = { "metadataEntities" })
 @Table(
     name = "metadataOwner",
-    uniqueConstraints = {@UniqueConstraint(columnNames = { "type", "id", "tenantId" })}
-    )
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "type", "id", "tenantId" }) }
+)
 public class MetadataOwnerEntity implements Serializable {
 
     public static final String ID_FIELD_NAME = "internalId";
@@ -56,7 +76,7 @@ public class MetadataOwnerEntity implements Serializable {
     @Setter(AccessLevel.NONE)
     @Getter
     @OneToMany(mappedBy = MetadataEntity.OWNER_FIELD_NAME,
-               cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+               cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE },
                orphanRemoval = true,
                fetch = FetchType.LAZY)
     @MapKeyColumn(name = MetadataEntity.KEY_NAME_FIELD_NAME)
@@ -65,6 +85,7 @@ public class MetadataOwnerEntity implements Serializable {
     @Builder
     @java.beans.ConstructorProperties({ "internalId", "type", "id", "tenantId", "metadataEntities" })
     public MetadataOwnerEntity(UUID internalId, String type, UUID id, UUID tenantId, Map<String, MetadataEntity> metadataEntities) {
+
         this.internalId = internalId;
         this.type = type;
         this.id = id;
@@ -76,6 +97,7 @@ public class MetadataOwnerEntity implements Serializable {
     }
 
     public Collection<? extends MetadataEntity> getAllMetadataEntities() {
+
         return metadataEntities.values();
     }
 }

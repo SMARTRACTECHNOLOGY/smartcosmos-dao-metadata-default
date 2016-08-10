@@ -26,6 +26,7 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
     @Lazy
     @Autowired
     public MetadataOwnerRepositoryImpl(MetadataOwnerRepository repository) {
+
         this.repository = repository;
     }
 
@@ -78,7 +79,9 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
 
         Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, type, id);
 
-        if (owner.isPresent() && owner.get().getMetadataEntities().isEmpty()) {
+        if (owner.isPresent() && owner.get()
+            .getMetadataEntities()
+            .isEmpty()) {
             repository.delete(owner.get());
         }
     }
@@ -99,6 +102,7 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
     }
 
     private Map<String, MetadataEntity> initMetadataEntities(MetadataOwnerEntity owner) {
+
         Map<String, MetadataEntity> metadataEntities = owner.getMetadataEntities();
 
         if (!Hibernate.isInitialized(metadataEntities)) {
@@ -108,7 +112,8 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         return metadataEntities;
     }
 
-    public MetadataOwnerEntity persist (MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
+    public MetadataOwnerEntity persist(MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException {
+
         try {
             return repository.save(entity);
         } catch (TransactionException e) {

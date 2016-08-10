@@ -7,6 +7,7 @@ import net.smartcosmos.dao.metadata.domain.MetadataDataType;
 
 @Converter(autoApply = true)
 public class MetadataDataTypeConverter implements AttributeConverter<MetadataDataType, Integer> {
+
     @Override
     public Integer convertToDatabaseColumn(MetadataDataType attribute) {
 

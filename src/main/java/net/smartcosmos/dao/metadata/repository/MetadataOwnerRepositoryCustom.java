@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.transaction.TransactionException;
@@ -59,7 +58,7 @@ public interface MetadataOwnerRepositoryCustom {
      * @param entity the metadata owner entity to persist
      * @return the persisted metadata owner entity
      * @throws ConstraintViolationException if the transaction fails due to violated constraints
-     * @throws TransactionException if the transaction fails because of something else
+     * @throws TransactionException         if the transaction fails because of something else
      */
-    MetadataOwnerEntity persist (MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException;
+    MetadataOwnerEntity persist(MetadataOwnerEntity entity) throws ConstraintViolationException, TransactionException;
 }
