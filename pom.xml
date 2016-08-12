@@ -11,7 +11,7 @@
         <relativePath></relativePath>
     </parent>
     <artifactId>smartcosmos-dao-metadata-default</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
     <name>SMART COSMOS Metadata DAO Impl for JPA Entities</name>
     <description>Access simple Metadata entities</description>
     <dependencyManagement>
@@ -88,6 +88,6 @@
         <connection>scm:git:ssh://git@github.com/SMARTRACTECHNOLOGY/smartcosmos-dao-metadata-default.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/SMARTRACTECHNOLOGY/smartcosmos-dao-metadata-default.git</developerConnection>
         <url>https://github.com/SMARTRACTECHNOLOGY/smartcosmos-dao-metadata-default/tree/master/</url>
-        <tag>HEAD</tag>
+        <tag>v3.0.0</tag>
     </scm>
 </project>
