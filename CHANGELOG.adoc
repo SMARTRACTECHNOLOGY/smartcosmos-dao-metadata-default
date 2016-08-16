@@ -1,0 +1,15 @@
+= SMART COSMOS DAO Metadata for JPA Release Notes
+
+== UNRELEASED
+
+=== New Features
+
+No new features are added in this release.
+
+=== Bugfixes & Improvements
+
+* OBJECTS-979 Empty page response returns incorrect number of pages
+
+== Release 3.0.0 (August 12, 2016)
+
+Initial release.
