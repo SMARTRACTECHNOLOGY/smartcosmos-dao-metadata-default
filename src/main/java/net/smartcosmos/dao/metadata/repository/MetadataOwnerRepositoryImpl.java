@@ -44,8 +44,9 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         for (MetadataEntity metadataEntity : metadataEntities) {
             metadataEntity.setOwner(owner);
 
-            ownerMetadataEntities.putIfAbsent(metadataEntity.getKeyName(), metadataEntity);
+            ownerMetadataEntities.put(metadataEntity.getKeyName(), metadataEntity);
         }
+        persist(owner);
     }
 
     @Override
