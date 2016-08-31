@@ -9,6 +9,7 @@ No new features are added in this release.
 === Bugfixes & Improvements
 
 * OBJECTS-979 Empty page response returns incorrect number of pages
+* OBJECTS-1009 Upsert Metadata has no effect on existing entries
 
 == Release 3.0.0 (August 12, 2016)
 
