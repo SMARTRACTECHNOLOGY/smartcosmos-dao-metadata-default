@@ -195,7 +195,7 @@ public class MetadataPersistenceService implements MetadataDao {
             ownerRepository.orphanDelete(tenantId, ownerType, ownerId);
         } catch (IllegalArgumentException e) {
             // empty list will be returned anyway
-            log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
+            log.warn("Illegal URN submitted: {} by tenant {}", ownerUrn, tenantUrn);
         }
 
         return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
@@ -216,7 +216,7 @@ public class MetadataPersistenceService implements MetadataDao {
             }
         } catch (IllegalArgumentException e) {
             // empty list will be returned anyway
-            log.warn("Illegal URN submitted: %s by tenant %s", ownerUrn, tenantUrn);
+            log.warn("Illegal URN submitted: {} by tenant {}", ownerUrn, tenantUrn);
         }
 
         return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
