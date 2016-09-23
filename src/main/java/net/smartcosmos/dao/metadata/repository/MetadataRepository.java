@@ -34,6 +34,11 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
         UUID ownerId,
         String keyName);
 
+    Optional<MetadataEntity> findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(
+        String ownerType,
+        UUID ownerId,
+        String keyName);
+
     Page<MetadataEntity> findByOwner_TenantIdAndOwner_Type(UUID ownerId, String ownerType, Pageable pageable);
 
     List<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_Id(UUID tenantId, String ownerType, UUID ownerId);

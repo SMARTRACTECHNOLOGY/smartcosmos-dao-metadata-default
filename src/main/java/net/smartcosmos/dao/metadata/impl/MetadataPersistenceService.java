@@ -252,6 +252,33 @@ public class MetadataPersistenceService implements MetadataDao {
     }
 
     @Override
+    public Optional<MetadataValueResponse> findByKeyNoTenant(String ownerType, String ownerUrn, String key) {
+
+        try {
+            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+
+            Optional<MetadataEntity> entity = metadataRepository.findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(ownerType,
+                                                                                                                 ownerId,
+                                                                                                                 key);
+
+            if (entity.isPresent()) {
+                Object value = MetadataValueParser.parseValue(entity.get());
+                String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get()
+                                                                             .getOwner()
+                                                                             .getTenantId());
+                MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
+
+                return Optional.ofNullable(response);
+            }
+        } catch (IllegalArgumentException e) {
+            // empty Optional will be returned anyway
+            log.warn("Illegal URN submitted: %s", ownerUrn);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<MetadataResponse> findByOwner(
         String tenantUrn,
         String ownerType,
