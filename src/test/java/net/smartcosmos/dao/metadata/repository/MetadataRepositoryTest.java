@@ -36,6 +36,7 @@ import static org.junit.Assert.*;
 @ActiveProfiles("test")
 @WebAppConfiguration
 @IntegrationTest({ "spring.cloud.config.enabled=false", "eureka.client.enabled:false" })
+@SuppressWarnings("duplicates")
 public class MetadataRepositoryTest {
 
     @Autowired
@@ -99,6 +100,27 @@ public class MetadataRepositoryTest {
                                                                                                                               ownerType,
                                                                                                                               ownerId,
                                                                                                                               keyName);
+
+        assertTrue(entity.isPresent());
+
+        assertEquals("true",
+                     entity.get()
+                         .getValue());
+        assertEquals("Boolean",
+                     entity.get()
+                         .getDataType()
+                         .toString());
+        assertEquals(keyName,
+                     entity.get()
+                         .getKeyName());
+    }
+
+    @Test
+    public void thatFindByKeyNoTenantIsSuccessful() throws Exception {
+
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(ownerType,
+                                                                                                             ownerId,
+                                                                                                             keyName);
 
         assertTrue(entity.isPresent());
 

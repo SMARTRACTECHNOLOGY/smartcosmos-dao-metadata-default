@@ -517,6 +517,46 @@ public class MetadataPersistenceServiceTest {
 
     // endregion */
 
+    // region Find by Key No Tenant
+
+    @Test
+    public void testFindByKeyNoTenant() {
+
+        final String keyName = "findMeNoTenant";
+        final Boolean value = true;
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put(keyName, value);
+
+        metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
+
+        Optional<MetadataValueResponse> response = metadataPersistenceService.findByKeyNoTenant(ownerType, ownerUrn, keyName);
+
+        assertTrue(response.isPresent());
+        assertEquals(true,
+                     response.get()
+                         .getValue());
+        assertEquals(tenantUrn,
+                     response.get()
+                         .getTenantUrn());
+    }
+
+    @Test
+    public void testFindByKeyNoTenantNonexistent() {
+
+        final String keyName = "this-does-not-existNoTenant";
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        Optional<MetadataValueResponse> response = metadataPersistenceService.findByKeyNoTenant(ownerType, ownerUrn, keyName);
+
+        assertFalse(response.isPresent());
+    }
+
+    // endregion */
+
     // region Find by Owner
 
     @Test
