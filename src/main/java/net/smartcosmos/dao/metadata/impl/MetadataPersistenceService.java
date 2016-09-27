@@ -189,14 +189,9 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
-        try {
-            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-            deleteList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, key);
-            ownerRepository.orphanDelete(tenantId, ownerType, ownerId);
-        } catch (IllegalArgumentException e) {
-            // empty list will be returned anyway
-            log.warn("Illegal URN submitted: {} by tenant {}", ownerUrn, tenantUrn);
-        }
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+        deleteList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId, ownerType, ownerId, key);
+        ownerRepository.orphanDelete(tenantId, ownerType, ownerId);
 
         return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
     }
@@ -207,16 +202,11 @@ public class MetadataPersistenceService implements MetadataDao {
         UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
         List<MetadataEntity> deleteList = new ArrayList<>();
 
-        try {
-            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
-            List<MetadataOwnerEntity> ownerList = ownerRepository.deleteByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
-            if (!ownerList.isEmpty()) {
-                deleteList.addAll(ownerList.get(0)
-                                      .getAllMetadataEntities());
-            }
-        } catch (IllegalArgumentException e) {
-            // empty list will be returned anyway
-            log.warn("Illegal URN submitted: {} by tenant {}", ownerUrn, tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+        List<MetadataOwnerEntity> ownerList = ownerRepository.deleteByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
+        if (!ownerList.isEmpty()) {
+            deleteList.addAll(ownerList.get(0)
+                                  .getAllMetadataEntities());
         }
 
         return convertList(deleteList, MetadataEntity.class, MetadataResponse.class);
@@ -225,27 +215,22 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public Optional<MetadataValueResponse> findByKey(String tenantUrn, String ownerType, String ownerUrn, String key) {
 
-        try {
-            UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
-            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-            Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
-                                                                                                                                  ownerType,
-                                                                                                                                  ownerId,
-                                                                                                                                  key);
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
+                                                                                                                              ownerType,
+                                                                                                                              ownerId,
+                                                                                                                              key);
 
-            if (entity.isPresent()) {
-                Object value = MetadataValueParser.parseValue(entity.get());
-                String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get()
-                                                                             .getOwner()
-                                                                             .getTenantId());
-                MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
+        if (entity.isPresent()) {
+            Object value = MetadataValueParser.parseValue(entity.get());
+            String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get()
+                                                                         .getOwner()
+                                                                         .getTenantId());
+            MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
 
-                return Optional.ofNullable(response);
-            }
-        } catch (IllegalArgumentException e) {
-            // empty Optional will be returned anyway
-            log.warn("Illegal URN submitted: %s by account %s", ownerUrn, tenantUrn);
+            return Optional.ofNullable(response);
         }
 
         return Optional.empty();
@@ -254,25 +239,20 @@ public class MetadataPersistenceService implements MetadataDao {
     @Override
     public Optional<MetadataValueResponse> findByKeyNoTenant(String ownerType, String ownerUrn, String key) {
 
-        try {
-            UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
+        UUID ownerId = UuidUtil.getUuidFromUrn(ownerUrn);
 
-            Optional<MetadataEntity> entity = metadataRepository.findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(ownerType,
-                                                                                                                 ownerId,
-                                                                                                                 key);
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(ownerType,
+                                                                                                             ownerId,
+                                                                                                             key);
 
-            if (entity.isPresent()) {
-                Object value = MetadataValueParser.parseValue(entity.get());
-                String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get()
-                                                                             .getOwner()
-                                                                             .getTenantId());
-                MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
+        if (entity.isPresent()) {
+            Object value = MetadataValueParser.parseValue(entity.get());
+            String responseTenantUrn = UuidUtil.getTenantUrnFromUuid(entity.get()
+                                                                         .getOwner()
+                                                                         .getTenantId());
+            MetadataValueResponse response = new MetadataValueResponse(value, responseTenantUrn);
 
-                return Optional.ofNullable(response);
-            }
-        } catch (IllegalArgumentException e) {
-            // empty Optional will be returned anyway
-            log.warn("Illegal URN submitted: %s", ownerUrn);
+            return Optional.ofNullable(response);
         }
 
         return Optional.empty();
@@ -394,18 +374,11 @@ public class MetadataPersistenceService implements MetadataDao {
 
     private Page<MetadataSingleResponse> findByOwnerTypePage(String tenantUrn, String ownerType, Pageable pageable) {
 
-        Page<MetadataSingleResponse> result = MetadataPersistenceUtil.emptyPage();
-        try {
-            UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
-            org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
-                .findByOwner_TenantIdAndOwner_Type(tenantId, ownerType, pageable);
+        UUID tenantId = UuidUtil.getUuidFromUrn(tenantUrn);
+        org.springframework.data.domain.Page<MetadataEntity> pageEntity = metadataRepository
+            .findByOwner_TenantIdAndOwner_Type(tenantId, ownerType, pageable);
 
-            return convertPage(pageEntity, MetadataEntity.class, MetadataSingleResponse.class);
-        } catch (IllegalArgumentException e) {
-            log.warn("Error processing URN: Tenant URN '{}'", tenantUrn);
-        }
-
-        return result;
+        return convertPage(pageEntity, MetadataEntity.class, MetadataSingleResponse.class);
     }
 
     /**
