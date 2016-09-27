@@ -78,7 +78,7 @@ public class MetadataOwnerRepositoryImpl implements MetadataOwnerRepositoryCusto
         Assert.notNull(tenantId, "tenantId must not be null");
         Assert.notNull(id, "id must not be null");
 
-        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, type, id);
+        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeAndId(tenantId, type, id);
 
         if (owner.isPresent() && owner.get()
             .getMetadataEntities()

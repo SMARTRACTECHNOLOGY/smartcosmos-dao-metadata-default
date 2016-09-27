@@ -11,8 +11,8 @@ import net.smartcosmos.dao.metadata.domain.MetadataOwnerEntity;
 
 public interface MetadataOwnerRepository extends JpaRepository<MetadataOwnerEntity, UUID>, MetadataOwnerRepositoryCustom {
 
-    Optional<MetadataOwnerEntity> findByTenantIdAndTypeIgnoreCaseAndId(UUID tenantId, String type, UUID id);
+    Optional<MetadataOwnerEntity> findByTenantIdAndTypeAndId(UUID tenantId, String type, UUID id);
 
     @Transactional
-    List<MetadataOwnerEntity> deleteByTenantIdAndTypeIgnoreCaseAndId(UUID tenantId, String type, UUID id);
+    List<MetadataOwnerEntity> deleteByTenantIdAndTypeAndId(UUID tenantId, String type, UUID id);
 }

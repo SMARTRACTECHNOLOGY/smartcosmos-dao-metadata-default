@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.*;
-import org.junit.runner.*;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -76,10 +76,10 @@ public class MetadataRepositoryTest {
     @Test
     public void thatDeleteIsSuccessful() throws Exception {
 
-        List<MetadataEntity> entityList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
-                                                                                                                                ownerType,
-                                                                                                                                ownerId,
-                                                                                                                                keyName);
+        List<MetadataEntity> entityList = metadataRepository.deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyName(tenantId,
+                                                                                                                      ownerType,
+                                                                                                                      ownerId,
+                                                                                                                      keyName);
 
         assertFalse(entityList.isEmpty());
         assertEquals(1, entityList.size());
@@ -96,10 +96,10 @@ public class MetadataRepositoryTest {
     @Test
     public void thatFindByKeyIsSuccessful() throws Exception {
 
-        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
-                                                                                                                              ownerType,
-                                                                                                                              ownerId,
-                                                                                                                              keyName);
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyName(tenantId,
+                                                                                                                    ownerType,
+                                                                                                                    ownerId,
+                                                                                                                    keyName);
 
         assertTrue(entity.isPresent());
 
@@ -118,31 +118,9 @@ public class MetadataRepositoryTest {
     @Test
     public void thatFindByKeyNoTenantIsSuccessful() throws Exception {
 
-        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(ownerType,
-                                                                                                             ownerId,
-                                                                                                             keyName);
-
-        assertTrue(entity.isPresent());
-
-        assertEquals("true",
-                     entity.get()
-                         .getValue());
-        assertEquals("Boolean",
-                     entity.get()
-                         .getDataType()
-                         .toString());
-        assertEquals(keyName,
-                     entity.get()
-                         .getKeyName());
-    }
-
-    @Test
-    public void thatTypeAndKeyCaseInsensitive() throws Exception {
-
-        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(tenantId,
-                                                                                                                              ownerType,
-                                                                                                                              ownerId,
-                                                                                                                              keyName.toUpperCase());
+        Optional<MetadataEntity> entity = metadataRepository.findByOwner_TypeAndOwner_IdAndKeyName(ownerType,
+                                                                                                   ownerId,
+                                                                                                   keyName);
 
         assertTrue(entity.isPresent());
 
