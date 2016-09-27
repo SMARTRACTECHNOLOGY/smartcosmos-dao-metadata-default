@@ -19,7 +19,7 @@ public class UuidUtil {
 
     public static UUID getUuidFromUrn(String urn) throws IllegalArgumentException {
 
-        String urnScheme = "urn:.*:uuid:([A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})";
+        String urnScheme = "^urn:.*:uuid:([A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})$";
 
         Pattern p = Pattern.compile(urnScheme, Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(urn);
