@@ -26,6 +26,20 @@ public class UuidUtilTest {
         UuidUtil.getUuidFromUrn(urn);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getUuidFromInvaldiUrnPrefix() throws Exception {
+
+        final String urn = "INVALID-urn:thing:uuid:8e24eabd-1be9-46ac-8c7d-1e753746b413";
+        UuidUtil.getUuidFromUrn(urn);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getUuidFromInvaldiUrnSuffix() throws Exception {
+
+        final String urn = "urn:thing:uuid:8e24eabd-1be9-46ac-8c7d-1e753746b413-INVALID";
+        UuidUtil.getUuidFromUrn(urn);
+    }
+
     @Test
     public void getThingUrnFromUuid() throws Exception {
 
