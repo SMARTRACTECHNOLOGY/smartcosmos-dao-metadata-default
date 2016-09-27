@@ -16,25 +16,25 @@ import net.smartcosmos.dao.metadata.domain.MetadataEntity;
 
 public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>, JpaSpecificationExecutor<MetadataEntity>, MetadataRepositoryCustom {
 
-    Long countByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCaseIn(
+    Long countByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIn(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
         Collection<String> keyNames);
 
-    List<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCaseIn(
+    List<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIn(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
         Collection<String> keyNames);
 
-    Optional<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(
+    Optional<MetadataEntity> findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyName(
         UUID tenantId,
         String ownerType,
         UUID ownerId,
         String keyName);
 
-    Optional<MetadataEntity> findByOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(
+    Optional<MetadataEntity> findByOwner_TypeAndOwner_IdAndKeyName(
         String ownerType,
         UUID ownerId,
         String keyName);
@@ -54,7 +54,7 @@ public interface MetadataRepository extends JpaRepository<MetadataEntity, UUID>,
         String value, Pageable pageable);
 
     @Transactional
-    List<MetadataEntity> deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(
+    List<MetadataEntity> deleteByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyName(
         UUID tenantId,
         String ownerType,
         UUID ownerId,

@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.*;
-import org.junit.runner.*;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -89,7 +89,7 @@ public class MetadataOwnerRepositoryTest {
     @Test
     public void findByTenantIdAndTypeIgnoreCaseAndId() throws Exception {
 
-        Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
+        Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeAndId(tenantId, ownerType, ownerId);
         assertTrue(entity.isPresent());
     }
 
@@ -108,7 +108,7 @@ public class MetadataOwnerRepositoryTest {
 
         repository.orphanDelete(tenantId, ownerType, ownerId);
 
-        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
+        Optional<MetadataOwnerEntity> owner = repository.findByTenantIdAndTypeAndId(tenantId, ownerType, ownerId);
         assertFalse(owner.isPresent());
     }
 
@@ -117,7 +117,7 @@ public class MetadataOwnerRepositoryTest {
 
         repository.orphanDelete(tenantId, ownerType, ownerId);
 
-        Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeIgnoreCaseAndId(tenantId, ownerType, ownerId);
+        Optional<MetadataOwnerEntity> entity = repository.findByTenantIdAndTypeAndId(tenantId, ownerType, ownerId);
         assertTrue(entity.isPresent());
     }
 
@@ -172,13 +172,13 @@ public class MetadataOwnerRepositoryTest {
 
         assertTrue(update.isPresent());
 
-        Optional<MetadataEntity> savedMetadataEntity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyNameIgnoreCase(owner
+        Optional<MetadataEntity> savedMetadataEntity = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_IdAndKeyName(owner
                                                                                                                                                .getTenantId(),
-                                                                                                                                           owner
+                                                                                                                                 owner
                                                                                                                                                .getType(),
-                                                                                                                                           owner
+                                                                                                                                 owner
                                                                                                                                                .getId(),
-                                                                                                                                           key);
+                                                                                                                                 key);
 
         assertTrue(savedMetadataEntity.isPresent());
         assertEquals(key,
