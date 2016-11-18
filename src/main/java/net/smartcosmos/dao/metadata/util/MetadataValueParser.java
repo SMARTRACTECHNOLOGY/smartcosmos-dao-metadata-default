@@ -49,7 +49,6 @@ public class MetadataValueParser {
                 case JSON_ARRAY:
                 case JSON_OBJECT:
                     ObjectMapper mapper = new ObjectMapper();
-                    mapper.enableDefaultTyping();
                     try {
                         return mapper.readTree(entity.getValue());
                     } catch (IOException e) {
@@ -81,7 +80,6 @@ public class MetadataValueParser {
                 (MetadataDataType.JSON_ARRAY == getDataType(object))) {
 
                 ObjectMapper mapper = new ObjectMapper();
-                mapper.enableDefaultTyping();
                 try {
                     return mapper.writeValueAsString(object);
                 } catch (JsonProcessingException e) {

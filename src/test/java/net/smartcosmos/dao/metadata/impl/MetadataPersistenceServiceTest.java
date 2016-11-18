@@ -174,6 +174,232 @@ public class MetadataPersistenceServiceTest {
     }
 
     @Test
+    public void testCreateWithComplexJsonMetadataValue() throws Exception {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        final JSONObject jsonObject = new JSONObject("{ \"frog\" : \"bog\", \"log\" : { \"dog\" : \"hog\", \"flog\" : { \"grog\" : \"mog\" } } }");
+        final String jsonAsString = "{ \"frog\" : \"bog\", \"log\" : { \"dog\" : \"hog\", \"flog\" : { \"grog\" : \"mog\" } } }";
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("someJsonObject", jsonObject);
+        keyValues.put("someJsonObjectAsString", jsonAsString);
+
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
+
+        assertTrue(response.isPresent());
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+
+        assertEquals(2,
+                     response.get()
+                         .getMetadata()
+                         .size());
+
+        assertEquals(jsonObject.toString(),
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObject")
+                         .toString());
+
+        assertEquals(jsonAsString,
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObjectAsString")
+                         .toString());
+
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId,
+                                                                                                          ownerType,
+                                                                                                          UuidUtil.getUuidFromUrn(ownerUrn));
+
+        assertFalse(entityList.isEmpty());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(2, entityList.size());
+    }
+
+    @Test
+    public void testCreateWithComplexJsonMetadataValue2() throws Exception {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        final JSONObject jsonObject = new JSONObject("{\n"
+                                                     + "    \"minH\": 6,\n"
+                                                     + "    \"minW\": 6,\n"
+                                                     + "    \"x\": 0,\n"
+                                                     + "    \"y\": 0,\n"
+                                                     + "    \"w\": 6,\n"
+                                                     + "    \"h\": 6,\n"
+                                                     + "    \"static\": false,\n"
+                                                     + "    \"state\": {\n"
+                                                     + "        \"type\": \"\",\n"
+                                                     + "        \"title\": \"\",\n"
+                                                     + "        \"configuration\": {\n"
+                                                     + "            \"chartType\": \"bar\"\n"
+                                                     + "        }\n"
+                                                     + "     }\n"
+                                                     + "   }\n"
+                                                     + "    \"maxH\": 8,\n"
+                                                     + "    \"maxW\": 8,\n"
+                                                     + "}");
+
+        final String jsonAsString = "{\n"
+                                    + "    \"minH\": 6,\n"
+                                    + "    \"minW\": 6,\n"
+                                    + "    \"x\": 0,\n"
+                                    + "    \"y\": 0,\n"
+                                    + "    \"w\": 6,\n"
+                                    + "    \"h\": 6,\n"
+                                    + "    \"static\": false,\n"
+                                    + "    \"state\": {\n"
+                                    + "        \"type\": \"\",\n"
+                                    + "        \"title\": \"\",\n"
+                                    + "        \"configuration\": {\n"
+                                    + "            \"chartType\": \"bar\"\n"
+                                    + "        }\n"
+                                    + "     }\n"
+                                    + "   }\n"
+                                    + "    \"maxH\": 8,\n"
+                                    + "    \"maxW\": 8,\n"
+                                    + "}";
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("someJsonObjectAsString", jsonAsString);
+        keyValues.put("someJsonObject", jsonObject);
+
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
+
+        Optional<MetadataValueResponse> getResponseJsonObject = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, "someJsonObject");
+        Optional<MetadataValueResponse> getResponseJsonObjectAsString = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, "someJsonObjectAsString");
+
+        assertTrue(response.isPresent());
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+
+        assertEquals(2,
+                     response.get()
+                         .getMetadata()
+                         .size());
+
+        assertEquals(jsonObject.toString(),
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObject")
+                         .toString());
+
+        assertEquals(jsonAsString,
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObjectAsString")
+                         .toString());
+
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId,
+                                                                                                          ownerType,
+                                                                                                          UuidUtil.getUuidFromUrn(ownerUrn));
+
+        assertFalse(entityList.isEmpty());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(2, entityList.size());
+    }
+
+    @Test
+    public void testCreateWithComplexJsonMetadataValue3() throws Exception {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+        final JSONObject jsonObject = new JSONObject("{\n"
+                                                     + "    \"lastUpdatedAt\":\"2016-11-17T01:55:02.187Z\",\n"
+                                                     + "    \"w\":6,\n"
+                                                     + "    \"h\":6,\n"
+                                                     + "    \"x\":6,\n"
+                                                     + "    \"y\":0,\n"
+                                                     + "    \"minW\":4,\n"
+                                                     + "    \"minH\":4,\n"
+                                                     + "    \"moved\":false,\n"
+                                                     + "    \"static\":false,\n"
+                                                     + "    \"state\": {\n"
+                                                     + "        \"title\": \"asdasda\",\n"
+                                                     + "         \"configuration\": {\n"
+                                                     + "             \"metricType\": \"chart\"\n"
+                                                     + "         }\n"
+                                                     + "    }\n"
+                                                     + "}");
+
+        final String jsonAsString = "{\n"
+                                    + "    \"lastUpdatedAt\":\"2016-11-17T01:55:02.187Z\",\n"
+                                    + "    \"w\":6,\n"
+                                    + "    \"h\":6,\n"
+                                    + "    \"x\":6,\n"
+                                    + "    \"y\":0,\n"
+                                    + "    \"minW\":4,\n"
+                                    + "    \"minH\":4,\n"
+                                    + "    \"moved\":false,\n"
+                                    + "    \"static\":false,\n"
+                                    + "    \"state\": {\n"
+                                    + "        \"title\": \"asdasda\",\n"
+                                    + "         \"configuration\": {\n"
+                                    + "             \"metricType\": \"chart\"\n"
+                                    + "         }\n"
+                                    + "    }\n"
+                                    + "}";
+
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("someJsonObjectAsString", jsonAsString);
+        keyValues.put("someJsonObject", jsonObject);
+
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
+
+        Optional<MetadataValueResponse> getResponseJsonObject = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, "someJsonObject");
+        Optional<MetadataValueResponse> getResponseJsonObjectAsString = metadataPersistenceService.findByKey(tenantUrn, ownerType, ownerUrn, "someJsonObjectAsString");
+
+        assertTrue(response.isPresent());
+        assertEquals(ownerType,
+                     response.get()
+                         .getOwnerType());
+        assertEquals(ownerUrn,
+                     response.get()
+                         .getOwnerUrn());
+
+        assertEquals(2,
+                     response.get()
+                         .getMetadata()
+                         .size());
+
+        assertEquals(jsonObject.toString(),
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObject")
+                         .toString());
+
+        assertEquals(jsonAsString,
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObjectAsString")
+                         .toString());
+
+        List<MetadataEntity> entityList = metadataRepository.findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId,
+                                                                                                          ownerType,
+                                                                                                          UuidUtil.getUuidFromUrn(ownerUrn));
+
+        assertFalse(entityList.isEmpty());
+
+        assertFalse(entityList.isEmpty());
+        assertEquals(2, entityList.size());
+    }
+
+    @Test
     public void testCreateFailOnDuplicateKey() {
 
         final String ownerType = "Thing";
