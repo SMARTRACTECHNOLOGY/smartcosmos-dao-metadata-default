@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.*;
-import org.junit.runner.*;
+import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
@@ -402,6 +402,7 @@ public class MetadataPersistenceServiceTest {
     @Test
     public void testCreateFailOnDuplicateKey() {
 
+
         final String ownerType = "Thing";
         final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
@@ -413,6 +414,15 @@ public class MetadataPersistenceServiceTest {
 
         Optional<MetadataResponse> response2 = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
         assertFalse(response2.isPresent());
+    }
+
+    @Test
+    public void testVeryLongJsonObject() {
+
+        final String ownerType = "Thing";
+        final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
+
+
     }
 
     @Test
