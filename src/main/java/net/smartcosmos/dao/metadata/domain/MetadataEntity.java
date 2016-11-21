@@ -51,11 +51,11 @@ public class MetadataEntity implements Serializable {
     public static final String CREATED_FIELD_NAME = "created";
     public static final String LAST_MODIFIED_FIELD_NAME = "lastModified";
 
-    private static final int UUID_LENGTH = 16;
-    private static final int KEY_NAME_LENGTH = 255;
-    private static final int DATA_TYPE_LENGTH = 255;
-    private static final int OWNER_TYPE_LENGTH = 255;
-    private static final int VALUE_LENGTH = 767;
+    protected static final int UUID_LENGTH = 16;
+    protected static final int KEY_NAME_LENGTH = 255;
+    protected static final int DATA_TYPE_LENGTH = 255;
+    protected static final int OWNER_TYPE_LENGTH = 255;
+    protected static final int VALUE_LENGTH = 16383;
 
     @Id
     @NotNull

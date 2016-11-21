@@ -16,12 +16,11 @@ public class MetadataEntityTest {
     private static Validator validator;
 
     private static final MetadataDataType DATA_TYPE = MetadataDataType.STRING;
-    private static final MetadataOwnerEntity OWNER = MetadataOwnerEntity.builder()
-        .build();
-    private static final String KEY_NAME = RandomStringUtils.randomAlphanumeric(255);
-    private static final String KEY_NAME_INVALID = RandomStringUtils.randomAlphanumeric(256);
-    private static final String VALUE = RandomStringUtils.randomAlphanumeric(767);
-    private static final String VALUE_INVALID = RandomStringUtils.randomAlphanumeric(768);
+    private static final MetadataOwnerEntity OWNER = MetadataOwnerEntity.builder().build();
+    private static final String KEY_NAME = RandomStringUtils.randomAlphanumeric(MetadataEntity.KEY_NAME_LENGTH);
+    private static final String KEY_NAME_INVALID = RandomStringUtils.randomAlphanumeric(MetadataEntity.KEY_NAME_LENGTH + 1);
+    private static final String VALUE = RandomStringUtils.randomAlphanumeric(MetadataEntity.VALUE_LENGTH);
+    private static final String VALUE_INVALID = RandomStringUtils.randomAlphanumeric(MetadataEntity.VALUE_LENGTH + 1);
 
     @BeforeClass
     public static void setUp() {

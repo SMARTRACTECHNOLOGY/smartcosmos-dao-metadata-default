@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.*;
@@ -422,7 +423,33 @@ public class MetadataPersistenceServiceTest {
         final String ownerType = "Thing";
         final String ownerUrn = UuidUtil.getThingUrnFromUuid(UUID.randomUUID());
 
+        String longString = RandomStringUtils.randomAlphanumeric(16000);
+        final JSONObject jsonObject = new JSONObject("{\"attr\": \"" + longString + "\"}");
 
+        Map<String, Object> keyValues = new HashMap<>();
+        keyValues.put("someJsonObject", jsonObject);
+
+        Optional<MetadataResponse> response = metadataPersistenceService.create(tenantUrn, ownerType, ownerUrn, keyValues);
+
+        assertTrue(response.isPresent());
+        assertEquals(ownerType, response.get().getOwnerType());
+        assertEquals(ownerUrn, response.get().getOwnerUrn());
+        assertEquals(1,
+                     response.get()
+                         .getMetadata()
+                         .size());
+        assertEquals(jsonObject.toString(),
+                     response.get()
+                         .getMetadata()
+                         .get("someJsonObject")
+                         .toString());
+
+        List<MetadataEntity> entityList = metadataRepository
+            .findByOwner_TenantIdAndOwner_TypeAndOwner_Id(tenantId, ownerType, UuidUtil.getUuidFromUrn(ownerUrn));
+
+        assertFalse(entityList.isEmpty());
+        assertFalse(entityList.isEmpty());
+        assertEquals(1, entityList.size());
     }
 
     @Test
