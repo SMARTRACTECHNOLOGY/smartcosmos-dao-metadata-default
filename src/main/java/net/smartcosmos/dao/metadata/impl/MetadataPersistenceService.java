@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
 
 import net.smartcosmos.dao.metadata.MetadataDao;
 import net.smartcosmos.dao.metadata.SortOrder;
@@ -117,7 +119,17 @@ public class MetadataPersistenceService implements MetadataDao {
             MetadataOwnerEntity ownerEntity = getOwner(tenantId, ownerType, ownerId);
 
             List<MetadataEntity> entityList = getMetadataEntities(metadataMap, keys, ownerEntity);
-            ownerRepository.addMetadataEntitiesToOwner(ownerEntity.getInternalId(), entityList);
+            try {
+                ownerRepository.addMetadataEntitiesToOwner(ownerEntity.getInternalId(), entityList);
+            } catch (TransactionException e) {
+                // we expect constraint violations to be the root cause for exceptions here,
+                // so we throw this particular exception back to the caller
+                if (ExceptionUtils.getRootCause(e) instanceof ConstraintViolationException) {
+                    throw (ConstraintViolationException) ExceptionUtils.getRootCause(e);
+                } else {
+                    throw e;
+                }
+            }
 
             MetadataResponse response = conversionService.convert(entityList, MetadataResponse.class);
 
