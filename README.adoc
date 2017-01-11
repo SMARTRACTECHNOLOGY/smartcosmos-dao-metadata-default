@@ -4,7 +4,6 @@ ifdef::env-github[:USER: SMARTRACTECHNOLOGY]
 ifdef::env-github[:REPO: smartcosmos-dao-metadata-default]
 ifdef::env-github[:BRANCH: master]
 
-image::https://travis-ci.org/{USER}/{REPO}.svg?branch={BRANCH}[Build Status, link=https://travis-ci.org/{USER}/{REPO}]
 image::https://jenkins.smartcosmos.net/buildStatus/icon?job={USER}/{REPO}/{BRANCH}[Build Status, link=https://jenkins.smartcosmos.net/job/{USER}/job/{REPO}/job/{BRANCH}/]
 
 Implementation of the Metadata DAO for JPA (relational databases).  This is an example implementation that defines a historical database structure closely resembling previous versions of Objects to facilitate a migration pattern for those moving into the next major release.
